@@ -1,0 +1,116 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Inscription - TDBR{% endblock %}
+
+{% block body %}
+    <section class="min-h-screen py-20 bg-gradient-to-br from-primary/5 via-white to-secondary/5 flex items-center">
+        <div class="container mx-auto px-4">
+            <div class="max-w-2xl mx-auto">
+                {# Card d'inscription #}
+                <div class="card p-10 shadow-2xl">
+                    {# Logo/Titre #}
+                    <div class="text-center mb-8">
+                        <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-secondary to-primary rounded-full mb-4 shadow-lg glow-secondary">
+                            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                            </svg>
+                        </div>
+                        <h1 class="font-heading text-4xl font-black mb-2">
+                            <span class="gradient-text">Créer un compte</span>
+                        </h1>
+                        <p class="text-gray-600">Rejoignez la famille TDBR dès maintenant</p>
+                    </div>
+
+                    {# Formulaire #}
+                    {{ form_start(form, {'attr': {'class': 'space-y-6'}}) }}
+
+                        {# Informations personnelles #}
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="form-group">
+                                {{ form_label(form.prenom) }}
+                                {{ form_widget(form.prenom) }}
+                                {{ form_errors(form.prenom) }}
+                            </div>
+                            <div class="form-group">
+                                {{ form_label(form.nom) }}
+                                {{ form_widget(form.nom) }}
+                                {{ form_errors(form.nom) }}
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            {{ form_label(form.email) }}
+                            {{ form_widget(form.email) }}
+                            {{ form_errors(form.email) }}
+                        </div>
+
+                        <div class="form-group">
+                            {{ form_label(form.telephone) }}
+                            {{ form_widget(form.telephone) }}
+                            {{ form_errors(form.telephone) }}
+                        </div>
+
+                        {# Mot de passe #}
+                        <div class="pt-6 border-t">
+                            <h3 class="font-heading text-lg font-bold mb-4 text-gray-900">Mot de passe</h3>
+                            <div class="space-y-6">
+                                <div class="form-group">
+                                    {{ form_label(form.password.first) }}
+                                    {{ form_widget(form.password.first) }}
+                                    {{ form_errors(form.password.first) }}
+                                    <p class="mt-1 text-xs text-gray-500">Minimum 8 caractères</p>
+                                </div>
+                                <div class="form-group">
+                                    {{ form_label(form.password.second) }}
+                                    {{ form_widget(form.password.second) }}
+                                    {{ form_errors(form.password.second) }}
+                                </div>
+                            </div>
+                        </div>
+
+                        {# CGV #}
+                        <div class="pt-6 border-t">
+                            <div class="p-4 bg-gray-50 rounded-xl text-sm text-gray-600">
+                                <p>En créant un compte, vous acceptez nos
+                                    <a href="#" class="text-primary hover:text-secondary font-medium">Conditions Générales de Vente</a>
+                                    et notre
+                                    <a href="#" class="text-primary hover:text-secondary font-medium">Politique de Confidentialité</a>.
+                                </p>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-primary w-full py-4 text-lg glow">
+                            <span class="flex items-center justify-center gap-3">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                                </svg>
+                                Créer mon compte
+                            </span>
+                        </button>
+
+                    {{ form_end(form) }}
+
+                    {# Lien connexion #}
+                    <div class="mt-8 pt-8 border-t text-center">
+                        <p class="text-gray-600">
+                            Vous avez déjà un compte ?
+                            <a href="{{ path('connexion') }}" class="text-primary hover:text-secondary font-semibold ml-1">
+                                Se connecter
+                            </a>
+                        </p>
+                    </div>
+                </div>
+
+                {# Retour accueil #}
+                <div class="text-center mt-8">
+                    <a href="{{ path('home') }}" class="inline-flex items-center gap-2 text-gray-600 hover:text-primary transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                        Retour à l'accueil
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

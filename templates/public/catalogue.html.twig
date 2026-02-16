@@ -1,0 +1,144 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Catalogue - TDBR{% endblock %}
+
+{% block body %}
+    {# Hero Section #}
+    <section class="py-12 bg-gradient-to-br from-accent to-white">
+        <div class="container mx-auto px-4">
+            <div class="text-center">
+                <h1 class="font-heading text-5xl font-bold mb-4">
+                    Notre <span class="gradient-text">Catalogue</span>
+                </h1>
+                <p class="text-lg text-gray-700">
+                    Découvrez nos créations artisanales uniques
+                </p>
+            </div>
+        </div>
+    </section>
+
+    {# Catalogue Section #}
+    <section class="py-12 bg-white">
+        <div class="container mx-auto px-4">
+            <div class="grid lg:grid-cols-4 gap-8">
+                {# Sidebar Filtres #}
+                <aside class="lg:col-span-1">
+                    <div class="card p-6 sticky top-24">
+                        <h2 class="font-heading text-xl font-bold mb-6">Filtres</h2>
+
+                        {# Catégories #}
+                        <div class="mb-6">
+                            <h3 class="font-medium text-gray-900 mb-3">Catégories</h3>
+                            <div class="space-y-2">
+                                <a href="{{ path('catalogue') }}"
+                                   class="block px-3 py-2 rounded transition {{ selectedCategory is null ? 'bg-primary text-white' : 'hover:bg-gray-100' }}">
+                                    Toutes les catégories
+                                </a>
+                                {% for category in categories %}
+                                    <a href="{{ path('catalogue', {categorie: category._id}) }}"
+                                       class="block px-3 py-2 rounded transition {{ selectedCategory == category._id|string ? 'bg-primary text-white' : 'hover:bg-gray-100' }}">
+                                        {{ category.nom }}
+                                        {% if category.icon is defined %}
+                                            <span class="ml-2">{{ category.icon }}</span>
+                                        {% endif %}
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        {# Stats #}
+                        <div class="pt-6 border-t">
+                            <p class="text-sm text-gray-600">
+                                <span class="font-bold text-primary">{{ total }}</span> article{{ total > 1 ? 's' : '' }} trouvé{{ total > 1 ? 's' : '' }}
+                            </p>
+                        </div>
+                    </div>
+                </aside>
+
+                {# Grille Articles #}
+                <div class="lg:col-span-3">
+                    {% if articles|length > 0 %}
+                        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {% for article in articles %}
+                                {% include 'components/article_card.html.twig' with {'article': article} %}
+                            {% endfor %}
+                        </div>
+
+                        {# Pagination #}
+                        {% if totalPages > 1 %}
+                            <nav class="flex justify-center mt-12">
+                                <ul class="flex gap-2">
+                                    {% if currentPage > 1 %}
+                                        <li>
+                                            <a href="{{ path('catalogue', {page: currentPage - 1, categorie: selectedCategory}) }}"
+                                               class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded transition">
+                                                Précédent
+                                            </a>
+                                        </li>
+                                    {% endif %}
+
+                                    {% for i in 1..totalPages %}
+                                        {% if i == currentPage %}
+                                            <li>
+                                                <span class="px-4 py-2 bg-primary text-white rounded">{{ i }}</span>
+                                            </li>
+                                        {% elseif i == 1 or i == totalPages or (i >= currentPage - 2 and i <= currentPage + 2) %}
+                                            <li>
+                                                <a href="{{ path('catalogue', {page: i, categorie: selectedCategory}) }}"
+                                                   class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded transition">
+                                                    {{ i }}
+                                                </a>
+                                            </li>
+                                        {% elseif i == currentPage - 3 or i == currentPage + 3 %}
+                                            <li>
+                                                <span class="px-4 py-2 text-gray-500">...</span>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% if currentPage < totalPages %}
+                                        <li>
+                                            <a href="{{ path('catalogue', {page: currentPage + 1, categorie: selectedCategory}) }}"
+                                               class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded transition">
+                                                Suivant
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        {% endif %}
+                    {% else %}
+                        {# Aucun article #}
+                        <div class="text-center py-20">
+                            <svg class="w-24 h-24 mx-auto text-gray-300 mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                            </svg>
+                            <h3 class="font-heading text-2xl font-bold mb-4">Aucun article trouvé</h3>
+                            <p class="text-gray-600 mb-8">
+                                Nous n'avons pas trouvé d'articles correspondant à vos critères.
+                            </p>
+                            <a href="{{ path('catalogue') }}" class="btn-primary">
+                                Voir tous les articles
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {# CTA Section #}
+    <section class="py-16 bg-accent/20">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="font-heading text-3xl font-bold mb-4">
+                Vous ne trouvez pas ce que vous cherchez ?
+            </h2>
+            <p class="text-lg text-gray-700 mb-8">
+                Nous créons également des peluches sur mesure selon vos envies.
+            </p>
+            <a href="{{ path('contact') }}" class="btn-primary">
+                Demander une Création Personnalisée
+            </a>
+        </div>
+    </section>
+{% endblock %}

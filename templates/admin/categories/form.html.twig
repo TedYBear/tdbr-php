@@ -1,0 +1,36 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% block title %}{{ category ? 'Modifier' : 'Nouvelle' }} Catégorie{% endblock %}
+{% block page_title %}{{ category ? 'Modifier' : 'Nouvelle' }} Catégorie{% endblock %}
+
+{% block body %}
+    <div class="max-w-2xl">
+        <form method="post" class="card p-6 space-y-6">
+            <div class="form-group">
+                <label>Nom *</label>
+                <input type="text" name="nom" value="{{ category ? category.nom : '' }}" required class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label>Description</label>
+                <textarea name="description" rows="3" class="form-textarea">{{ category ? category.description : '' }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Ordre</label>
+                <input type="number" name="ordre" value="{{ category ? category.ordre : 0 }}" class="form-input">
+                <p class="text-sm text-gray-600 mt-1">Ordre d'affichage (0 = premier)</p>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <input type="checkbox" name="actif" id="actif" {{ category and category.actif ? 'checked' : (not category ? 'checked' : '') }} class="w-5 h-5 text-primary rounded">
+                <label for="actif" class="cursor-pointer">Catégorie active</label>
+            </div>
+
+            <div class="flex gap-3 pt-4">
+                <button type="submit" class="btn-primary">{{ category ? 'Mettre à jour' : 'Créer' }}</button>
+                <a href="{{ path('admin_categories') }}" class="btn-outline">Annuler</a>
+            </div>
+        </form>
+    </div>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends 'emails/base.html.twig' %}
+
+{% block header_title %}Bienvenue sur TDBR !{% endblock %}
+
+{% block content %}
+    <h2 style="color: #2C2416; margin-top: 0;">Bonjour {{ userName }} !</h2>
+
+    <p style="font-size: 16px; line-height: 1.6; color: #333;">
+        Nous sommes ravis de vous accueillir dans la famille TDBR ! 🎉
+    </p>
+
+    <p style="font-size: 16px; line-height: 1.6; color: #333;">
+        Votre compte a été créé avec succès. Vous pouvez dès maintenant :
+    </p>
+
+    <ul style="font-size: 16px; line-height: 1.8; color: #333;">
+        <li>Parcourir notre catalogue de créations uniques</li>
+        <li>Passer des commandes</li>
+        <li>Suivre l'état de vos commandes</li>
+        <li>Gérer vos informations personnelles</li>
+    </ul>
+
+    <div style="text-align: center; margin: 30px 0;">
+        <a href="http://localhost:8000/catalogue" class="button">
+            Découvrir le Catalogue
+        </a>
+    </div>
+
+    <p style="font-size: 14px; line-height: 1.6; color: #666; margin-top: 30px;">
+        Si vous avez des questions, n'hésitez pas à nous contacter.
+    </p>
+
+    <p style="font-size: 16px; line-height: 1.6; color: #333; font-weight: 600;">
+        À bientôt !<br>
+        L'équipe TDBR
+    </p>
+{% endblock %}

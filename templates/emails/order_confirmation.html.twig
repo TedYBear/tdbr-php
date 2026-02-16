@@ -1,0 +1,64 @@
+{% extends 'emails/base.html.twig' %}
+
+{% block header_title %}Commande Confirmée{% endblock %}
+
+{% block content %}
+    <h2 style="color: #2C2416; margin-top: 0;">Merci pour votre commande !</h2>
+
+    <p style="font-size: 16px; line-height: 1.6; color: #333;">
+        Bonjour <strong>{{ commande.client.prenom }} {{ commande.client.nom }}</strong>,
+    </p>
+
+    <p style="font-size: 16px; line-height: 1.6; color: #333;">
+        Nous avons bien reçu votre commande <strong>{{ commande.numero }}</strong> et nous vous en remercions ! 🎁
+    </p>
+
+    <div style="background-color: #F5E6D3; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <h3 style="margin-top: 0; color: #8B7355;">Récapitulatif de votre commande</h3>
+
+        {% for article in commande.articles %}
+            <div style="padding: 10px 0; border-bottom: 1px solid #D4AF7A;">
+                <strong>{{ article.nom }}</strong>
+                {% if article.variant %}
+                    <br><span style="font-size: 14px; color: #666;">Variante: {{ article.variant.nom }}</span>
+                {% endif %}
+                <br>Quantité: {{ article.quantity }} × {{ article.prix|number_format(2, ',', ' ') }} €
+                = <strong>{{ (article.prix * article.quantity)|number_format(2, ',', ' ') }} €</strong>
+            </div>
+        {% endfor %}
+
+        <div style="padding-top: 15px; font-size: 18px; font-weight: bold; color: #8B7355;">
+            Total : {{ commande.total|number_format(2, ',', ' ') }} €
+        </div>
+    </div>
+
+    <h3 style="color: #8B7355;">Adresse de livraison</h3>
+    <p style="font-size: 14px; line-height: 1.6; color: #333;">
+        {{ commande.adresseLivraison.adresse }}<br>
+        {% if commande.adresseLivraison.complementAdresse %}
+            {{ commande.adresseLivraison.complementAdresse }}<br>
+        {% endif %}
+        {{ commande.adresseLivraison.codePostal }} {{ commande.adresseLivraison.ville }}<br>
+        {{ commande.adresseLivraison.pays }}
+    </p>
+
+    <h3 style="color: #8B7355;">Mode de paiement</h3>
+    <p style="font-size: 14px; line-height: 1.6; color: #333;">
+        {{ commande.modePaiement|capitalize }}
+    </p>
+
+    <div style="text-align: center; margin: 30px 0;">
+        <a href="http://localhost:8000/confirmation/{{ commande._id }}" class="button">
+            Voir ma commande
+        </a>
+    </div>
+
+    <p style="font-size: 14px; line-height: 1.6; color: #666; margin-top: 30px;">
+        Nous préparons votre commande avec soin. Vous recevrez un email lorsqu'elle sera expédiée.
+    </p>
+
+    <p style="font-size: 16px; line-height: 1.6; color: #333; font-weight: 600;">
+        À très bientôt !<br>
+        L'équipe TDBR
+    </p>
+{% endblock %}

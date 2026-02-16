@@ -1,0 +1,30 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% block title %}{{ collection ? 'Modifier' : 'Nouvelle' }} Collection{% endblock %}
+{% block page_title %}{{ collection ? 'Modifier' : 'Nouvelle' }} Collection{% endblock %}
+
+{% block body %}
+    <div class="max-w-2xl">
+        <form method="post" class="card p-6 space-y-6">
+            <div class="form-group">
+                <label>Nom *</label>
+                <input type="text" name="nom" value="{{ collection ? collection.nom : '' }}" required class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label>Description</label>
+                <textarea name="description" rows="3" class="form-textarea">{{ collection ? collection.description : '' }}</textarea>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <input type="checkbox" name="actif" id="actif" {{ collection and collection.actif ? 'checked' : (not collection ? 'checked' : '') }} class="w-5 h-5 text-primary rounded">
+                <label for="actif" class="cursor-pointer">Collection active</label>
+            </div>
+
+            <div class="flex gap-3 pt-4">
+                <button type="submit" class="btn-primary">{{ collection ? 'Mettre à jour' : 'Créer' }}</button>
+                <a href="{{ path('admin_collections') }}" class="btn-outline">Annuler</a>
+            </div>
+        </form>
+    </div>
+{% endblock %}

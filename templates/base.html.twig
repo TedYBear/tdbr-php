@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}TDBR - Teddy Bears Artisanaux{% endblock %}</title>
+    <meta name="description" content="{% block description %}TDBR - Créations artisanales de peluches et teddy bears personnalisés{% endblock %}">
+
+    {% block stylesheets %}
+        <link rel="stylesheet" href="{{ asset('build/app.bfb2fc03.css') }}">
+    {% endblock %}
+</head>
+<body class="bg-white text-dark font-sans antialiased">
+    {% include 'layout/navbar.html.twig' %}
+
+    {% include 'layout/flash_messages.html.twig' %}
+
+    <main class="min-h-screen">
+        {% block body %}{% endblock %}
+    </main>
+
+    {% include 'layout/footer.html.twig' %}
+
+    {% block javascripts %}
+        <script src="{{ asset('build/runtime.f073a35a.js') }}"></script>
+        <script src="{{ asset('build/705.31b65463.js') }}"></script>
+        <script src="{{ asset('build/app.579e6744.js') }}"></script>
+    {% endblock %}
+</body>
+</html>
