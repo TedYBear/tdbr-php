@@ -1,0 +1,391 @@
+/* Tailwind CSS Directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700;800&display=swap');
+
+/* Base Styles */
+@layer base {
+  body {
+    @apply antialiased;
+    font-feature-settings: 'liga' 1, 'kern' 1;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Custom Components */
+@layer components {
+  /* Glass effect */
+  .glass {
+    @apply bg-white/10 backdrop-blur-xl border border-white/30 shadow-2xl;
+    backdrop-filter: blur(20px);
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent;
+    background-size: 200% auto;
+    animation: gradient-shift 3s ease infinite;
+  }
+
+  /* Buttons */
+  .btn {
+    @apply px-8 py-4 rounded-xl font-semibold transition-all duration-300 inline-block text-center relative overflow-hidden;
+    transform-style: preserve-3d;
+  }
+
+  .btn::before {
+    content: '';
+    @apply absolute inset-0 opacity-0 transition-opacity duration-300;
+    background: linear-gradient(45deg, rgba(255,255,255,0.1), rgba(255,255,255,0.3));
+  }
+
+  .btn:hover::before {
+    @apply opacity-100;
+  }
+
+  .btn-primary {
+    @apply btn bg-gradient-to-r from-primary to-primary/90 text-white shadow-lg hover:shadow-2xl hover:scale-105 active:scale-95;
+  }
+
+  .btn-secondary {
+    @apply btn bg-gradient-to-r from-secondary to-secondary/90 text-white shadow-lg hover:shadow-2xl hover:scale-105 active:scale-95;
+  }
+
+  .btn-outline {
+    @apply btn border-2 border-primary text-primary hover:bg-primary hover:text-white hover:border-primary hover:shadow-xl hover:scale-105;
+  }
+
+  /* Cards */
+  .card {
+    @apply bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-hover {
+    @apply card;
+  }
+
+  .card-hover:hover {
+    @apply shadow-2xl -translate-y-2;
+    transform: translateY(-8px) translateZ(0);
+  }
+
+  /* Animated background */
+  .animated-gradient {
+    background: linear-gradient(
+      -45deg,
+      #F5E6D3,
+      #D4AF7A,
+      #8B7355,
+      #F5E6D3
+    );
+    background-size: 400% 400%;
+    animation: gradient-shift 15s ease infinite;
+  }
+
+  /* Feature cards */
+  .feature-card {
+    @apply card p-8 text-center relative;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .feature-card::after {
+    content: '';
+    @apply absolute inset-0 opacity-0 transition-opacity duration-500;
+    background: linear-gradient(135deg, rgba(139, 115, 85, 0.05), rgba(212, 175, 122, 0.05));
+    border-radius: 1rem;
+  }
+
+  .feature-card:hover::after {
+    @apply opacity-100;
+  }
+
+  .feature-card:hover {
+    @apply shadow-2xl scale-105;
+  }
+
+  /* Input fields */
+  .input-field {
+    @apply w-full px-5 py-4 border-2 border-gray-200 rounded-xl transition-all duration-300;
+    @apply focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/20;
+  }
+
+  .input-field:hover {
+    @apply border-gray-300;
+  }
+
+  /* Text area */
+  .textarea-field {
+    @apply input-field resize-none;
+  }
+
+  /* Badge */
+  .badge {
+    @apply inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold;
+    @apply bg-gradient-to-r from-secondary to-secondary/90 text-white shadow-md;
+    animation: float 3s ease-in-out infinite;
+  }
+
+  /* Navbar enhancement */
+  .navbar-link {
+    @apply relative px-3 py-2 transition-all duration-300;
+  }
+
+  .navbar-link::after {
+    content: '';
+    @apply absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-secondary;
+    transition: width 0.3s ease;
+  }
+
+  .navbar-link:hover::after {
+    @apply w-full;
+  }
+
+  /* Section transitions */
+  .section-appear {
+    animation: fadeInUp 0.8s ease forwards;
+    opacity: 0;
+  }
+
+  /* Hero text */
+  .hero-text {
+    @apply text-shadow;
+    animation: fadeInScale 1s ease forwards;
+  }
+
+  /* Pricing card */
+  .price-tag {
+    @apply text-4xl font-bold;
+    background: linear-gradient(135deg, #8B7355, #D4AF7A);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Loading spinner */
+  .spinner {
+    @apply w-12 h-12 border-4 border-gray-200 border-t-primary rounded-full;
+    animation: spin 1s linear infinite;
+  }
+
+  /* Floating animation */
+  .float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  /* Pulse animation */
+  .pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  /* Image hover effect */
+  .image-zoom {
+    @apply overflow-hidden rounded-2xl;
+  }
+
+  .image-zoom img {
+    @apply transition-transform duration-700 ease-out;
+  }
+
+  .image-zoom:hover img {
+    @apply scale-110;
+  }
+
+  /* Gradient border */
+  .gradient-border {
+    @apply relative p-1 rounded-2xl;
+    background: linear-gradient(135deg, #8B7355, #D4AF7A, #8B7355);
+    background-size: 200% 200%;
+    animation: gradient-shift 3s ease infinite;
+  }
+
+  .gradient-border > * {
+    @apply bg-white rounded-xl;
+  }
+
+  /* Shimmer effect */
+  .shimmer {
+    @apply relative overflow-hidden;
+  }
+
+  .shimmer::after {
+    content: '';
+    @apply absolute inset-0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.5),
+      transparent
+    );
+    animation: shimmer 2s infinite;
+  }
+
+  /* 3D Card effect */
+  .card-3d {
+    transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .card-3d:hover {
+    transform: rotateY(5deg) rotateX(5deg) translateZ(10px);
+  }
+
+  /* Form Styles */
+  .form-group {
+    @apply space-y-2;
+  }
+
+  .form-group label {
+    @apply block text-sm font-semibold text-gray-700;
+  }
+
+  .form-input,
+  .form-select,
+  .form-textarea {
+    @apply w-full px-4 py-3 border-2 border-gray-200 rounded-xl transition-all duration-300;
+    @apply focus:border-primary focus:ring-4 focus:ring-primary/10 focus:outline-none;
+    @apply hover:border-gray-300;
+  }
+
+  .form-textarea {
+    @apply resize-none;
+  }
+
+  .form-input:disabled,
+  .form-select:disabled,
+  .form-textarea:disabled {
+    @apply bg-gray-100 cursor-not-allowed opacity-60;
+  }
+
+  .form-error {
+    @apply text-red-600 text-sm mt-1;
+  }
+
+  /* Radio buttons styling */
+  input[type="radio"] {
+    @apply w-5 h-5 text-primary border-2 border-gray-300 focus:ring-2 focus:ring-primary/20 cursor-pointer;
+  }
+
+  input[type="radio"]:checked {
+    @apply border-primary bg-primary;
+  }
+}
+
+/* Custom Utilities */
+@layer utilities {
+  .text-shadow {
+    text-shadow: 2px 4px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  .text-shadow-lg {
+    text-shadow: 4px 6px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  .glow {
+    box-shadow: 0 0 20px rgba(139, 115, 85, 0.4),
+                0 0 40px rgba(139, 115, 85, 0.2);
+  }
+
+  .glow-secondary {
+    box-shadow: 0 0 20px rgba(212, 175, 122, 0.4),
+                0 0 40px rgba(212, 175, 122, 0.2);
+  }
+}
+
+/* Animations */
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gradient-to-b from-primary to-secondary rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply opacity-80;
+}
+
+/* Selection styling */
+::selection {
+  @apply bg-primary/20 text-primary;
+}
+
+/* Focus visible */
+*:focus-visible {
+  @apply outline-none ring-4 ring-primary/30 ring-offset-2;
+}

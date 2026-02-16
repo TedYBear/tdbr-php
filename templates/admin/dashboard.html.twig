@@ -1,0 +1,140 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block page_title %}Dashboard{% endblock %}
+{% block page_subtitle %}
+    <p class="text-sm text-gray-600">Vue d'ensemble de votre boutique</p>
+{% endblock %}
+
+{% block body %}
+    {# Stats Cards #}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {# Articles #}
+        <div class="card p-6 border-l-4 border-primary">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600 mb-1">Articles</p>
+                    <p class="text-3xl font-bold text-gray-900">{{ stats.articles }}</p>
+                </div>
+                <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        {# Commandes #}
+        <div class="card p-6 border-l-4 border-secondary">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600 mb-1">Commandes</p>
+                    <p class="text-3xl font-bold text-gray-900">{{ stats.commandes }}</p>
+                </div>
+                <div class="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        {# Messages #}
+        <div class="card p-6 border-l-4 border-blue-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600 mb-1">Messages non lus</p>
+                    <p class="text-3xl font-bold text-gray-900">{{ stats.messagesNonLus }}</p>
+                </div>
+                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        {# Catégories #}
+        <div class="card p-6 border-l-4 border-green-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600 mb-1">Catégories</p>
+                    <p class="text-3xl font-bold text-gray-900">{{ stats.categories }}</p>
+                </div>
+                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Commandes Récentes #}
+    <div class="card p-8">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-heading font-bold">Commandes Récentes</h2>
+            <a href="{{ path('admin_commandes') }}" class="text-primary hover:text-secondary font-medium">
+                Voir tout →
+            </a>
+        </div>
+
+        {% if recentCommandes|length > 0 %}
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50 border-b">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Numéro</th>
+                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Client</th>
+                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Date</th>
+                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Total</th>
+                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Statut</th>
+                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y">
+                        {% for commande in recentCommandes %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-4 py-3">
+                                    <span class="font-semibold text-primary">{{ commande.numero }}</span>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <div>
+                                        <div class="font-medium">{{ commande.client.prenom }} {{ commande.client.nom }}</div>
+                                        <div class="text-sm text-gray-500">{{ commande.client.email }}</div>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3 text-sm text-gray-600">
+                                    {{ commande.createdAt.toDateTime().format('d/m/Y H:i') }}
+                                </td>
+                                <td class="px-4 py-3">
+                                    <span class="font-bold text-gray-900">{{ commande.total|number_format(2, ',', ' ') }} €</span>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <span class="px-3 py-1 rounded-full text-xs font-semibold
+                                        {% if commande.statut == 'en_attente' %}bg-yellow-100 text-yellow-800
+                                        {% elseif commande.statut == 'validee' %}bg-blue-100 text-blue-800
+                                        {% elseif commande.statut == 'en_cours' %}bg-purple-100 text-purple-800
+                                        {% elseif commande.statut == 'expediee' %}bg-green-100 text-green-800
+                                        {% elseif commande.statut == 'livree' %}bg-green-100 text-green-800
+                                        {% elseif commande.statut == 'annulee' %}bg-red-100 text-red-800
+                                        {% endif %}">
+                                        {{ commande.statut|replace({'_': ' '})|capitalize }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <a href="{{ path('admin_commandes_detail', {id: commande._id}) }}" class="text-primary hover:text-secondary">
+                                        Voir →
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-center text-gray-500 py-8">Aucune commande récente</p>
+        {% endif %}
+    </div>
+{% endblock %}

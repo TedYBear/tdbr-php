@@ -1,0 +1,56 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% block title %}Catégories{% endblock %}
+
+{% block page_title %}Catégories{% endblock %}
+
+{% block body %}
+    <div class="flex justify-end mb-6">
+        <a href="{{ path('admin_categories_new') }}" class="btn-primary">+ Nouvelle Catégorie</a>
+    </div>
+
+    <div class="card overflow-hidden">
+        {% if categories|length > 0 %}
+            <table class="w-full">
+                <thead class="bg-gray-50 border-b">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Nom</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Slug</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Ordre</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Statut</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y">
+                    {% for category in categories %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 font-semibold">{{ category.nom }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-600">{{ category.slug }}</td>
+                            <td class="px-6 py-4 text-sm">{{ category.ordre ?? 0 }}</td>
+                            <td class="px-6 py-4">
+                                {% if category.actif %}
+                                    <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">Actif</span>
+                                {% else %}
+                                    <span class="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-semibold">Inactif</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex gap-2">
+                                    <a href="{{ path('admin_categories_edit', {id: category._id}) }}" class="text-primary hover:text-secondary">Modifier</a>
+                                    <form method="post" action="{{ path('admin_categories_delete', {id: category._id}) }}" onsubmit="return confirm('Supprimer cette catégorie ?');">
+                                        <button type="submit" class="text-red-600 hover:text-red-700">Supprimer</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="text-center py-16">
+                <p class="text-gray-500 mb-4">Aucune catégorie</p>
+                <a href="{{ path('admin_categories_new') }}" class="btn-primary">Créer la première catégorie</a>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

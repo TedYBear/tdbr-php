@@ -1,0 +1,106 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% block title %}Commande {{ commande.numero }}{% endblock %}
+{% block page_title %}Commande {{ commande.numero }}{% endblock %}
+
+{% block body %}
+    <div class="grid lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2 space-y-6">
+            {# Articles #}
+            <div class="card p-6">
+                <h2 class="text-xl font-bold mb-4">Articles</h2>
+                <div class="space-y-3">
+                    {% for article in commande.articles %}
+                        <div class="flex gap-4 p-4 bg-gray-50 rounded-lg">
+                            {% if article.image %}
+                                <img src="{{ article.image }}" alt="{{ article.nom }}" class="w-16 h-16 object-cover rounded">
+                            {% else %}
+                                <div class="w-16 h-16 bg-gray-200 rounded"></div>
+                            {% endif %}
+                            <div class="flex-1">
+                                <div class="font-semibold">{{ article.nom }}</div>
+                                {% if article.variant %}
+                                    <div class="text-sm text-gray-600">Variante: {{ article.variant.nom }}</div>
+                                {% endif %}
+                                <div class="text-sm text-gray-600">Quantité: {{ article.quantity }}</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-bold text-primary">{{ article.prix|number_format(2, ',', ' ') }} €</div>
+                                <div class="text-sm text-gray-600">Sous-total: {{ (article.prix * article.quantity)|number_format(2, ',', ' ') }} €</div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="mt-4 pt-4 border-t flex justify-between text-xl font-bold">
+                    <span>Total</span>
+                    <span class="text-primary">{{ commande.total|number_format(2, ',', ' ') }} €</span>
+                </div>
+            </div>
+
+            {# Notes #}
+            {% if commande.notes %}
+                <div class="card p-6">
+                    <h2 class="text-xl font-bold mb-4">Notes du client</h2>
+                    <p class="text-gray-700">{{ commande.notes }}</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="lg:col-span-1 space-y-6">
+            {# Statut #}
+            <div class="card p-6">
+                <h2 class="text-xl font-bold mb-4">Statut</h2>
+                <form method="post" action="{{ path('admin_commandes_update_status', {id: commande._id}) }}">
+                    <select name="statut" class="form-select mb-3" onchange="this.form.submit()">
+                        <option value="en_attente" {{ commande.statut == 'en_attente' ? 'selected' : '' }}>En attente</option>
+                        <option value="validee" {{ commande.statut == 'validee' ? 'selected' : '' }}>Validée</option>
+                        <option value="en_cours" {{ commande.statut == 'en_cours' ? 'selected' : '' }}>En cours</option>
+                        <option value="expediee" {{ commande.statut == 'expediee' ? 'selected' : '' }}>Expédiée</option>
+                        <option value="livree" {{ commande.statut == 'livree' ? 'selected' : '' }}>Livrée</option>
+                        <option value="annulee" {{ commande.statut == 'annulee' ? 'selected' : '' }}>Annulée</option>
+                    </select>
+                </form>
+            </div>
+
+            {# Client #}
+            <div class="card p-6">
+                <h2 class="text-xl font-bold mb-4">Client</h2>
+                <div class="space-y-2 text-sm">
+                    <div><strong>Nom:</strong> {{ commande.client.prenom }} {{ commande.client.nom }}</div>
+                    <div><strong>Email:</strong> {{ commande.client.email }}</div>
+                    <div><strong>Téléphone:</strong> {{ commande.client.telephone }}</div>
+                </div>
+            </div>
+
+            {# Livraison #}
+            <div class="card p-6">
+                <h2 class="text-xl font-bold mb-4">Livraison</h2>
+                <div class="text-sm space-y-1">
+                    <div>{{ commande.adresseLivraison.adresse }}</div>
+                    {% if commande.adresseLivraison.complementAdresse %}
+                        <div>{{ commande.adresseLivraison.complementAdresse }}</div>
+                    {% endif %}
+                    <div>{{ commande.adresseLivraison.codePostal }} {{ commande.adresseLivraison.ville }}</div>
+                    <div class="font-semibold">{{ commande.adresseLivraison.pays }}</div>
+                </div>
+            </div>
+
+            {# Paiement #}
+            <div class="card p-6">
+                <h2 class="text-xl font-bold mb-4">Paiement</h2>
+                <div class="text-sm">
+                    <strong>Mode:</strong> {{ commande.modePaiement|capitalize }}
+                </div>
+            </div>
+
+            {# Dates #}
+            <div class="card p-6">
+                <h2 class="text-xl font-bold mb-4">Dates</h2>
+                <div class="space-y-2 text-sm">
+                    <div><strong>Créée le:</strong><br>{{ commande.createdAt.toDateTime().format('d/m/Y à H:i') }}</div>
+                    <div><strong>Modifiée le:</strong><br>{{ commande.updatedAt.toDateTime().format('d/m/Y à H:i') }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

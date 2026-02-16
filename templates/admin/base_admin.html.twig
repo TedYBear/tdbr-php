@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Administration{% endblock %} - TDBR</title>
+
+    {% block stylesheets %}
+        <link rel="stylesheet" href="{{ asset('build/app.bfb2fc03.css') }}">
+    {% endblock %}
+</head>
+<body class="bg-gray-50">
+    <div class="flex h-screen overflow-hidden">
+        {# Sidebar #}
+        {% include 'admin/partials/sidebar.html.twig' %}
+
+        {# Main Content #}
+        <div class="flex-1 flex flex-col overflow-hidden">
+            {# Top Navbar #}
+            {% include 'admin/partials/navbar.html.twig' %}
+
+            {# Flash Messages #}
+            {% include 'layout/flash_messages.html.twig' %}
+
+            {# Page Content #}
+            <main class="flex-1 overflow-y-auto p-8">
+                {% block body %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    {% block javascripts %}
+        <script src="{{ asset('build/runtime.f073a35a.js') }}"></script>
+        <script src="{{ asset('build/705.31b65463.js') }}"></script>
+        <script src="{{ asset('build/app.579e6744.js') }}"></script>
+    {% endblock %}
+</body>
+</html>

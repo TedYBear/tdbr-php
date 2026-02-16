@@ -1,0 +1,97 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% block title %}Commandes{% endblock %}
+{% block page_title %}Commandes{% endblock %}
+{% block page_subtitle %}<p class="text-sm text-gray-600">{{ total }} commande{{ total > 1 ? 's' : '' }} au total</p>{% endblock %}
+
+{% block body %}
+    <div class="flex gap-4 mb-6">
+        <form method="get" class="flex gap-2">
+            <select name="statut" class="form-select" onchange="this.form.submit()">
+                <option value="">Tous les statuts</option>
+                <option value="en_attente" {{ selectedStatut == 'en_attente' ? 'selected' : '' }}>En attente</option>
+                <option value="validee" {{ selectedStatut == 'validee' ? 'selected' : '' }}>Validée</option>
+                <option value="en_cours" {{ selectedStatut == 'en_cours' ? 'selected' : '' }}>En cours</option>
+                <option value="expediee" {{ selectedStatut == 'expediee' ? 'selected' : '' }}>Expédiée</option>
+                <option value="livree" {{ selectedStatut == 'livree' ? 'selected' : '' }}>Livrée</option>
+                <option value="annulee" {{ selectedStatut == 'annulee' ? 'selected' : '' }}>Annulée</option>
+            </select>
+            {% if selectedStatut %}
+                <a href="{{ path('admin_commandes') }}" class="btn-outline">Réinitialiser</a>
+            {% endif %}
+        </form>
+    </div>
+
+    <div class="card overflow-hidden">
+        {% if commandes|length > 0 %}
+            <table class="w-full">
+                <thead class="bg-gray-50 border-b">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Numéro</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Client</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Date</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Total</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Statut</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y">
+                    {% for commande in commandes %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 font-semibold text-primary">{{ commande.numero }}</td>
+                            <td class="px-6 py-4">
+                                <div>
+                                    <div class="font-medium">{{ commande.client.prenom }} {{ commande.client.nom }}</div>
+                                    <div class="text-sm text-gray-500">{{ commande.client.email }}</div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-600">{{ commande.createdAt.toDateTime().format('d/m/Y H:i') }}</td>
+                            <td class="px-6 py-4 font-bold">{{ commande.total|number_format(2, ',', ' ') }} €</td>
+                            <td class="px-6 py-4">
+                                <span class="px-3 py-1 rounded-full text-xs font-semibold
+                                    {% if commande.statut == 'en_attente' %}bg-yellow-100 text-yellow-800
+                                    {% elseif commande.statut == 'validee' %}bg-blue-100 text-blue-800
+                                    {% elseif commande.statut == 'en_cours' %}bg-purple-100 text-purple-800
+                                    {% elseif commande.statut == 'expediee' %}bg-green-100 text-green-800
+                                    {% elseif commande.statut == 'livree' %}bg-green-100 text-green-800
+                                    {% elseif commande.statut == 'annulee' %}bg-red-100 text-red-800
+                                    {% endif %}">
+                                    {{ commande.statut|replace({'_': ' '})|capitalize }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <a href="{{ path('admin_commandes_detail', {id: commande._id}) }}" class="text-primary hover:text-secondary">Voir détails →</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {% if totalPages > 1 %}
+                <div class="px-6 py-4 border-t bg-gray-50 flex justify-center">
+                    <nav class="flex gap-2">
+                        {% if currentPage > 1 %}
+                            <a href="{{ path('admin_commandes', {page: currentPage - 1, statut: selectedStatut}) }}" class="px-4 py-2 bg-white border rounded hover:bg-gray-50">← Précédent</a>
+                        {% endif %}
+                        {% for i in 1..totalPages %}
+                            {% if i == currentPage %}
+                                <span class="px-4 py-2 bg-primary text-white rounded font-semibold">{{ i }}</span>
+                            {% elseif i == 1 or i == totalPages or (i >= currentPage - 2 and i <= currentPage + 2) %}
+                                <a href="{{ path('admin_commandes', {page: i, statut: selectedStatut}) }}" class="px-4 py-2 bg-white border rounded hover:bg-gray-50">{{ i }}</a>
+                            {% elseif i == currentPage - 3 or i == currentPage + 3 %}
+                                <span class="px-4 py-2">...</span>
+                            {% endif %}
+                        {% endfor %}
+                        {% if currentPage < totalPages %}
+                            <a href="{{ path('admin_commandes', {page: currentPage + 1, statut: selectedStatut}) }}" class="px-4 py-2 bg-white border rounded hover:bg-gray-50">Suivant →</a>
+                        {% endif %}
+                    </nav>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-16">
+                <p class="text-gray-500">Aucune commande trouvée</p>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

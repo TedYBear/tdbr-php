@@ -1,0 +1,33 @@
+{# Admin Top Navbar #}
+<header class="bg-white border-b border-gray-200 px-8 py-4">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-heading font-bold text-gray-900">
+                {% block page_title %}Administration{% endblock %}
+            </h1>
+            {% block page_subtitle %}{% endblock %}
+        </div>
+
+        <div class="flex items-center gap-4">
+            {# User Info #}
+            <div class="flex items-center gap-3">
+                <div class="text-right">
+                    <div class="text-sm font-semibold text-gray-900">{{ app.user.fullName }}</div>
+                    <div class="text-xs text-gray-500">Administrateur</div>
+                </div>
+                <div class="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center text-white font-bold">
+                    {{ app.user.prenom|first }}{{ app.user.nom|first }}
+                </div>
+            </div>
+
+            {# Logout #}
+            <a href="{{ path('logout') }}"
+               class="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+               title="Déconnexion">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                </svg>
+            </a>
+        </div>
+    </div>
+</header>

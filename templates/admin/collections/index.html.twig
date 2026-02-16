@@ -1,0 +1,53 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% block title %}Collections{% endblock %}
+{% block page_title %}Collections{% endblock %}
+
+{% block body %}
+    <div class="flex justify-end mb-6">
+        <a href="{{ path('admin_collections_new') }}" class="btn-primary">+ Nouvelle Collection</a>
+    </div>
+
+    <div class="card overflow-hidden">
+        {% if collections|length > 0 %}
+            <table class="w-full">
+                <thead class="bg-gray-50 border-b">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Nom</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Slug</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Statut</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y">
+                    {% for collection in collections %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 font-semibold">{{ collection.nom }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-600">{{ collection.slug }}</td>
+                            <td class="px-6 py-4">
+                                {% if collection.actif %}
+                                    <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">Actif</span>
+                                {% else %}
+                                    <span class="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-semibold">Inactif</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex gap-2">
+                                    <a href="{{ path('admin_collections_edit', {id: collection._id}) }}" class="text-primary hover:text-secondary">Modifier</a>
+                                    <form method="post" action="{{ path('admin_collections_delete', {id: collection._id}) }}" onsubmit="return confirm('Supprimer cette collection ?');">
+                                        <button type="submit" class="text-red-600 hover:text-red-700">Supprimer</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="text-center py-16">
+                <p class="text-gray-500 mb-4">Aucune collection</p>
+                <a href="{{ path('admin_collections_new') }}" class="btn-primary">Créer la première collection</a>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

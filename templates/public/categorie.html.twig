@@ -1,0 +1,140 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ category.nom }} - Catalogue TDBR{% endblock %}
+
+{% block body %}
+    {# Hero Section avec image de catégorie #}
+    <section class="relative py-24 bg-gradient-to-br from-accent to-white overflow-hidden">
+        {% if category.image is defined %}
+            <div class="absolute inset-0 opacity-10">
+                <img src="{{ category.image }}" alt="{{ category.nom }}" class="w-full h-full object-cover">
+            </div>
+        {% endif %}
+
+        <div class="container mx-auto px-4 relative z-10">
+            <div class="max-w-3xl mx-auto text-center">
+                {# Breadcrumb #}
+                <nav class="mb-8 flex justify-center">
+                    <ol class="flex items-center space-x-2 text-sm">
+                        <li><a href="{{ path('home') }}" class="text-gray-600 hover:text-primary">Accueil</a></li>
+                        <li class="text-gray-400">/</li>
+                        <li><a href="{{ path('catalogue') }}" class="text-gray-600 hover:text-primary">Catalogue</a></li>
+                        <li class="text-gray-400">/</li>
+                        <li class="text-primary font-medium">{{ category.nom }}</li>
+                    </ol>
+                </nav>
+
+                <h1 class="font-heading text-6xl font-black mb-6">
+                    <span class="gradient-text">{{ category.nom }}</span>
+                </h1>
+
+                {% if category.description is defined %}
+                    <p class="text-xl text-gray-700 leading-relaxed">
+                        {{ category.description }}
+                    </p>
+                {% endif %}
+
+                <div class="mt-8 inline-flex items-center gap-3 px-6 py-3 bg-white/80 backdrop-blur-sm rounded-full shadow-lg">
+                    <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                    </svg>
+                    <span class="font-semibold text-primary">{{ total }} article{{ total > 1 ? 's' : '' }}</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {# Articles Grid #}
+    <section class="py-20 bg-white">
+        <div class="container mx-auto px-4">
+            {% if articles|length > 0 %}
+                <div class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                    {% for article in articles %}
+                        <div class="section-appear" style="animation-delay: {{ loop.index * 0.1 }}s;">
+                            {% include 'components/article_card.html.twig' with {'article': article} %}
+                        </div>
+                    {% endfor %}
+                </div>
+
+                {# Pagination #}
+                {% if totalPages > 1 %}
+                    <nav class="flex justify-center mt-16">
+                        <ul class="flex gap-3">
+                            {% if currentPage > 1 %}
+                                <li>
+                                    <a href="{{ path('categorie', {slug: category.slug, page: currentPage - 1}) }}"
+                                       class="px-5 py-3 bg-gray-100 hover:bg-primary hover:text-white rounded-xl transition-all duration-300 font-medium">
+                                        ← Précédent
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            {% for i in 1..totalPages %}
+                                {% if i == currentPage %}
+                                    <li>
+                                        <span class="px-5 py-3 bg-gradient-to-r from-primary to-secondary text-white rounded-xl font-bold shadow-lg">{{ i }}</span>
+                                    </li>
+                                {% elseif i == 1 or i == totalPages or (i >= currentPage - 2 and i <= currentPage + 2) %}
+                                    <li>
+                                        <a href="{{ path('categorie', {slug: category.slug, page: i}) }}"
+                                           class="px-5 py-3 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all duration-300 font-medium">
+                                            {{ i }}
+                                        </a>
+                                    </li>
+                                {% elseif i == currentPage - 3 or i == currentPage + 3 %}
+                                    <li>
+                                        <span class="px-3 py-3 text-gray-400">...</span>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if currentPage < totalPages %}
+                                <li>
+                                    <a href="{{ path('categorie', {slug: category.slug, page: currentPage + 1}) }}"
+                                       class="px-5 py-3 bg-gray-100 hover:bg-primary hover:text-white rounded-xl transition-all duration-300 font-medium">
+                                        Suivant →
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+            {% else %}
+                {# Aucun article #}
+                <div class="text-center py-32">
+                    <div class="inline-flex items-center justify-center w-32 h-32 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-full mb-8">
+                        <svg class="w-16 h-16 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                        </svg>
+                    </div>
+                    <h3 class="font-heading text-3xl font-bold mb-4">Aucun article pour le moment</h3>
+                    <p class="text-gray-600 text-lg mb-10 max-w-md mx-auto">
+                        Cette catégorie ne contient pas encore d'articles. Découvrez nos autres créations !
+                    </p>
+                    <a href="{{ path('catalogue') }}" class="btn-primary inline-flex items-center gap-3">
+                        Retour au Catalogue
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path>
+                        </svg>
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+
+    {# Autres catégories #}
+    <section class="py-20 bg-gradient-to-b from-accent/10 to-white">
+        <div class="container mx-auto px-4">
+            <h2 class="font-heading text-4xl font-bold text-center mb-12">
+                Découvrez aussi nos <span class="gradient-text">autres catégories</span>
+            </h2>
+
+            <div class="flex flex-wrap justify-center gap-4">
+                <a href="{{ path('catalogue') }}" class="btn-outline">
+                    Toutes les catégories
+                </a>
+                {# Ici vous pourriez lister d'autres catégories #}
+            </div>
+        </div>
+    </section>
+{% endblock %}

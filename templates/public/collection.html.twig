@@ -1,0 +1,186 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ collection.nom }} - Collections TDBR{% endblock %}
+
+{% block body %}
+    {# Hero Section avec style collection #}
+    <section class="relative py-32 overflow-hidden animated-gradient">
+        {% if collection.image is defined %}
+            <div class="absolute inset-0 opacity-20">
+                <img src="{{ collection.image }}" alt="{{ collection.nom }}" class="w-full h-full object-cover" style="animation: float 8s ease-in-out infinite;">
+            </div>
+        {% endif %}
+
+        {# Effet de particules #}
+        <div class="absolute inset-0 overflow-hidden">
+            {% for i in 1..15 %}
+                <div class="absolute w-3 h-3 bg-white/20 rounded-full blur-sm"
+                     style="
+                        left: {{ random(0, 100) }}%;
+                        top: {{ random(0, 100) }}%;
+                        animation: float {{ random(4, 10) }}s ease-in-out infinite {{ random(0, 4) }}s;
+                        ">
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="container mx-auto px-4 relative z-10">
+            <div class="max-w-4xl mx-auto text-center">
+                {# Badge Collection #}
+                <div class="inline-flex items-center gap-2 px-6 py-3 bg-white/90 backdrop-blur-sm rounded-full shadow-xl mb-8">
+                    <svg class="w-5 h-5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                    </svg>
+                    <span class="font-bold text-primary text-sm uppercase tracking-wider">Collection</span>
+                </div>
+
+                <h1 class="font-heading text-7xl font-black mb-8 hero-text">
+                    <span class="gradient-text">{{ collection.nom }}</span>
+                </h1>
+
+                {% if collection.description is defined %}
+                    <p class="text-2xl text-dark leading-relaxed mb-10 max-w-3xl mx-auto text-shadow">
+                        {{ collection.description }}
+                    </p>
+                {% endif %}
+
+                <div class="inline-flex items-center gap-4 px-8 py-4 glass rounded-2xl">
+                    <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                    </svg>
+                    <div class="text-left">
+                        <div class="text-3xl font-black text-primary">{{ total }}</div>
+                        <div class="text-sm text-gray-700 font-medium">Créations uniques</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Scroll indicator #}
+        <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2" style="animation: float 2s ease-in-out infinite;">
+            <svg class="w-6 h-6 text-dark/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+            </svg>
+        </div>
+    </section>
+
+    {# Articles Grid avec animations #}
+    <section class="py-24 bg-white">
+        <div class="container mx-auto px-4">
+            {% if articles|length > 0 %}
+                {# Filtre/Tri optionnel #}
+                <div class="flex justify-between items-center mb-12">
+                    <div>
+                        <h2 class="font-heading text-3xl font-bold text-gray-900">
+                            Nos Créations
+                        </h2>
+                        <p class="text-gray-600 mt-2">{{ total }} pièce{{ total > 1 ? 's' : '' }} unique{{ total > 1 ? 's' : '' }}</p>
+                    </div>
+                </div>
+
+                <div class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                    {% for article in articles %}
+                        <div class="section-appear" style="animation-delay: {{ loop.index * 0.08 }}s;">
+                            {% include 'components/article_card.html.twig' with {'article': article} %}
+                        </div>
+                    {% endfor %}
+                </div>
+
+                {# Pagination améliorée #}
+                {% if totalPages > 1 %}
+                    <nav class="flex justify-center mt-20">
+                        <ul class="flex items-center gap-3">
+                            {% if currentPage > 1 %}
+                                <li>
+                                    <a href="{{ path('collection', {slug: collection.slug, page: currentPage - 1}) }}"
+                                       class="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary/90 text-white rounded-xl hover:shadow-xl transition-all duration-300 font-semibold">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                                        </svg>
+                                        Précédent
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            {% for i in 1..totalPages %}
+                                {% if i == currentPage %}
+                                    <li>
+                                        <span class="px-6 py-3 bg-gradient-to-r from-primary to-secondary text-white rounded-xl font-bold shadow-xl glow text-lg">
+                                            {{ i }}
+                                        </span>
+                                    </li>
+                                {% elseif i == 1 or i == totalPages or (i >= currentPage - 2 and i <= currentPage + 2) %}
+                                    <li>
+                                        <a href="{{ path('collection', {slug: collection.slug, page: i}) }}"
+                                           class="px-6 py-3 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all duration-300 font-semibold hover:scale-105">
+                                            {{ i }}
+                                        </a>
+                                    </li>
+                                {% elseif i == currentPage - 3 or i == currentPage + 3 %}
+                                    <li>
+                                        <span class="px-3 py-3 text-gray-400 font-bold">•••</span>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if currentPage < totalPages %}
+                                <li>
+                                    <a href="{{ path('collection', {slug: collection.slug, page: currentPage + 1}) }}"
+                                       class="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary/90 text-white rounded-xl hover:shadow-xl transition-all duration-300 font-semibold">
+                                        Suivant
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                        </svg>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+            {% else %}
+                {# Aucun article - Design amélioré #}
+                <div class="text-center py-32">
+                    <div class="inline-flex items-center justify-center w-40 h-40 bg-gradient-to-br from-primary/10 via-secondary/10 to-accent/10 rounded-full mb-10 relative">
+                        <div class="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full blur-xl"></div>
+                        <svg class="w-20 h-20 text-primary relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                        </svg>
+                    </div>
+                    <h3 class="font-heading text-4xl font-bold mb-6">Collection en préparation</h3>
+                    <p class="text-gray-600 text-xl mb-12 max-w-lg mx-auto leading-relaxed">
+                        Nous travaillons actuellement sur de nouvelles créations pour cette collection.
+                        Revenez bientôt pour découvrir nos nouveautés !
+                    </p>
+                    <a href="{{ path('catalogue') }}" class="btn-primary inline-flex items-center gap-3 text-lg">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                        Découvrir nos autres collections
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+
+    {# CTA Section #}
+    <section class="py-24 bg-gradient-to-br from-primary to-secondary text-white relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10">
+            <div class="absolute inset-0" style="background-image: radial-gradient(circle, white 1px, transparent 1px); background-size: 40px 40px;"></div>
+        </div>
+
+        <div class="container mx-auto px-4 text-center relative z-10">
+            <h2 class="font-heading text-5xl font-black mb-6">
+                Une création personnalisée ?
+            </h2>
+            <p class="text-2xl mb-10 opacity-95 max-w-2xl mx-auto leading-relaxed">
+                Nous créons des pièces uniques sur mesure selon vos envies et votre imagination.
+            </p>
+            <a href="{{ path('contact') }}" class="btn-secondary text-xl px-12 py-5 inline-flex items-center gap-3 shadow-2xl">
+                Nous Contacter
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+            </a>
+        </div>
+    </section>
+{% endblock %}
