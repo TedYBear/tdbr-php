@@ -3,186 +3,302 @@
 {% block title %}À propos - TDBR{% endblock %}
 
 {% block body %}
-    {# Hero Section #}
-    <section class="relative py-20 bg-gradient-to-br from-accent to-white">
+    {# Hero Section with Image #}
+    <section class="relative py-8 md:py-12 bg-gradient-to-b from-white to-gray-50">
         <div class="container mx-auto px-4">
-            <div class="text-center max-w-3xl mx-auto">
-                <h1 class="font-heading text-5xl md:text-6xl font-bold mb-6">
-                    Notre <span class="gradient-text">Histoire</span>
-                </h1>
-                <p class="text-xl text-gray-700">
-                    L'art de créer des compagnons en peluche uniques depuis 2020
-                </p>
+            <div class="grid md:grid-cols-2 gap-6 md:gap-8 max-w-6xl mx-auto items-center">
+                {# Image portrait #}
+                <div class="relative h-[400px] md:h-[600px] rounded-xl overflow-hidden shadow-2xl bg-gray-100">
+                    <img src="{{ asset('build/images/pres.png') }}"
+                         alt="TedYBear - TDBR"
+                         class="w-full h-full object-contain">
+                </div>
+
+                {# Texte d'introduction #}
+                <div>
+                    <h1 class="font-heading text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-3 md:mb-4">
+                        Salut, moi c'est <span class="gradient-text">TedYBear</span>
+                    </h1>
+                    <p class="text-xl md:text-2xl text-gray-600 mb-4 md:mb-6 font-light">
+                        (avec un seul D, parce que oui, ça compte)
+                    </p>
+                    <div class="space-y-4 text-base md:text-lg text-gray-700 leading-relaxed">
+                        <p>
+                            À l'état civil, je m'appelle <strong>Emmanuel</strong>. Mais sorti du boulot, personne ne m'appelle comme ça.
+                            Pour tout le monde, c'est <strong>Manu</strong>. Et depuis très longtemps, mon pseudo sur le net et dans le milieu artistique,
+                            c'est <strong>TedYBear</strong>.
+                        </p>
+                        <p>
+                            Pourquoi TedYBear ? Parce que je suis un mélange paradoxal :
+                            <strong>gentil comme un nounours mais parfois ronchon comme un ours qui n'a pas eu son café</strong>.
+                        </p>
+                        <p>
+                            À 50 balais, j'assume complètement cette double nature. Et pour en faire une marque,
+                            j'ai créé <strong class="gradient-text">TDBR</strong> — une contraction de TedYBear, courte, percutante,
+                            et idéale pour un nom de marque.
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
 
-    {# Notre Histoire Section #}
-    <section class="py-20 bg-white">
+    {# Parcours artistique #}
+    <section class="py-12 md:py-20 bg-white">
         <div class="container mx-auto px-4">
-            <div class="grid md:grid-cols-2 gap-12 items-center">
-                <div>
-                    <img src="{{ asset('build/images/pres.png') }}" alt="Atelier TDBR" class="rounded-lg shadow-2xl">
-                </div>
-                <div>
-                    <h2 class="font-heading text-3xl font-bold mb-6">
-                        Une Passion Devenue Réalité
+            <div class="max-w-4xl mx-auto">
+                <div class="card p-8 md:p-12">
+                    <h2 class="font-heading text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+                        Du théâtre aux pixels
                     </h2>
-                    <p class="text-gray-700 mb-4">
-                        TDBR est né d'une passion pour l'artisanat et le désir de créer des peluches qui racontent une histoire.
-                        Chaque teddy bear que nous créons est unique, fait à la main avec amour et attention aux détails.
-                    </p>
-                    <p class="text-gray-700 mb-4">
-                        Notre atelier situé en France est le berceau de créations originales qui allient tradition et modernité.
-                        Nous utilisons des techniques ancestrales tout en intégrant des designs contemporains pour créer
-                        des pièces qui traversent les générations.
-                    </p>
-                    <p class="text-gray-700">
-                        Aujourd'hui, TDBR c'est une équipe passionnée d'artisans qui mettent tout leur savoir-faire
-                        au service de la création de compagnons en peluche exceptionnels.
-                    </p>
+                    <div class="space-y-4 text-base md:text-lg text-gray-700 leading-relaxed">
+                        <p>
+                            J'ai toujours été attiré par l'artistique : <strong>théâtre, photographie</strong>, et depuis des années,
+                            une passion dévorante pour les t-shirts geek et pop-culture. Oui, ma garde-robe est un musée
+                            vivant de références obscures et de jeux de mots douteux.
+                        </p>
+                        <p>
+                            Pour la photo, mon style favori est <strong>la capture de l'instant</strong> : spectacle, scènes de vie,
+                            scènes de rue... <strong>en noir et blanc</strong>, bien sûr. Avec des inspirations assumées à la
+                            <strong>Doisneau</strong> ou <strong>Willy Ronis</strong>. L'instant qui raconte une histoire, le moment qui ne se reproduira jamais.
+                        </p>
+                        <p>
+                            <strong>Informaticien de formation</strong>, j'ai migré vers le côté obscur de la Force : le fonctionnel.
+                            Mais je reste un passionné de techno : impression 3D, IA, domotique... Bref, tout ce qui brille
+                            et fait des bips.
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
-    {# Nos Valeurs Section #}
-    <section class="py-20 bg-accent/20">
+    {# AI & Transparency Section #}
+    <section class="py-12 md:py-20 bg-gradient-to-br from-accent to-secondary/20">
         <div class="container mx-auto px-4">
-            <h2 class="font-heading text-4xl font-bold text-center mb-16">
-                Nos <span class="gradient-text">Valeurs</span>
-            </h2>
-
-            <div class="grid md:grid-cols-3 gap-8">
-                {# Qualité #}
-                <div class="card p-8 text-center">
-                    <div class="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <svg class="w-10 h-10 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </div>
-                    <h3 class="font-heading text-2xl font-bold mb-4">Qualité</h3>
-                    <p class="text-gray-600">
-                        Nous sélectionnons rigoureusement nos matériaux pour garantir des créations durables
-                        et sûres, conformes aux normes européennes.
+            <div class="max-w-4xl mx-auto">
+                {# Title #}
+                <div class="text-center mb-8 md:mb-10">
+                    <h2 class="font-heading text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+                        IA & Transparence
+                    </h2>
+                    <p class="text-lg md:text-xl text-gray-600">
+                        Parlons cash
                     </p>
                 </div>
 
-                {# Artisanat #}
-                <div class="card p-8 text-center">
-                    <div class="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <svg class="w-10 h-10 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </div>
-                    <h3 class="font-heading text-2xl font-bold mb-4">Artisanat</h3>
-                    <p class="text-gray-600">
-                        Chaque pièce est entièrement faite à la main dans notre atelier. Pas de production de masse,
-                        seulement des créations uniques et authentiques.
-                    </p>
-                </div>
+                {# Callout Card #}
+                <div class="card p-8 md:p-12 border-4 border-primary bg-white">
+                    <div class="space-y-4 text-base md:text-lg text-gray-700 leading-relaxed">
+                        <p>
+                            Je me suis lancé dans les <strong>IA génératives il y a quelques années</strong>, particulièrement pour créer
+                            des visuels pour mes t-shirts, mugs et cadeaux. Aujourd'hui, j'en ai fait mon side business.
+                        </p>
 
-                {# Écologie #}
-                <div class="card p-8 text-center">
-                    <div class="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <svg class="w-10 h-10 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
+                        <div class="bg-accent border-l-4 border-primary p-6 my-6">
+                            <p class="text-gray-900 font-bold mb-3 text-lg">
+                                💡 Oui, la plupart de ces images sont créées avec une bonne dose d'IA.
+                            </p>
+                            <p class="text-gray-700">
+                                <strong>Si ça vous dérange, rien ne sert de me cracher dessus, passez simplement votre chemin.</strong>
+                                J'espère que vous trouverez votre bonheur ici !
+                            </p>
+                        </div>
+
+                        <p>
+                            <strong class="text-gray-900">Mon approche :</strong> L'IA n'est pas là pour remplacer la créativité humaine,
+                            mais pour l'amplifier. Elle me permet d'explorer rapidement des concepts visuels, de tester des variations,
+                            et d'affiner des idées qui auraient pris des semaines à développer manuellement.
+                        </p>
+                        <p>
+                            Je dirige la création, j'apporte la vision artistique, je sélectionne, j'ajuste et je finalise chaque design.
+                            L'IA est un outil dans ma palette créative, au même titre qu'un logiciel de retouche photo ou une
+                            tablette graphique.
+                        </p>
+                        <p class="text-primary font-bold pt-2 text-lg">
+                            Transparence, honnêteté, et créativité assumée. C'est ça, TDBR.
+                        </p>
                     </div>
-                    <h3 class="font-heading text-2xl font-bold mb-4">Écologie</h3>
-                    <p class="text-gray-600">
-                        Nous privilégions des matériaux naturels et recyclables. Notre démarche éco-responsable
-                        s'inscrit dans une vision durable de l'artisanat.
-                    </p>
                 </div>
             </div>
         </div>
     </section>
 
-    {# Notre Processus Section #}
-    <section class="py-20 bg-white">
+    {# Thématiques Section #}
+    <section class="py-12 md:py-20 bg-white">
         <div class="container mx-auto px-4">
-            <h2 class="font-heading text-4xl font-bold text-center mb-16">
-                Notre <span class="gradient-text">Processus</span>
-            </h2>
-
-            <div class="max-w-4xl mx-auto space-y-12">
-                {# Étape 1 #}
-                <div class="flex gap-8 items-start">
-                    <div class="flex-shrink-0 w-16 h-16 bg-primary text-white rounded-full flex items-center justify-center text-2xl font-bold">
-                        1
-                    </div>
-                    <div>
-                        <h3 class="font-heading text-2xl font-bold mb-3">Design & Conception</h3>
-                        <p class="text-gray-700">
-                            Chaque création commence par un design unique. Nous esquissons, choisissons les tissus,
-                            et planifions chaque détail pour donner vie à votre compagnon.
-                        </p>
-                    </div>
+            <div class="max-w-5xl mx-auto">
+                {# Title #}
+                <div class="text-center mb-10 md:mb-16">
+                    <h2 class="font-heading text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+                        Mes Thématiques
+                    </h2>
+                    <p class="text-lg md:text-xl text-gray-600">
+                        Des univers créatifs qui me passionnent
+                    </p>
                 </div>
 
-                {# Étape 2 #}
-                <div class="flex gap-8 items-start">
-                    <div class="flex-shrink-0 w-16 h-16 bg-secondary text-white rounded-full flex items-center justify-center text-2xl font-bold">
-                        2
-                    </div>
-                    <div>
-                        <h3 class="font-heading text-2xl font-bold mb-3">Découpe & Assemblage</h3>
-                        <p class="text-gray-700">
-                            Nos artisans découpent avec précision chaque pièce de tissu et les assemblent minutieusement.
-                            La couture est réalisée à la main pour garantir solidité et finesse.
+                {# 2-Column Grid #}
+                <div class="grid md:grid-cols-2 gap-6 md:gap-8">
+                    {# Jeux de Société Card #}
+                    <div class="card-glass p-8 md:p-10 group hover-lift">
+                        <div class="text-6xl md:text-7xl mb-6 group-hover:scale-125 transition-bounce text-center">
+                            🎲
+                        </div>
+                        <h3 class="font-heading text-2xl md:text-3xl font-bold text-gray-900 mb-4 text-center">
+                            Jeux de Société
+                        </h3>
+                        <p class="text-base md:text-lg text-gray-700 leading-relaxed mb-6 text-center">
+                            <strong>Passionné de jeux de plateau depuis toujours.</strong> Meeples, pions, et références cultes
+                            pour les vrais gamers ! Chaque création célèbre cet univers ludique, des classiques aux pépites indé.
                         </p>
+                        <div class="text-center">
+                            <a href="{{ path('catalogue', {theme: 'jeux-de-societe'}) }}" class="btn-primary inline-block px-6 py-3">
+                                Découvrir la collection
+                            </a>
+                        </div>
                     </div>
-                </div>
 
-                {# Étape 3 #}
-                <div class="flex gap-8 items-start">
-                    <div class="flex-shrink-0 w-16 h-16 bg-primary text-white rounded-full flex items-center justify-center text-2xl font-bold">
-                        3
-                    </div>
-                    <div>
-                        <h3 class="font-heading text-2xl font-bold mb-3">Rembourrage & Finitions</h3>
-                        <p class="text-gray-700">
-                            Le rembourrage est effectué avec soin pour donner la forme parfaite. Nous ajoutons ensuite
-                            les finitions : yeux, nez, broderies personnalisées.
+                    {# Fromage Card #}
+                    <div class="card-glass p-8 md:p-10 group hover-lift">
+                        <div class="text-6xl md:text-7xl mb-6 group-hover:scale-125 transition-bounce text-center">
+                            🧀
+                        </div>
+                        <h3 class="font-heading text-2xl md:text-3xl font-bold text-gray-900 mb-4 text-center">
+                            Fromage
+                        </h3>
+                        <p class="text-base md:text-lg text-gray-700 leading-relaxed mb-6 text-center">
+                            <strong>Mon beauf est geek ET fromager.</strong> L'occasion parfaite de mélanger humour et gastronomie !
+                            Camembert, comté, roquefort : quand le terroir rencontre le design décalé.
                         </p>
-                    </div>
-                </div>
-
-                {# Étape 4 #}
-                <div class="flex gap-8 items-start">
-                    <div class="flex-shrink-0 w-16 h-16 bg-secondary text-white rounded-full flex items-center justify-center text-2xl font-bold">
-                        4
-                    </div>
-                    <div>
-                        <h3 class="font-heading text-2xl font-bold mb-3">Contrôle Qualité</h3>
-                        <p class="text-gray-700">
-                            Avant de quitter notre atelier, chaque teddy bear passe un contrôle qualité rigoureux.
-                            Nous vérifions la solidité, la sécurité et l'aspect esthétique.
-                        </p>
+                        <div class="text-center">
+                            <a href="{{ path('catalogue', {theme: 'fromage'}) }}" class="btn-primary inline-block px-6 py-3">
+                                Découvrir la collection
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    {# CTA Section #}
-    <section class="py-20 bg-primary text-white">
-        <div class="container mx-auto px-4 text-center">
-            <h2 class="font-heading text-4xl font-bold mb-6">
-                Prêt à découvrir nos créations ?
-            </h2>
-            <p class="text-xl mb-8 opacity-90 max-w-2xl mx-auto">
-                Explorez notre catalogue et trouvez le teddy bear qui vous correspond.
-                Chaque création est unique et attend son nouveau foyer.
-            </p>
-            <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="{{ path('catalogue', {}) }}" class="btn-secondary text-lg px-8 py-4">
-                    Voir le Catalogue
-                </a>
-                <a href="{{ path('contact', {}) }}" class="btn-outline border-white text-white hover:bg-white hover:text-primary text-lg px-8 py-4">
-                    Nous Contacter
-                </a>
+    {# Street Art Inspiration Section #}
+    <section class="py-12 md:py-20 bg-gradient-to-br from-gray-900 via-primary to-gray-900 text-white relative overflow-hidden">
+        {# Decorative background elements #}
+        <div class="absolute inset-0 opacity-10">
+            <div class="absolute top-10 left-10 w-64 h-64 bg-secondary rounded-full filter blur-3xl"></div>
+            <div class="absolute bottom-10 right-10 w-96 h-96 bg-secondary rounded-full filter blur-3xl"></div>
+            <div class="absolute top-1/2 left-1/3 w-48 h-48 bg-primary rounded-full filter blur-3xl"></div>
+        </div>
+
+        <div class="container mx-auto px-4 relative z-10">
+            <div class="max-w-4xl mx-auto">
+                {# Title with graffiti-style accent #}
+                <div class="text-center mb-10 md:mb-12">
+                    <div class="inline-block mb-4">
+                        <span class="text-6xl md:text-7xl">🎨</span>
+                    </div>
+                    <h2 class="font-heading text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
+                        Inspiration <span class="gradient-text">Street Art</span>
+                    </h2>
+                    <p class="text-lg md:text-xl text-gray-300">
+                        Des murs aux goodies
+                    </p>
+                </div>
+
+                {# Content #}
+                <div class="card-glass p-8 md:p-12 backdrop-blur-xl bg-white/10 border-2 border-white/20">
+                    <div class="space-y-6 text-base md:text-lg text-gray-100 leading-relaxed">
+                        <p class="text-xl md:text-2xl font-light text-white mb-6">
+                            J'aime le street art, et notamment <strong>Banksy</strong>.
+                        </p>
+
+                        <p class="text-gray-300">
+                            D'où l'inspiration pour le style de ce site et de mes créations :
+                            <strong class="text-white">minimaliste, percutant, avec une touche d'irrévérence</strong>.
+                        </p>
+
+                        <div class="grid md:grid-cols-2 gap-6 my-8">
+                            <div class="space-y-4">
+                                <div class="flex items-start gap-4">
+                                    <div class="flex-shrink-0 text-3xl">💥</div>
+                                    <div>
+                                        <h4 class="font-bold text-white mb-2">Audace visuelle</h4>
+                                        <p class="text-gray-300">
+                                            Des couleurs vives, des contrastes forts, une esthétique qui ne passe pas inaperçue.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start gap-4">
+                                    <div class="flex-shrink-0 text-3xl">✊</div>
+                                    <div>
+                                        <h4 class="font-bold text-white mb-2">Authenticité</h4>
+                                        <p class="text-gray-300">
+                                            Rester fidèle à sa vision, sans compromis sur l'identité créative.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-4">
+                                <div class="flex items-start gap-4">
+                                    <div class="flex-shrink-0 text-3xl">🗣️</div>
+                                    <div>
+                                        <h4 class="font-bold text-white mb-2">Message fort</h4>
+                                        <p class="text-gray-300">
+                                            Chaque création raconte une histoire, porte un message, crée une émotion.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start gap-4">
+                                    <div class="flex-shrink-0 text-3xl">🌍</div>
+                                    <div>
+                                        <h4 class="font-bold text-white mb-2">Accessibilité</h4>
+                                        <p class="text-gray-300">
+                                            L'art doit être accessible à tous, dans la rue comme sur un mug.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p class="text-center text-xl md:text-2xl font-light text-white pt-6 border-t border-white/20">
+                            Parce qu'un goodie, c'est comme un tag : <strong>ça doit marquer les esprits.</strong>
+                        </p>
+                    </div>
+                </div>
+
+                {# CTA Button #}
+                <div class="text-center mt-10 md:mt-12">
+                    <a href="{{ path('catalogue') }}" class="btn-primary px-8 py-4 text-lg inline-block">
+                        Découvrir mes créations
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {# Contact CTA Section #}
+    <section class="py-12 md:py-20 bg-gradient-to-b from-gray-50 to-white">
+        <div class="container mx-auto px-4">
+            <div class="max-w-4xl mx-auto card-glass p-8 md:p-12 text-center">
+                <h3 class="font-heading text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+                    Envie d'en savoir plus ?
+                </h3>
+                <p class="text-lg md:text-xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
+                    Un projet personnalisé ? Une question sur mon travail ? N'hésitez pas à me contacter,
+                    je serai ravi d'échanger avec vous.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="{{ path('contact') }}" class="btn-primary px-8 py-4 text-lg">
+                        Me contacter
+                    </a>
+                    <a href="{{ path('catalogue') }}" class="btn-secondary px-8 py-4 text-lg">
+                        Voir le catalogue
+                    </a>
+                </div>
             </div>
         </div>
     </section>

@@ -1,230 +1,186 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}TDBR - Accueil - Teddy Bears Artisanaux{% endblock %}
+{% block title %}TDBR - Goodies Personnalisés{% endblock %}
 
 {% block body %}
-    {# Hero Section avec animation #}
-    <section class="relative h-screen flex items-center justify-center overflow-hidden animated-gradient">
-        <div class="absolute inset-0 opacity-20">
+    {# Hero Section #}
+    <section class="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
+        {# Background Image #}
+        <div class="absolute inset-0 z-0">
             <img src="{{ asset('build/images/main_page.png') }}"
-                 alt="TDBR Hero"
-                 class="w-full h-full object-cover scale-105"
-                 style="animation: float 6s ease-in-out infinite;">
+                 alt="TDBR - Goodies Personnalisés"
+                 class="w-full h-full object-cover">
+            <div class="absolute inset-0 bg-black/40"></div>
         </div>
 
-        {# Particles effect #}
-        <div class="absolute inset-0 overflow-hidden">
-            {% for i in 1..20 %}
-                <div class="absolute w-2 h-2 bg-white/30 rounded-full"
-                     style="
-                        left: {{ random(0, 100) }}%;
-                        top: {{ random(0, 100) }}%;
-                        animation: float {{ random(3, 8) }}s ease-in-out infinite {{ random(0, 3) }}s;
-                        ">
-                </div>
-            {% endfor %}
-        </div>
-
-        <div class="relative z-10 text-center px-4 max-w-5xl mx-auto">
-            <div class="hero-text">
-                <h1 class="font-heading text-7xl md:text-9xl font-black mb-8">
-                    <span class="gradient-text inline-block" style="animation: fadeInScale 1s ease forwards;">
-                        TDBR
-                    </span>
-                </h1>
-                <p class="text-3xl md:text-5xl text-dark font-bold mb-6 text-shadow-lg"
-                   style="animation: fadeInUp 1s ease forwards 0.3s; opacity: 0;">
-                    Créations Artisanales de Teddy Bears
-                </p>
-                <p class="text-xl md:text-2xl text-gray-800 mb-12 max-w-3xl mx-auto leading-relaxed"
-                   style="animation: fadeInUp 1s ease forwards 0.6s; opacity: 0;">
-                    Découvrez nos peluches uniques, entièrement faites à la main avec amour et passion.
-                    Chaque teddy bear est une création originale qui apporte chaleur et réconfort.
-                </p>
-                <div class="flex flex-col sm:flex-row gap-6 justify-center"
-                     style="animation: fadeInUp 1s ease forwards 0.9s; opacity: 0;">
-                    <a href="{{ path('catalogue', {}) }}" class="btn-primary text-xl px-12 py-5 glow">
-                        <span class="flex items-center gap-3">
-                            Découvrir le Catalogue
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
-                            </svg>
-                        </span>
-                    </a>
-                    <a href="{{ path('presentation') }}" class="btn-outline text-xl px-12 py-5">
-                        <span class="flex items-center gap-3">
-                            Notre Histoire
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                            </svg>
-                        </span>
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        {# Scroll Indicator animé #}
-        <div class="absolute bottom-12 left-1/2 transform -translate-x-1/2 flex flex-col items-center gap-2"
-             style="animation: float 2s ease-in-out infinite;">
-            <span class="text-dark text-sm font-medium">Défiler</span>
-            <svg class="w-8 h-8 text-primary animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
-            </svg>
-        </div>
-    </section>
-
-    {# Présentation Section améliorée #}
-    <section class="py-32 bg-white relative overflow-hidden">
-        {# Background decoration #}
-        <div class="absolute top-0 right-0 w-1/3 h-full opacity-5">
-            <svg viewBox="0 0 200 200" class="w-full h-full">
-                <circle cx="100" cy="100" r="80" fill="#8B7355"/>
-            </svg>
-        </div>
-
-        <div class="container mx-auto px-4 relative z-10">
-            <div class="grid md:grid-cols-2 gap-16 items-center">
-                <div class="section-appear">
-                    <h2 class="font-heading text-5xl md:text-6xl font-black mb-8 leading-tight">
-                        Des Créations <br>
-                        <span class="gradient-text">Exceptionnelles</span>
-                    </h2>
-                    <div class="space-y-6 text-lg text-gray-700 leading-relaxed">
-                        <p class="flex items-start gap-4">
-                            <svg class="w-6 h-6 text-primary flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                            <span>Chaque teddy bear TDBR est fabriqué à la main avec des matériaux de qualité supérieure.</span>
-                        </p>
-                        <p class="flex items-start gap-4">
-                            <svg class="w-6 h-6 text-primary flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                            <span>Nous accordons une attention particulière aux détails pour créer des compagnons qui dureront toute une vie.</span>
-                        </p>
-                        <p class="flex items-start gap-4">
-                            <svg class="w-6 h-6 text-primary flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                            <span>Nos créations sont personnalisables : choisissez les couleurs, les tissus, et ajoutez une touche personnelle.</span>
-                        </p>
-                    </div>
-                    <a href="{{ path('presentation') }}" class="btn-primary mt-10 inline-flex items-center gap-3">
-                        Découvrir Notre Histoire
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
-                        </svg>
-                    </a>
-                </div>
-                <div class="section-appear image-zoom">
-                    <div class="gradient-border">
-                        <img src="{{ asset('build/images/pres.png') }}"
-                             alt="Présentation TDBR"
-                             class="w-full rounded-xl">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    {# Features Section avec cards 3D #}
-    <section class="py-32 bg-gradient-to-b from-accent/20 to-white">
-        <div class="container mx-auto px-4">
-            <h2 class="font-heading text-5xl md:text-6xl font-black text-center mb-6">
-                Pourquoi choisir <span class="gradient-text">TDBR</span>
-            </h2>
-            <p class="text-center text-xl text-gray-600 mb-20 max-w-2xl mx-auto">
-                L'excellence artisanale au service de vos émotions
+        {# Content #}
+        <div class="container mx-auto px-4 text-center relative z-10" style="animation: fadeIn 1s ease forwards;">
+            <img src="{{ asset('build/images/TDBR.png') }}"
+                 alt="TDBR"
+                 class="h-32 md:h-40 mx-auto mb-8 md:mb-12">
+            <h1 class="font-heading text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-bold mb-4 md:mb-6 tracking-tight text-white">
+                Bienvenue chez <span class="gradient-text">TDBR</span>
+            </h1>
+            <p class="text-base sm:text-lg md:text-xl lg:text-2xl mb-6 md:mb-8 font-light max-w-2xl mx-auto text-white">
+                Goodies personnalisés qui racontent votre histoire
             </p>
+            <div class="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
+                <a href="{{ path('catalogue') }}" class="btn-primary px-6 md:px-8 py-3 md:py-4 text-base md:text-lg">
+                    Découvrir le Catalogue
+                </a>
+                <a href="{{ path('contact') }}" class="btn-secondary px-6 md:px-8 py-3 md:py-4 bg-white/90 backdrop-blur-sm text-gray-900 hover:bg-white text-base md:text-lg">
+                    Demander un Devis
+                </a>
+            </div>
+        </div>
 
-            <div class="grid md:grid-cols-3 gap-10">
+        {# Scroll indicator - hidden on mobile #}
+        <div class="hidden md:block absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+            <svg class="w-6 h-6 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            </svg>
+        </div>
+    </section>
+
+    {# Features Section #}
+    <section class="py-12 md:py-20 bg-gradient-to-b from-white to-gray-50">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-10 md:mb-16">
+                <h2 class="font-heading text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-3 md:mb-4">
+                    Pourquoi choisir <span class="gradient-text">TDBR</span> ?
+                </h2>
+                <p class="text-base md:text-lg text-gray-600 max-w-2xl mx-auto">
+                    Des créations uniques pour vos goodies personnalisés
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto">
                 {# Feature 1 #}
-                <div class="feature-card card-3d">
-                    <div class="w-20 h-20 bg-gradient-to-br from-primary to-primary/70 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-xl glow">
-                        <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
-                        </svg>
+                <div class="card hover-lift p-6 md:p-8 text-center group">
+                    <div class="w-14 h-14 md:w-16 md:h-16 mx-auto mb-4 md:mb-6 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center text-white text-2xl md:text-3xl group-hover:scale-110 transition-smooth">
+                        🎨
                     </div>
-                    <h3 class="font-heading text-2xl font-bold mb-4">Fait Main</h3>
-                    <p class="text-gray-600 text-lg leading-relaxed">
-                        Chaque création est unique et réalisée entièrement à la main par nos artisans passionnés.
+                    <h3 class="font-heading text-xl md:text-2xl font-semibold text-gray-900 mb-3 md:mb-4">
+                        Designs Originaux
+                    </h3>
+                    <p class="text-sm md:text-base text-gray-600 leading-relaxed">
+                        Des créations uniques inspirées du street art et de vos passions : jeux de société, fromage, et bien plus.
                     </p>
                 </div>
 
                 {# Feature 2 #}
-                <div class="feature-card card-3d">
-                    <div class="w-20 h-20 bg-gradient-to-br from-secondary to-secondary/70 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-xl glow-secondary">
-                        <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
-                        </svg>
+                <div class="card hover-lift p-6 md:p-8 text-center group">
+                    <div class="w-14 h-14 md:w-16 md:h-16 mx-auto mb-4 md:mb-6 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center text-white text-2xl md:text-3xl group-hover:scale-110 transition-smooth">
+                        ⚡
                     </div>
-                    <h3 class="font-heading text-2xl font-bold mb-4">Personnalisable</h3>
-                    <p class="text-gray-600 text-lg leading-relaxed">
-                        Créez le teddy bear de vos rêves en choisissant les couleurs, tissus et accessoires.
+                    <h3 class="font-heading text-xl md:text-2xl font-semibold text-gray-900 mb-3 md:mb-4">
+                        Qualité Premium
+                    </h3>
+                    <p class="text-sm md:text-base text-gray-600 leading-relaxed">
+                        Des supports de qualité pour des goodies qui durent : mugs, t-shirts, tote bags, et accessoires.
                     </p>
                 </div>
 
                 {# Feature 3 #}
-                <div class="feature-card card-3d">
-                    <div class="w-20 h-20 bg-gradient-to-br from-primary to-secondary rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-xl" style="box-shadow: 0 0 30px rgba(139, 115, 85, 0.5);">
-                        <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
-                        </svg>
+                <div class="card hover-lift p-6 md:p-8 text-center group">
+                    <div class="w-14 h-14 md:w-16 md:h-16 mx-auto mb-4 md:mb-6 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center text-white text-2xl md:text-3xl group-hover:scale-110 transition-smooth">
+                        💡
                     </div>
-                    <h3 class="font-heading text-2xl font-bold mb-4">Qualité Premium</h3>
-                    <p class="text-gray-600 text-lg leading-relaxed">
-                        Nous utilisons uniquement des matériaux de première qualité pour une durabilité optimale.
+                    <h3 class="font-heading text-xl md:text-2xl font-semibold text-gray-900 mb-3 md:mb-4">
+                        Sur Mesure
+                    </h3>
+                    <p class="text-sm md:text-base text-gray-600 leading-relaxed">
+                        Vous avez un projet ? On le concrétise ensemble avec un service de personnalisation complet.
                     </p>
                 </div>
             </div>
         </div>
     </section>
 
-    {# Stats Section #}
-    <section class="py-24 bg-primary text-white relative overflow-hidden">
-        <div class="absolute inset-0 opacity-10">
-            <div class="absolute top-0 left-0 w-full h-full" style="background-image: radial-gradient(circle, white 1px, transparent 1px); background-size: 50px 50px;"></div>
-        </div>
+    {# Thématiques Section #}
+    <section class="py-12 md:py-20 bg-white">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-10 md:mb-16">
+                <h2 class="font-heading text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-3 md:mb-4">
+                    Nos Thématiques
+                </h2>
+                <p class="text-base md:text-lg text-gray-600 max-w-2xl mx-auto">
+                    Découvrez nos collections inspirées de vos passions
+                </p>
+            </div>
 
-        <div class="container mx-auto px-4 relative z-10">
-            <div class="grid md:grid-cols-4 gap-12 text-center">
-                <div class="section-appear">
-                    <div class="text-6xl font-black mb-3 gradient-text" style="background: linear-gradient(to right, #F5E6D3, white); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">2020</div>
-                    <div class="text-xl font-medium opacity-90">Année de création</div>
+            <div class="grid md:grid-cols-2 gap-6 md:gap-8 max-w-5xl mx-auto">
+                {# Jeux de Société #}
+                <div class="card-glass p-6 md:p-10 text-center group">
+                    <div class="text-5xl md:text-7xl mb-4 md:mb-6 group-hover:scale-125 transition-bounce">🎲</div>
+                    <h3 class="font-heading text-2xl md:text-3xl font-bold text-gray-900 mb-3 md:mb-4">
+                        Jeux de Société
+                    </h3>
+                    <p class="text-sm md:text-base text-gray-600 mb-5 md:mb-6 leading-relaxed">
+                        Mugs, t-shirts et accessoires pour les passionnés de jeux de plateau.
+                        Meeples, pions et références cultes.
+                    </p>
+                    <a href="{{ path('catalogue', {theme: 'jeux-de-societe'}) }}" class="btn-primary inline-block px-6 py-3">
+                        Voir les produits
+                    </a>
                 </div>
-                <div class="section-appear">
-                    <div class="text-6xl font-black mb-3" style="background: linear-gradient(to right, #F5E6D3, white); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">500+</div>
-                    <div class="text-xl font-medium opacity-90">Créations uniques</div>
-                </div>
-                <div class="section-appear">
-                    <div class="text-6xl font-black mb-3" style="background: linear-gradient(to right, #F5E6D3, white); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">98%</div>
-                    <div class="text-xl font-medium opacity-90">Clients satisfaits</div>
-                </div>
-                <div class="section-appear">
-                    <div class="text-6xl font-black mb-3" style="background: linear-gradient(to right, #F5E6D3, white); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">100%</div>
-                    <div class="text-xl font-medium opacity-90">Fait main</div>
+
+                {# Fromage #}
+                <div class="card-glass p-6 md:p-10 text-center group">
+                    <div class="text-5xl md:text-7xl mb-4 md:mb-6 group-hover:scale-125 transition-bounce">🧀</div>
+                    <h3 class="font-heading text-2xl md:text-3xl font-bold text-gray-900 mb-3 md:mb-4">
+                        Fromage
+                    </h3>
+                    <p class="text-sm md:text-base text-gray-600 mb-5 md:mb-6 leading-relaxed">
+                        Des créations originales pour les amateurs de fromage.
+                        Humour et gastronomie se rencontrent.
+                    </p>
+                    <a href="{{ path('catalogue', {theme: 'fromage'}) }}" class="btn-primary inline-block px-6 py-3">
+                        Voir les produits
+                    </a>
                 </div>
             </div>
         </div>
     </section>
 
-    {# CTA Section finale #}
-    <section class="py-32 bg-gradient-to-br from-white via-accent/30 to-white">
-        <div class="container mx-auto px-4 text-center">
-            <div class="max-w-4xl mx-auto">
-                <h2 class="font-heading text-5xl md:text-6xl font-black mb-8 leading-tight">
-                    Prêt à trouver votre <br>
-                    <span class="gradient-text">compagnon idéal ?</span>
-                </h2>
-                <p class="text-2xl text-gray-700 mb-12 leading-relaxed">
-                    Explorez notre catalogue et découvrez la peluche parfaite pour vous ou pour offrir.
-                    <br>Chaque création raconte une histoire unique.
+    {# CTA Section #}
+    <section class="py-12 md:py-20 bg-gradient-to-br from-gray-900 via-primary to-gray-900 text-white relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10">
+            <div class="absolute top-0 left-0 w-96 h-96 bg-secondary rounded-full filter blur-3xl"></div>
+            <div class="absolute bottom-0 right-0 w-96 h-96 bg-secondary rounded-full filter blur-3xl"></div>
+        </div>
+
+        <div class="container mx-auto px-4 text-center relative z-10">
+            <h2 class="font-heading text-3xl md:text-4xl lg:text-5xl font-bold mb-4 md:mb-6">
+                Prêt à créer vos goodies ?
+            </h2>
+            <p class="text-base md:text-lg lg:text-xl text-gray-300 mb-8 md:mb-10 max-w-2xl mx-auto leading-relaxed">
+                Que ce soit pour un événement, un cadeau d'entreprise, ou simplement pour vous faire plaisir,
+                contactez-moi pour un devis personnalisé.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
+                <a href="{{ path('contact') }}" class="btn-primary px-6 md:px-8 py-3 md:py-4 text-base md:text-lg">
+                    Demander un Devis
+                </a>
+                <a href="{{ path('presentation') }}" class="px-6 md:px-8 py-3 md:py-4 border-2 border-white text-white font-semibold rounded-xl hover:bg-white hover:text-gray-900 transition-smooth text-base md:text-lg">
+                    En savoir plus
+                </a>
+            </div>
+        </div>
+    </section>
+
+    {# Contact Banner #}
+    <section class="py-10 md:py-16 bg-gradient-to-b from-gray-50 to-white">
+        <div class="container mx-auto px-4">
+            <div class="max-w-4xl mx-auto card-glass p-6 md:p-12 text-center">
+                <h3 class="font-heading text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 md:mb-4">
+                    Une question ? Un projet ?
+                </h3>
+                <p class="text-base md:text-lg text-gray-600 mb-6 md:mb-8">
+                    N'hésitez pas à me contacter, je serai ravi d'échanger avec vous sur votre projet.
                 </p>
-                <a href="{{ path('catalogue', {}) }}" class="btn-primary text-2xl px-16 py-6 glow inline-flex items-center gap-4">
-                    Voir le Catalogue Complet
-                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-                    </svg>
+                <a href="{{ path('contact') }}" class="btn-primary inline-block px-6 md:px-8 py-3 md:py-4 text-base md:text-lg">
+                    Nous Contacter
                 </a>
             </div>
         </div>
