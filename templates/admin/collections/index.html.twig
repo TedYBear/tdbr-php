@@ -33,8 +33,8 @@
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex gap-2">
-                                    <a href="{{ path('admin_collections_edit', {id: collection._id}) }}" class="text-primary hover:text-secondary">Modifier</a>
-                                    <form method="post" action="{{ path('admin_collections_delete', {id: collection._id}) }}" onsubmit="return confirm('Supprimer cette collection ?');">
+                                    <a href="{{ path('admin_collections_edit', {id: collection.id}) }}" class="text-primary hover:text-secondary">Modifier</a>
+                                    <form method="post" action="{{ path('admin_collections_delete', {id: collection.id}) }}" onsubmit="return confirm('Supprimer cette collection ?');">
                                         <button type="submit" class="text-red-600 hover:text-red-700">Supprimer</button>
                                     </form>
                                 </div>

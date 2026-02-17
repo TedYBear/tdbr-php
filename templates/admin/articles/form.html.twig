@@ -5,10 +5,16 @@
 {% block page_title %}{{ article ? 'Modifier' : 'Nouvel' }} Article{% endblock %}
 
 {% block body %}
+{% set variantesJson = [] %}
+{% if article %}
+    {% for v in article.variantes %}
+        {% set variantesJson = variantesJson|merge([{id: v.id, nom: v.nom, sku: v.sku, prix: v.prix, stock: v.stock, actif: v.actif}]) %}
+    {% endfor %}
+{% endif %}
 <div x-data="{
-    variantes: {{ article and article.variantes ? article.variantes|json_encode : '[]' }},
+    variantes: {{ variantesJson|json_encode }},
     addVariante() {
-        this.variantes.push({ id: Date.now().toString(), nom: '', prix: '', stock: '' });
+        this.variantes.push({ id: Date.now().toString(), nom: '', sku: '', prix: '', stock: 0, actif: true });
     },
     removeVariante(index) {
         this.variantes.splice(index, 1);
@@ -36,12 +42,12 @@
                         <div class="grid grid-cols-2 gap-4">
                             <div class="form-group">
                                 <label>Prix (€) *</label>
-                                <input type="number" step="0.01" name="prix" value="{{ article ? article.prix : '' }}" required class="form-input">
+                                <input type="number" step="0.01" name="prix" value="{{ article ? article.prixBase : '' }}" required class="form-input">
                             </div>
 
                             <div class="form-group">
                                 <label>Stock</label>
-                                <input type="number" name="stock" value="{{ article ? article.stock : 999 }}" class="form-input">
+                                <input type="number" name="stock" value="0" class="form-input" placeholder="Stock global (géré par variante)">
                             </div>
                         </div>
                     </div>
@@ -51,7 +57,8 @@
                 <div class="card p-6">
                     <h2 class="text-xl font-bold mb-4">Images</h2>
                     <p class="text-sm text-gray-600 mb-4">Entrez les URLs des images (une par ligne)</p>
-                    <textarea name="images[]" rows="4" class="form-textarea" placeholder="https://exemple.com/image1.jpg&#10;https://exemple.com/image2.jpg">{% if article and article.images %}{{ article.images|join('\n') }}{% endif %}</textarea>
+                    <textarea name="images[]" rows="4" class="form-textarea" placeholder="/uploads/articles/image1.webp&#10;/uploads/articles/image2.webp">{% if article %}{% for img in article.images %}{{ img.url }}
+{% endfor %}{% endif %}</textarea>
                 </div>
 
                 {# Variantes #}
@@ -63,16 +70,43 @@
 
                     <div class="space-y-3">
                         <template x-for="(variante, index) in variantes" :key="index">
-                            <div class="flex gap-3 p-3 bg-gray-50 rounded-lg">
-                                <input type="hidden" :name="'variantes[' + index + '][id]'" x-model="variante.id">
-                                <input type="text" :name="'variantes[' + index + '][nom]'" x-model="variante.nom" placeholder="Nom de la variante" class="form-input flex-1">
-                                <input type="number" step="0.01" :name="'variantes[' + index + '][prix]'" x-model="variante.prix" placeholder="Prix" class="form-input w-32">
-                                <input type="number" :name="'variantes[' + index + '][stock]'" x-model="variante.stock" placeholder="Stock" class="form-input w-24">
-                                <button type="button" @click="removeVariante(index)" class="px-3 py-2 text-red-600 hover:bg-red-50 rounded">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                    </svg>
-                                </button>
+                            <div class="p-4 bg-gray-50 rounded-lg space-y-3">
+                                <div class="flex gap-3">
+                                    <input type="hidden" :name="'variantes[' + index + '][id]'" x-model="variante.id">
+                                    <input type="text"
+                                           :name="'variantes[' + index + '][nom]'"
+                                           x-model="variante.nom"
+                                           placeholder="Nom (ex: Taille M)"
+                                           class="form-input flex-1">
+                                    <input type="text"
+                                           :name="'variantes[' + index + '][sku]'"
+                                           x-model="variante.sku"
+                                           placeholder="SKU (ex: ART-001-M)"
+                                           class="form-input w-40">
+                                    <input type="number"
+                                           step="0.01"
+                                           :name="'variantes[' + index + '][prix]'"
+                                           x-model="variante.prix"
+                                           placeholder="Prix €"
+                                           class="form-input w-28">
+                                    <input type="number"
+                                           :name="'variantes[' + index + '][stock]'"
+                                           x-model="variante.stock"
+                                           placeholder="Stock"
+                                           class="form-input w-24">
+                                    <label class="flex items-center gap-1 cursor-pointer text-sm text-gray-600 whitespace-nowrap">
+                                        <input type="checkbox"
+                                               :name="'variantes[' + index + '][actif]'"
+                                               x-model="variante.actif"
+                                               class="w-4 h-4 text-primary rounded">
+                                        Actif
+                                    </label>
+                                    <button type="button" @click="removeVariante(index)" class="px-3 py-2 text-red-600 hover:bg-red-50 rounded flex-shrink-0">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
                         </template>
 
@@ -85,34 +119,20 @@
 
             {# Sidebar #}
             <div class="lg:col-span-1 space-y-6">
-                {# Catégorie et Collection #}
+                {# Collection #}
                 <div class="card p-6">
                     <h2 class="text-xl font-bold mb-4">Organisation</h2>
 
-                    <div class="space-y-4">
-                        <div class="form-group">
-                            <label>Catégorie</label>
-                            <select name="categorieId" class="form-select">
-                                <option value="">Aucune</option>
-                                {% for category in categories %}
-                                    <option value="{{ category._id }}" {{ article and article.categorieId and article.categorieId == category._id ? 'selected' : '' }}>
-                                        {{ category.nom }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Collection</label>
-                            <select name="collectionId" class="form-select">
-                                <option value="">Aucune</option>
-                                {% for collection in collections %}
-                                    <option value="{{ collection._id }}" {{ article and article.collectionId and article.collectionId == collection._id ? 'selected' : '' }}>
-                                        {{ collection.nom }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                        </div>
+                    <div class="form-group">
+                        <label>Collection</label>
+                        <select name="collection" class="form-select">
+                            <option value="">Aucune</option>
+                            {% for col in collections %}
+                                <option value="{{ col.id }}" {{ article and article.collection and article.collection.id == col.id ? 'selected' : '' }}>
+                                    {{ col.nom }}
+                                </option>
+                            {% endfor %}
+                        </select>
                     </div>
                 </div>
 
@@ -120,9 +140,15 @@
                 <div class="card p-6">
                     <h2 class="text-xl font-bold mb-4">Publication</h2>
 
-                    <div class="flex items-center gap-3">
-                        <input type="checkbox" name="actif" id="actif" {{ article and article.actif ? 'checked' : (not article ? 'checked' : '') }} class="w-5 h-5 text-primary rounded">
-                        <label for="actif" class="cursor-pointer">Article actif (visible sur le site)</label>
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" name="actif" id="actif" {{ article and article.actif ? 'checked' : (not article ? 'checked' : '') }} class="w-5 h-5 text-primary rounded">
+                            <label for="actif" class="cursor-pointer">Article actif (visible sur le site)</label>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" name="enVedette" id="enVedette" {{ article and article.enVedette ? 'checked' : '' }} class="w-5 h-5 text-primary rounded">
+                            <label for="enVedette" class="cursor-pointer">En vedette (affiché sur la page d'accueil)</label>
+                        </div>
                     </div>
                 </div>
 

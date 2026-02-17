@@ -2,7 +2,11 @@
 
 namespace App\Controller\Admin;
 
-use App\Service\MongoDBService;
+use App\Repository\ArticleRepository;
+use App\Repository\CategoryRepository;
+use App\Repository\ProductCollectionRepository;
+use App\Repository\CommandeRepository;
+use App\Repository\MessageRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -13,27 +17,24 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class DashboardController extends AbstractController
 {
     public function __construct(
-        private MongoDBService $mongoService
+        private ArticleRepository $articleRepo,
+        private CategoryRepository $categoryRepo,
+        private ProductCollectionRepository $collectionRepo,
+        private CommandeRepository $commandeRepo,
+        private MessageRepository $messageRepo,
     ) {
     }
 
     #[Route('', name: 'admin_dashboard')]
     public function index(): Response
     {
-        // Statistiques
-        $articlesCount = $this->mongoService->getCollection('articles')->countDocuments(['actif' => true]);
-        $categoriesCount = $this->mongoService->getCollection('categories')->countDocuments(['actif' => true]);
-        $collectionsCount = $this->mongoService->getCollection('collections')->countDocuments(['actif' => true]);
-        $commandesCount = $this->mongoService->getCollection('commandes')->countDocuments([]);
+        $articlesCount = $this->articleRepo->count(['actif' => true]);
+        $categoriesCount = $this->categoryRepo->count(['actif' => true]);
+        $collectionsCount = $this->collectionRepo->count(['actif' => true]);
+        $commandesCount = $this->commandeRepo->count([]);
+        $messagesNonLus = $this->messageRepo->count(['lu' => false]);
 
-        // Commandes récentes
-        $recentCommandes = $this->mongoService->getCollection('commandes')
-            ->find([], ['sort' => ['createdAt' => -1], 'limit' => 5])
-            ->toArray();
-
-        // Messages non lus
-        $messagesNonLus = $this->mongoService->getCollection('messages')
-            ->countDocuments(['lu' => false]);
+        $recentCommandes = $this->commandeRepo->findBy([], ['createdAt' => 'DESC'], 5);
 
         return $this->render('admin/dashboard.html.twig', [
             'stats' => [
