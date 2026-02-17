@@ -1,9 +1,19 @@
-RewriteEngine On
+Options -Indexes
+Options +FollowSymLinks
 
-# Servir les fichiers/dossiers existants directement
-RewriteCond %{REQUEST_FILENAME} -f [OR]
-RewriteCond %{REQUEST_FILENAME} -d
-RewriteRule ^ - [L]
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
 
-# Tout le reste → dossier public/ de Symfony
-RewriteRule ^(.*)$ public/$1 [L]
+    # Éviter la boucle infinie si déjà dans /public
+    RewriteCond %{REQUEST_URI} ^/public/ [OR]
+    RewriteCond %{REQUEST_URI} ^/public$
+    RewriteRule ^ - [L]
+
+    # Servir les assets statiques existants dans public/
+    RewriteCond %{DOCUMENT_ROOT}/public%{REQUEST_URI} -f
+    RewriteRule ^(.*)$ public/$1 [L]
+
+    # Tout le reste → index.php de Symfony
+    RewriteRule ^ public/index.php [L]
+</IfModule>
