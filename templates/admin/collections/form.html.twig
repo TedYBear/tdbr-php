@@ -16,6 +16,18 @@
                 <textarea name="description" rows="3" class="form-textarea">{{ collection ? collection.description : '' }}</textarea>
             </div>
 
+            <div class="form-group">
+                <label>Catégorie *</label>
+                <select name="categorie" required class="form-input">
+                    <option value="">-- Sélectionner une catégorie --</option>
+                    {% for cat in categories %}
+                        <option value="{{ cat.id }}" {{ collection and collection.categorie and collection.categorie.id == cat.id ? 'selected' : '' }}>
+                            {{ cat.nom }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
             {% include 'components/admin/_image_uploader.html.twig' with {
                 fieldName: 'image',
                 currentImage: collection ? collection.image : '',
