@@ -49,6 +49,7 @@ class CollectionAdminController extends AbstractController
             $collection->setDescription($data['description'] ?? null);
             $collection->setActif(isset($data['actif']));
             $collection->setOrdre((int)($data['ordre'] ?? 0));
+            $collection->setImage($data['image'] ?? null);
 
             if (!empty($data['categorie'])) {
                 $categorie = $this->categoryRepo->find((int)$data['categorie']);
@@ -87,6 +88,7 @@ class CollectionAdminController extends AbstractController
             $collection->setDescription($data['description'] ?? null);
             $collection->setActif(isset($data['actif']));
             $collection->setOrdre((int)($data['ordre'] ?? 0));
+            $collection->setImage($data['image'] ?? null);
 
             $categorie = !empty($data['categorie']) ? $this->categoryRepo->find((int)$data['categorie']) : null;
             $collection->setCategorie($categorie);

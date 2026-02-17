@@ -45,6 +45,7 @@ class CategoryAdminController extends AbstractController
             $category->setDescription($data['description'] ?? null);
             $category->setOrdre((int)($data['ordre'] ?? 0));
             $category->setActif(isset($data['actif']));
+            $category->setImage($data['image'] ?? null);
 
             $this->em->persist($category);
             $this->em->flush();
@@ -75,6 +76,7 @@ class CategoryAdminController extends AbstractController
             $category->setDescription($data['description'] ?? null);
             $category->setOrdre((int)($data['ordre'] ?? 0));
             $category->setActif(isset($data['actif']));
+            $category->setImage($data['image'] ?? null);
 
             $this->em->flush();
 

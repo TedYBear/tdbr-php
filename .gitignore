@@ -33,6 +33,21 @@
 ###< IDE ###
 
 ###> Uploads ###
-/public/uploads/**/*
-!/public/uploads/**/.gitkeep
+/public/uploads/*
+!/public/uploads/.gitkeep
+!/public/uploads/articles/
+!/public/uploads/categories/
+!/public/uploads/collections/
+!/public/uploads/general/
+!/public/uploads/temp/
+/public/uploads/articles/*
+!/public/uploads/articles/.gitkeep
+/public/uploads/categories/*
+!/public/uploads/categories/.gitkeep
+/public/uploads/collections/*
+!/public/uploads/collections/.gitkeep
+/public/uploads/general/*
+!/public/uploads/general/.gitkeep
+/public/uploads/temp/*
+!/public/uploads/temp/.gitkeep
 ###< Uploads ###
