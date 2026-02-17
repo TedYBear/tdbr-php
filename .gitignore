@@ -20,7 +20,7 @@
 ###< Node ###
 
 ###> Build assets ###
-/public/build/
+# /public/build/ committé pour déploiement sur hébergement sans Node.js
 ###< Build assets ###
 
 ###> IDE ###

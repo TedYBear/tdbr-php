@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunktdbr_symfony=self.webpackChunktdbr_symfony||[]).push([[524],{28(n,s,r){var e=r(705);window.Alpine=e.A,e.A.start(),console.log("TDBR Symfony app is running!")}},n=>{n.O(0,[705],()=>{return s=28,n(n.s=s);var s});n.O()}]);
