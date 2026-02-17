@@ -6,13 +6,40 @@
 
 {% block body %}
 {% set variantesJson = [] %}
+{% set imagesJson = [] %}
 {% if article %}
     {% for v in article.variantes %}
         {% set variantesJson = variantesJson|merge([{id: v.id, nom: v.nom, sku: v.sku, prix: v.prix, stock: v.stock, actif: v.actif}]) %}
     {% endfor %}
+    {% for img in article.images %}
+        {% set imagesJson = imagesJson|merge([img.url]) %}
+    {% endfor %}
 {% endif %}
 <div x-data="{
     variantes: {{ variantesJson|json_encode }},
+    images: {{ imagesJson|json_encode }},
+    uploadingImages: false,
+    uploadError: '',
+
+    async uploadFiles(files) {
+        this.uploadError = '';
+        this.uploadingImages = true;
+        for (const file of Array.from(files)) {
+            if (!file.type.startsWith('image/')) continue;
+            if (file.size > 5242880) { this.uploadError = file.name + ' : trop volumineux (max 5 Mo)'; continue; }
+            const fd = new FormData();
+            fd.append('file', file);
+            try {
+                const r = await fetch('/admin/upload/image', { method: 'POST', body: fd });
+                const d = await r.json();
+                if (d.success) { this.images.push(d.path); }
+                else { this.uploadError = d.error || 'Erreur upload'; }
+            } catch(e) { this.uploadError = 'Erreur réseau'; }
+        }
+        this.uploadingImages = false;
+    },
+    removeImage(index) { this.images.splice(index, 1); },
+    onDropImages(e) { e.preventDefault(); this.uploadFiles(e.dataTransfer.files); },
 
     addVariante() {
         this.variantes.push({ id: Date.now(), nom: '', sku: '', prix: '', stock: 0, actif: true });
@@ -135,10 +162,49 @@
 
                 {# Images #}
                 <div class="card p-6">
-                    <h2 class="text-xl font-bold mb-4">Images</h2>
-                    <p class="text-sm text-gray-600 mb-4">Entrez les URLs des images (une par ligne)</p>
-                    <textarea name="images[]" rows="4" class="form-textarea" placeholder="/uploads/articles/image1.webp&#10;/uploads/articles/image2.webp">{% if article %}{% for img in article.images %}{{ img.url }}
-{% endfor %}{% endif %}</textarea>
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xl font-bold">Images</h2>
+                        <span class="text-sm text-gray-500" x-text="images.length + ' image(s)'"></span>
+                    </div>
+
+                    {# Hidden inputs pour soumission #}
+                    <template x-for="(img, i) in images" :key="i">
+                        <input type="hidden" name="images[]" :value="img">
+                    </template>
+
+                    {# Zone de drop #}
+                    <div @dragover.prevent
+                         @drop="onDropImages($event)"
+                         @click="$refs.imagesInput.click()"
+                         class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors mb-4">
+                        <svg class="w-8 h-8 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                        </svg>
+                        <p class="text-sm text-gray-500" x-show="!uploadingImages">Glissez vos images ici ou cliquez pour sélectionner (plusieurs fichiers acceptés)</p>
+                        <p class="text-sm text-primary font-medium" x-show="uploadingImages">Envoi en cours...</p>
+                        <input type="file" x-ref="imagesInput" accept="image/*" multiple class="hidden"
+                               @change="uploadFiles($event.target.files); $event.target.value=''">
+                    </div>
+
+                    <p x-show="uploadError" x-text="uploadError" class="text-sm text-red-600 mb-3"></p>
+
+                    {# Grille aperçu #}
+                    <div x-show="images.length > 0" class="grid grid-cols-3 gap-3">
+                        <template x-for="(img, index) in images" :key="index">
+                            <div class="relative group rounded-lg overflow-hidden border border-gray-200 aspect-square">
+                                <img :src="img" :alt="'Image ' + (index+1)" class="w-full h-full object-cover">
+                                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                    <button type="button" @click="removeImage(index)"
+                                            class="bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <span x-show="index === 0" class="absolute top-1 left-1 bg-primary text-white text-xs px-1.5 py-0.5 rounded">Principale</span>
+                            </div>
+                        </template>
+                    </div>
                 </div>
 
                 {# Variantes #}

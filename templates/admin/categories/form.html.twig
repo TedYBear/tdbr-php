@@ -22,6 +22,13 @@
                 <p class="text-sm text-gray-600 mt-1">Ordre d'affichage (0 = premier)</p>
             </div>
 
+            {% include 'components/admin/_image_uploader.html.twig' with {
+                fieldName: 'image',
+                currentImage: category ? category.image : '',
+                directory: 'categories',
+                label: 'Image de la catégorie'
+            } %}
+
             <div class="flex items-center gap-3">
                 <input type="checkbox" name="actif" id="actif" {{ category and category.actif ? 'checked' : (not category ? 'checked' : '') }} class="w-5 h-5 text-primary rounded">
                 <label for="actif" class="cursor-pointer">Catégorie active</label>
