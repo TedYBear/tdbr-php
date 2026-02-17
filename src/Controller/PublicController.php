@@ -432,13 +432,12 @@ class PublicController extends AbstractController
         $this->denyAccessUnlessGranted('ROLE_USER');
 
         $user = $this->getUser();
-        $commandes = $this->commandeRepo->createQueryBuilder('c')
-            ->where("JSON_EXTRACT(c.client, '$.email') = :email")
-            ->setParameter('email', $user->getUserIdentifier())
-            ->orderBy('c.createdAt', 'DESC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult();
+        $userEmail = $user->getUserIdentifier();
+        $allCommandes = $this->commandeRepo->findBy([], ['createdAt' => 'DESC']);
+        $commandes = array_slice(array_values(array_filter($allCommandes, function($c) use ($userEmail) {
+            $client = $c->getClient();
+            return ($client['email'] ?? '') === $userEmail;
+        })), 0, 10);
 
         return $this->render('auth/profil.html.twig', [
             'user' => $user,
