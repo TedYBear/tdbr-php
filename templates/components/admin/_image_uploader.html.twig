@@ -22,10 +22,12 @@
         fd.append('file', file);
         try {
             const r = await fetch('/admin/upload/image?dir={{ _directory }}', { method: 'POST', body: fd });
-            const d = await r.json();
+            const text = await r.text();
+            let d;
+            try { d = JSON.parse(text); } catch { this.error = 'Réponse invalide (' + r.status + ')'; this.uploading = false; return; }
             if (d.success) { this.imageUrl = d.path; }
             else { this.error = d.error || 'Erreur upload'; }
-        } catch(e) { this.error = 'Erreur réseau'; }
+        } catch(e) { this.error = 'Erreur réseau : ' + e.message; }
         this.uploading = false;
     },
     onDrop(e) { e.preventDefault(); this.handleFile(e.dataTransfer.files[0]); },

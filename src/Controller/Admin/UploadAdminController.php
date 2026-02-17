@@ -40,15 +40,26 @@ class UploadAdminController extends AbstractController
             return $this->json(['error' => 'Le fichier est trop volumineux (max 5 MB)'], 400);
         }
 
+        // Répertoire cible (paramètre ?dir=categories|articles|collections|general)
+        $allowedDirs = ['articles', 'categories', 'collections', 'general'];
+        $dir = $request->query->get('dir', 'articles');
+        if (!in_array($dir, $allowedDirs, true)) {
+            $dir = 'articles';
+        }
+
         // Upload
-        $path = $this->uploadService->upload($file, 'articles');
+        $path = $this->uploadService->upload($file, $dir);
 
         if (!$path) {
             return $this->json(['error' => 'Erreur lors de l\'upload'], 500);
         }
 
-        // Redimensionner l'image
-        $this->uploadService->resize($path, 1200, 1200);
+        // Redimensionner l'image (best effort, ne bloque pas si GD ne supporte pas le format)
+        try {
+            $this->uploadService->resize($path, 1200, 1200);
+        } catch (\Throwable) {
+            // GD indisponible ou format non supporté — on garde l'image originale
+        }
 
         return $this->json([
             'success' => true,
