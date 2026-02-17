@@ -13,11 +13,96 @@
 {% endif %}
 <div x-data="{
     variantes: {{ variantesJson|json_encode }},
+
     addVariante() {
-        this.variantes.push({ id: Date.now().toString(), nom: '', sku: '', prix: '', stock: 0, actif: true });
+        this.variantes.push({ id: Date.now(), nom: '', sku: '', prix: '', stock: 0, actif: true });
     },
     removeVariante(index) {
         this.variantes.splice(index, 1);
+    },
+
+    /* === Template selector === */
+    templates: {{ templates|json_encode }},
+    templateSelectorOpen: false,
+    selectedTemplateId: '',
+    selectedValues: {},
+
+    get selectedTemplate() {
+        return this.templates.find(t => t.id == this.selectedTemplateId) || null;
+    },
+
+    get variantCount() {
+        if (!this.selectedTemplate) return 0;
+        const counts = this.selectedTemplate.caracteristiques.map(c => (this.selectedValues[c.nom] || []).length);
+        if (counts.length === 0 || counts.some(c => c === 0)) return 0;
+        return counts.reduce((acc, c) => acc * c, 1);
+    },
+
+    onTemplateChange() {
+        if (this.selectedTemplate) {
+            const vals = {};
+            this.selectedTemplate.caracteristiques.forEach(c => { vals[c.nom] = [...c.valeurs]; });
+            this.selectedValues = vals;
+        } else {
+            this.selectedValues = {};
+        }
+    },
+
+    isSelected(caracNom, valeur) {
+        return (this.selectedValues[caracNom] || []).includes(valeur);
+    },
+
+    toggleValue(caracNom, valeur) {
+        const current = [...(this.selectedValues[caracNom] || [])];
+        const idx = current.indexOf(valeur);
+        if (idx > -1) { current.splice(idx, 1); } else { current.push(valeur); }
+        this.selectedValues = { ...this.selectedValues, [caracNom]: current };
+    },
+
+    selectAll(caracNom) {
+        const c = this.selectedTemplate.caracteristiques.find(c => c.nom === caracNom);
+        if (c) this.selectedValues = { ...this.selectedValues, [caracNom]: [...c.valeurs] };
+    },
+
+    selectNone(caracNom) {
+        this.selectedValues = { ...this.selectedValues, [caracNom]: [] };
+    },
+
+    cartesianProduct(arrays) {
+        if (arrays.length === 0) return [[]];
+        const [first, ...rest] = arrays;
+        const restProd = this.cartesianProduct(rest);
+        return first.flatMap(v => restProd.map(combo => [v, ...combo]));
+    },
+
+    generateSKU(slug, values, index) {
+        const normalize = v => v.toUpperCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^A-Z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+        return [slug.toUpperCase().replace(/[^A-Z0-9]+/g, '-'), ...values.map(normalize),
+                String(index).padStart(3, '0')].join('-');
+    },
+
+    generateVariants() {
+        if (!this.selectedTemplate || this.variantCount === 0 || this.variantCount > 100) return;
+        const caracs = this.selectedTemplate.caracteristiques;
+        const arrays = caracs.map(c => this.selectedValues[c.nom] || []);
+        const combos = this.cartesianProduct(arrays);
+        const slug = document.querySelector('[name=nom]')?.value || 'ARTICLE';
+        const baseIndex = this.variantes.length;
+        combos.forEach((combo, idx) => {
+            this.variantes.push({
+                id: Date.now() + idx,
+                nom: combo.join(' '),
+                sku: this.generateSKU(slug, combo, baseIndex + idx + 1),
+                prix: '',
+                stock: 0,
+                actif: true
+            });
+        });
+        this.templateSelectorOpen = false;
+        this.selectedTemplateId = '';
+        this.selectedValues = {};
     }
 }">
     <form method="post" class="space-y-8">
@@ -41,13 +126,8 @@
 
                         <div class="grid grid-cols-2 gap-4">
                             <div class="form-group">
-                                <label>Prix (€) *</label>
+                                <label>Prix de base (€) *</label>
                                 <input type="number" step="0.01" name="prix" value="{{ article ? article.prixBase : '' }}" required class="form-input">
-                            </div>
-
-                            <div class="form-group">
-                                <label>Stock</label>
-                                <input type="number" name="stock" value="0" class="form-input" placeholder="Stock global (géré par variante)">
                             </div>
                         </div>
                     </div>
@@ -65,24 +145,103 @@
                 <div class="card p-6">
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="text-xl font-bold">Variantes</h2>
-                        <button type="button" @click="addVariante()" class="btn-primary text-sm">+ Ajouter une variante</button>
+                        <div class="flex gap-2">
+                            <button type="button" @click="templateSelectorOpen = !templateSelectorOpen"
+                                    x-show="templates.length > 0"
+                                    class="btn-outline text-sm flex items-center gap-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                </svg>
+                                Générer depuis un template
+                            </button>
+                            <button type="button" @click="addVariante()" class="btn-primary text-sm">+ Ajouter manuellement</button>
+                        </div>
                     </div>
 
+                    {# Sélecteur de template #}
+                    <div x-show="templateSelectorOpen" x-transition class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl space-y-4">
+                        <h3 class="font-semibold text-blue-900">Générer des variantes depuis un template</h3>
+
+                        {# Choix du template #}
+                        <div class="form-group">
+                            <label class="text-sm font-medium text-blue-800">Template</label>
+                            <select x-model="selectedTemplateId" @change="onTemplateChange()" class="form-select mt-1">
+                                <option value="">-- Sélectionner un template --</option>
+                                <template x-for="t in templates" :key="t.id">
+                                    <option :value="t.id" x-text="t.nom + ' (' + t.caracteristiques.reduce((acc, c) => acc * c.valeurs.length, 1) + ' variantes max)'"></option>
+                                </template>
+                            </select>
+                        </div>
+
+                        {# Caractéristiques du template sélectionné #}
+                        <template x-if="selectedTemplate">
+                            <div class="space-y-4">
+                                <p class="text-sm text-blue-700" x-text="selectedTemplate.description || ''"></p>
+
+                                <template x-for="carac in selectedTemplate.caracteristiques" :key="carac.nom">
+                                    <div class="bg-white rounded-lg p-4 border border-blue-100">
+                                        <div class="flex items-center justify-between mb-3">
+                                            <h4 class="font-medium text-gray-900" x-text="carac.nom"></h4>
+                                            <div class="flex gap-2 items-center">
+                                                <button type="button" @click="selectAll(carac.nom)"
+                                                        class="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200">Tout</button>
+                                                <button type="button" @click="selectNone(carac.nom)"
+                                                        class="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200">Aucun</button>
+                                                <span class="text-xs text-gray-500"
+                                                      x-text="(selectedValues[carac.nom] || []).length + ' sélect.'"></span>
+                                            </div>
+                                        </div>
+                                        <div class="grid grid-cols-3 gap-2">
+                                            <template x-for="valeur in carac.valeurs" :key="valeur">
+                                                <label class="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-gray-50">
+                                                    <input type="checkbox"
+                                                           :checked="isSelected(carac.nom, valeur)"
+                                                           @change="toggleValue(carac.nom, valeur)"
+                                                           class="w-4 h-4 text-primary rounded">
+                                                    <span class="text-sm" x-text="valeur"></span>
+                                                </label>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </template>
+
+                                {# Compteur + bouton générer #}
+                                <div class="flex items-center justify-between pt-2">
+                                    <div>
+                                        <p class="text-sm text-blue-700">Variantes à générer :</p>
+                                        <p class="text-2xl font-bold text-blue-600" x-text="variantCount"></p>
+                                        <p x-show="variantCount > 100" class="text-sm text-red-600">Trop de variantes (max 100)</p>
+                                    </div>
+                                    <button type="button"
+                                            @click="generateVariants()"
+                                            :disabled="variantCount === 0 || variantCount > 100"
+                                            class="btn-primary disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                        </svg>
+                                        <span x-text="'Générer ' + variantCount + ' variantes'"></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+
+                    {# Liste des variantes #}
                     <div class="space-y-3">
-                        <template x-for="(variante, index) in variantes" :key="index">
+                        <template x-for="(variante, index) in variantes" :key="variante.id">
                             <div class="p-4 bg-gray-50 rounded-lg space-y-3">
-                                <div class="flex gap-3">
+                                <div class="flex gap-3 flex-wrap">
                                     <input type="hidden" :name="'variantes[' + index + '][id]'" x-model="variante.id">
                                     <input type="text"
                                            :name="'variantes[' + index + '][nom]'"
                                            x-model="variante.nom"
                                            placeholder="Nom (ex: Taille M)"
-                                           class="form-input flex-1">
+                                           class="form-input flex-1 min-w-32">
                                     <input type="text"
                                            :name="'variantes[' + index + '][sku]'"
                                            x-model="variante.sku"
-                                           placeholder="SKU (ex: ART-001-M)"
-                                           class="form-input w-40">
+                                           placeholder="SKU"
+                                           class="form-input w-44">
                                     <input type="number"
                                            step="0.01"
                                            :name="'variantes[' + index + '][prix]'"
@@ -101,7 +260,8 @@
                                                class="w-4 h-4 text-primary rounded">
                                         Actif
                                     </label>
-                                    <button type="button" @click="removeVariante(index)" class="px-3 py-2 text-red-600 hover:bg-red-50 rounded flex-shrink-0">
+                                    <button type="button" @click="removeVariante(index)"
+                                            class="px-3 py-2 text-red-600 hover:bg-red-50 rounded flex-shrink-0">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                         </svg>
@@ -111,7 +271,7 @@
                         </template>
 
                         <p x-show="variantes.length === 0" class="text-sm text-gray-500 text-center py-4">
-                            Aucune variante. Cliquez sur "Ajouter une variante" pour en créer.
+                            Aucune variante. Utilisez un template ou ajoutez manuellement.
                         </p>
                     </div>
                 </div>
@@ -142,14 +302,25 @@
 
                     <div class="space-y-3">
                         <div class="flex items-center gap-3">
-                            <input type="checkbox" name="actif" id="actif" {{ article and article.actif ? 'checked' : (not article ? 'checked' : '') }} class="w-5 h-5 text-primary rounded">
+                            <input type="checkbox" name="actif" id="actif"
+                                   {{ article and article.actif ? 'checked' : (not article ? 'checked' : '') }}
+                                   class="w-5 h-5 text-primary rounded">
                             <label for="actif" class="cursor-pointer">Article actif (visible sur le site)</label>
                         </div>
                         <div class="flex items-center gap-3">
-                            <input type="checkbox" name="enVedette" id="enVedette" {{ article and article.enVedette ? 'checked' : '' }} class="w-5 h-5 text-primary rounded">
+                            <input type="checkbox" name="enVedette" id="enVedette"
+                                   {{ article and article.enVedette ? 'checked' : '' }}
+                                   class="w-5 h-5 text-primary rounded">
                             <label for="enVedette" class="cursor-pointer">En vedette (affiché sur la page d'accueil)</label>
                         </div>
                     </div>
+                </div>
+
+                {# Résumé variantes #}
+                <div class="card p-6">
+                    <h2 class="text-xl font-bold mb-2">Variantes</h2>
+                    <p class="text-3xl font-bold text-primary" x-text="variantes.length"></p>
+                    <p class="text-sm text-gray-500">variante(s) configurée(s)</p>
                 </div>
 
                 {# Actions #}

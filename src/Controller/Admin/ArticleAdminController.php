@@ -7,6 +7,7 @@ use App\Entity\ArticleImage;
 use App\Entity\Variante;
 use App\Repository\ArticleRepository;
 use App\Repository\ProductCollectionRepository;
+use App\Repository\VarianteTemplateRepository;
 use App\Service\SlugifyService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -23,8 +24,24 @@ class ArticleAdminController extends AbstractController
         private EntityManagerInterface $em,
         private ArticleRepository $articleRepo,
         private ProductCollectionRepository $collectionRepo,
+        private VarianteTemplateRepository $templateRepo,
         private SlugifyService $slugify,
     ) {
+    }
+
+    private function buildTemplatesData(): array
+    {
+        return array_map(function($t) {
+            return [
+                'id' => $t->getId(),
+                'nom' => $t->getNom(),
+                'description' => $t->getDescription(),
+                'caracteristiques' => $t->getCaracteristiques()->map(fn($c) => [
+                    'nom' => $c->getNom(),
+                    'valeurs' => $c->getValeursArray(),
+                ])->toArray(),
+            ];
+        }, $this->templateRepo->findAll());
     }
 
     #[Route('', name: 'admin_articles')]
@@ -128,6 +145,7 @@ class ArticleAdminController extends AbstractController
         return $this->render('admin/articles/form.html.twig', [
             'article' => null,
             'collections' => $collections,
+            'templates' => $this->buildTemplatesData(),
         ]);
     }
 
@@ -201,6 +219,7 @@ class ArticleAdminController extends AbstractController
         return $this->render('admin/articles/form.html.twig', [
             'article' => $article,
             'collections' => $collections,
+            'templates' => $this->buildTemplatesData(),
         ]);
     }
 
