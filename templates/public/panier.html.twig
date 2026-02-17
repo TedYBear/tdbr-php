@@ -31,7 +31,7 @@
                                     <div class="flex-shrink-0">
                                         <div class="w-32 h-32 rounded-xl overflow-hidden bg-gray-100">
                                             {% if item.article.images is defined and item.article.images|length > 0 %}
-                                                <img src="{{ item.article.images[0] }}"
+                                                <img src="{{ item.article.images[0]|to_string }}"
                                                      alt="{{ item.article.nom }}"
                                                      class="w-full h-full object-cover">
                                             {% else %}
@@ -91,7 +91,7 @@
 
                                             {# Prix unitaire #}
                                             <div class="text-lg font-bold text-primary">
-                                                {{ (item.variant.prix ?? item.article.prix)|number_format(2, ',', ' ') }} €
+                                                {{ (item.variant.prix ?? item.variant.prixBase ?? item.article.prix ?? item.article.prixBase ?? 0)|number_format(2, ',', ' ') }} €
                                             </div>
                                         </div>
                                     </div>
@@ -114,7 +114,7 @@
                                 <div class="mt-4 pt-4 border-t flex justify-between items-center">
                                     <span class="text-sm text-gray-600">Sous-total</span>
                                     <span class="text-xl font-bold text-primary">
-                                        {{ ((item.variant.prix ?? item.article.prix) * item.quantity)|number_format(2, ',', ' ') }} €
+                                        {{ ((item.variant.prix ?? item.variant.prixBase ?? item.article.prix ?? item.article.prixBase ?? 0) * item.quantity)|number_format(2, ',', ' ') }} €
                                     </span>
                                 </div>
                             </div>

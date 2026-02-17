@@ -43,13 +43,18 @@ class JWTAuthenticationSubscriber implements EventSubscriberInterface
 
         // Vérifier si c'est une route publique
         foreach ($publicRoutes as $publicRoute) {
-            if (str_starts_with($path, $publicRoute) && !str_contains($path, '/admin')) {
+            if (str_starts_with($path, $publicRoute)) {
                 return;
             }
         }
 
-        // Vérifier si c'est une route admin
-        $isAdminRoute = str_contains($path, '/admin');
+        // Ignorer les routes frontend (non-API)
+        if (!str_starts_with($path, '/api/')) {
+            return;
+        }
+
+        // Vérifier si c'est une route API admin
+        $isAdminRoute = str_starts_with($path, '/api/admin');
 
         if ($isAdminRoute || str_starts_with($path, '/api/auth/profil')) {
             // Récupérer le token depuis le header Authorization
