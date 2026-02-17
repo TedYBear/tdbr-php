@@ -1,0 +1,9 @@
+RewriteEngine On
+
+# Servir les fichiers/dossiers existants directement
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Tout le reste → dossier public/ de Symfony
+RewriteRule ^(.*)$ public/$1 [L]
