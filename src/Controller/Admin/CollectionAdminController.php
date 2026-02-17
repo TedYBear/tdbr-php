@@ -2,30 +2,33 @@
 
 namespace App\Controller\Admin;
 
-use App\Service\MongoDBService;
+use App\Entity\ProductCollection;
+use App\Repository\CategoryRepository;
+use App\Repository\ProductCollectionRepository;
+use App\Service\SlugifyService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use MongoDB\BSON\ObjectId;
-use MongoDB\BSON\UTCDateTime;
 
 #[Route('/admin/collections')]
 #[IsGranted('ROLE_ADMIN')]
 class CollectionAdminController extends AbstractController
 {
     public function __construct(
-        private MongoDBService $mongoService
+        private EntityManagerInterface $em,
+        private ProductCollectionRepository $collectionRepo,
+        private CategoryRepository $categoryRepo,
+        private SlugifyService $slugify,
     ) {
     }
 
     #[Route('', name: 'admin_collections')]
     public function index(): Response
     {
-        $collections = $this->mongoService->getCollection('collections')
-            ->find([], ['sort' => ['nom' => 1]])
-            ->toArray();
+        $collections = $this->collectionRepo->findBy([], ['nom' => 'ASC']);
 
         return $this->render('admin/collections/index.html.twig', [
             'collections' => $collections
@@ -35,76 +38,81 @@ class CollectionAdminController extends AbstractController
     #[Route('/new', name: 'admin_collections_new')]
     public function new(Request $request): Response
     {
+        $categories = $this->categoryRepo->findBy([], ['nom' => 'ASC']);
+
         if ($request->isMethod('POST')) {
             $data = $request->request->all();
-            $collection = $this->mongoService->getCollection('collections');
 
-            $slug = $this->generateSlug($data['nom']);
+            $collection = new ProductCollection();
+            $collection->setNom($data['nom']);
+            $collection->setSlug($this->slugify->slugify($data['nom']));
+            $collection->setDescription($data['description'] ?? null);
+            $collection->setActif(isset($data['actif']));
+            $collection->setOrdre((int)($data['ordre'] ?? 0));
 
-            $collection->insertOne([
-                'nom' => $data['nom'],
-                'slug' => $slug,
-                'description' => $data['description'] ?? '',
-                'actif' => isset($data['actif']),
-                'createdAt' => new UTCDateTime(),
-                'updatedAt' => new UTCDateTime()
-            ]);
+            if (!empty($data['categorie'])) {
+                $categorie = $this->categoryRepo->find((int)$data['categorie']);
+                $collection->setCategorie($categorie);
+            }
+
+            $this->em->persist($collection);
+            $this->em->flush();
 
             $this->addFlash('success', 'Collection créée avec succès');
             return $this->redirectToRoute('admin_collections');
         }
 
         return $this->render('admin/collections/form.html.twig', [
-            'collection' => null
+            'collection' => null,
+            'categories' => $categories,
         ]);
     }
 
     #[Route('/{id}/edit', name: 'admin_collections_edit')]
-    public function edit(string $id, Request $request): Response
+    public function edit(int $id, Request $request): Response
     {
-        $collection = $this->mongoService->getCollection('collections');
-        $collectionData = $collection->findOne(['_id' => new ObjectId($id)]);
+        $collection = $this->collectionRepo->find($id);
 
-        if (!$collectionData) {
+        if (!$collection) {
             throw $this->createNotFoundException('Collection introuvable');
         }
 
+        $categories = $this->categoryRepo->findBy([], ['nom' => 'ASC']);
+
         if ($request->isMethod('POST')) {
             $data = $request->request->all();
-            $slug = $this->generateSlug($data['nom']);
 
-            $collection->updateOne(
-                ['_id' => new ObjectId($id)],
-                ['$set' => [
-                    'nom' => $data['nom'],
-                    'slug' => $slug,
-                    'description' => $data['description'] ?? '',
-                    'actif' => isset($data['actif']),
-                    'updatedAt' => new UTCDateTime()
-                ]]
-            );
+            $collection->setNom($data['nom']);
+            $collection->setSlug($this->slugify->slugify($data['nom']));
+            $collection->setDescription($data['description'] ?? null);
+            $collection->setActif(isset($data['actif']));
+            $collection->setOrdre((int)($data['ordre'] ?? 0));
+
+            $categorie = !empty($data['categorie']) ? $this->categoryRepo->find((int)$data['categorie']) : null;
+            $collection->setCategorie($categorie);
+
+            $this->em->flush();
 
             $this->addFlash('success', 'Collection modifiée avec succès');
             return $this->redirectToRoute('admin_collections');
         }
 
         return $this->render('admin/collections/form.html.twig', [
-            'collection' => $collectionData
+            'collection' => $collection,
+            'categories' => $categories,
         ]);
     }
 
     #[Route('/{id}/delete', name: 'admin_collections_delete', methods: ['POST'])]
-    public function delete(string $id): Response
+    public function delete(int $id): Response
     {
-        $this->mongoService->getCollection('collections')->deleteOne(['_id' => new ObjectId($id)]);
+        $collection = $this->collectionRepo->find($id);
+        if ($collection) {
+            $this->em->remove($collection);
+            $this->em->flush();
+        }
+
         $this->addFlash('success', 'Collection supprimée avec succès');
         return $this->redirectToRoute('admin_collections');
-    }
-
-    private function generateSlug(string $text): string
-    {
-        $text = transliterator_transliterate('Any-Latin; Latin-ASCII; Lower()', $text);
-        $text = preg_replace('/[^a-z0-9]+/', '-', strtolower($text));
-        return trim($text, '-');
     }
 }

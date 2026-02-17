@@ -31,7 +31,6 @@
                     <tr>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Nom</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Prix</th>
-                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Stock</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Variantes</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Statut</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Actions</th>
@@ -43,7 +42,7 @@
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-3">
                                     {% if article.images|length > 0 %}
-                                        <img src="{{ article.images[0] }}" alt="{{ article.nom }}" class="w-12 h-12 object-cover rounded-lg">
+                                        <img src="{{ article.images[0].url }}" alt="{{ article.nom }}" class="w-12 h-12 object-cover rounded-lg">
                                     {% else %}
                                         <div class="w-12 h-12 bg-gray-200 rounded-lg"></div>
                                     {% endif %}
@@ -53,12 +52,7 @@
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 font-semibold">{{ article.prix|number_format(2, ',', ' ') }} €</td>
-                            <td class="px-6 py-4">
-                                <span class="px-2 py-1 text-sm rounded {{ article.stock > 10 ? 'bg-green-100 text-green-800' : (article.stock > 0 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800') }}">
-                                    {{ article.stock }}
-                                </span>
-                            </td>
+                            <td class="px-6 py-4 font-semibold">{{ article.prixBase|number_format(2, ',', ' ') }} €</td>
                             <td class="px-6 py-4 text-sm text-gray-600">
                                 {{ article.variantes|length }} variante{{ article.variantes|length > 1 ? 's' : '' }}
                             </td>
@@ -71,8 +65,8 @@
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex gap-2">
-                                    <a href="{{ path('admin_articles_edit', {id: article._id}) }}" class="text-primary hover:text-secondary">Modifier</a>
-                                    <form method="post" action="{{ path('admin_articles_delete', {id: article._id}) }}" onsubmit="return confirm('Supprimer cet article ?');">
+                                    <a href="{{ path('admin_articles_edit', {id: article.id}) }}" class="text-primary hover:text-secondary">Modifier</a>
+                                    <form method="post" action="{{ path('admin_articles_delete', {id: article.id}) }}" onsubmit="return confirm('Supprimer cet article ?');">
                                         <button type="submit" class="text-red-600 hover:text-red-700">Supprimer</button>
                                     </form>
                                 </div>

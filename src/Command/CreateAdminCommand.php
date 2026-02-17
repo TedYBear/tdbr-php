@@ -2,13 +2,16 @@
 
 namespace App\Command;
 
-use App\Service\MongoDBService;
+use App\Entity\User;
+use App\Repository\UserRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 #[AsCommand(
     name: 'app:create-admin',
@@ -16,12 +19,12 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 )]
 class CreateAdminCommand extends Command
 {
-    private MongoDBService $mongoService;
-
-    public function __construct(MongoDBService $mongoService)
-    {
+    public function __construct(
+        private EntityManagerInterface $em,
+        private UserRepository $userRepo,
+        private UserPasswordHasherInterface $passwordHasher,
+    ) {
         parent::__construct();
-        $this->mongoService = $mongoService;
     }
 
     protected function configure(): void
@@ -38,81 +41,40 @@ class CreateAdminCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
-        // Récupérer ou demander les informations
-        $email = $input->getOption('email');
-        if (!$email) {
-            $email = $io->ask('Email de l\'administrateur', 'admin@tdbr.fr');
-        }
-
-        $password = $input->getOption('password');
-        if (!$password) {
-            $password = $io->askHidden('Mot de passe (au moins 6 caractères)');
-        }
+        $email = $input->getOption('email') ?? $io->ask('Email de l\'administrateur', 'admin@tdbr.fr');
+        $password = $input->getOption('password') ?? $io->askHidden('Mot de passe (au moins 6 caractères)');
 
         if (strlen($password) < 6) {
             $io->error('Le mot de passe doit contenir au moins 6 caractères');
             return Command::FAILURE;
         }
 
-        $prenom = $input->getOption('prenom');
-        if (!$prenom) {
-            $prenom = $io->ask('Prénom', 'Admin');
-        }
+        $prenom = $input->getOption('prenom') ?? $io->ask('Prénom', 'Admin');
+        $nom = $input->getOption('nom') ?? $io->ask('Nom', 'TDBR');
 
-        $nom = $input->getOption('nom');
-        if (!$nom) {
-            $nom = $io->ask('Nom', 'TDBR');
-        }
-
-        // Vérifier que l'email n'existe pas déjà
-        $collection = $this->mongoService->getCollection('users');
-        $existing = $collection->findOne(['email' => $email]);
+        $existing = $this->userRepo->findOneBy(['email' => $email]);
 
         if ($existing) {
-            // Mettre à jour le rôle en admin
-            $collection->updateOne(
-                ['email' => $email],
-                ['$set' => ['role' => 'admin']]
-            );
+            $existing->setRoles(['ROLE_ADMIN']);
+            $this->em->flush();
             $io->success(sprintf('L\'utilisateur %s est maintenant administrateur', $email));
             return Command::SUCCESS;
         }
 
-        // Créer le nouvel admin
-        $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
+        $user = new User();
+        $user->setEmail($email);
+        $user->setPrenom($prenom);
+        $user->setNom($nom);
+        $user->setRoles(['ROLE_ADMIN']);
+        $user->setPassword($this->passwordHasher->hashPassword($user, $password));
 
-        $userData = [
-            'email' => $email,
-            'password' => $hashedPassword,
-            'prenom' => $prenom,
-            'nom' => $nom,
-            'telephone' => '',
-            'adresse' => [
-                'rue' => '',
-                'ville' => '',
-                'codePostal' => '',
-                'pays' => 'France'
-            ],
-            'role' => 'admin',
-            'actif' => true,
-            'createdAt' => new \MongoDB\BSON\UTCDateTime(),
-            'updatedAt' => new \MongoDB\BSON\UTCDateTime()
-        ];
+        $this->em->persist($user);
+        $this->em->flush();
 
-        $result = $collection->insertOne($userData);
-
-        if ($result->getInsertedCount() > 0) {
-            $io->success(sprintf(
-                'Administrateur créé avec succès !%sEmail: %s%sID: %s',
-                PHP_EOL,
-                $email,
-                PHP_EOL,
-                $result->getInsertedId()
-            ));
-            return Command::SUCCESS;
-        }
-
-        $io->error('Échec de la création de l\'administrateur');
-        return Command::FAILURE;
+        $io->success(sprintf(
+            'Administrateur créé avec succès !%sEmail: %s%sID: %s',
+            PHP_EOL, $email, PHP_EOL, $user->getId()
+        ));
+        return Command::SUCCESS;
     }
 }

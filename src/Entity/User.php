@@ -1,89 +1,62 @@
 <?php
-
 namespace App\Entity;
 
+use App\Repository\UserRepository;
+use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
+#[ORM\Entity(repositoryClass: UserRepository::class)]
+#[ORM\Table(name: '`users`')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
-    private string $id;
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
+    #[ORM\Column(length: 180, unique: true)]
     private string $email;
+
+    #[ORM\Column]
+    private array $roles = [];
+
+    #[ORM\Column]
     private string $password;
-    private array $roles;
+
+    #[ORM\Column(length: 100, nullable: true)]
     private ?string $prenom = null;
+
+    #[ORM\Column(length: 100, nullable: true)]
     private ?string $nom = null;
+
+    #[ORM\Column(length: 20, nullable: true)]
     private ?string $telephone = null;
 
-    public function __construct(
-        string $id,
-        string $email,
-        string $password,
-        array $roles = ['ROLE_USER'],
-        ?string $prenom = null,
-        ?string $nom = null,
-        ?string $telephone = null
-    ) {
-        $this->id = $id;
-        $this->email = $email;
-        $this->password = $password;
-        $this->roles = $roles;
-        $this->prenom = $prenom;
-        $this->nom = $nom;
-        $this->telephone = $telephone;
-    }
+    #[ORM\Column]
+    private \DateTimeImmutable $createdAt;
 
-    public function getId(): string
+    public function __construct()
     {
-        return $this->id;
+        $this->createdAt = new \DateTimeImmutable();
+        $this->roles = ['ROLE_USER'];
     }
 
-    public function getEmail(): string
-    {
-        return $this->email;
-    }
-
-    public function getUserIdentifier(): string
-    {
-        return $this->email;
-    }
-
-    public function getPassword(): ?string
-    {
-        return $this->password;
-    }
-
-    public function getRoles(): array
-    {
-        $roles = $this->roles;
-        // guarantee every user at least has ROLE_USER
-        $roles[] = 'ROLE_USER';
-
-        return array_unique($roles);
-    }
-
-    public function eraseCredentials(): void
-    {
-        // Nothing to do here
-    }
-
-    public function getPrenom(): ?string
-    {
-        return $this->prenom;
-    }
-
-    public function getNom(): ?string
-    {
-        return $this->nom;
-    }
-
-    public function getTelephone(): ?string
-    {
-        return $this->telephone;
-    }
-
-    public function getFullName(): string
-    {
-        return trim(($this->prenom ?? '') . ' ' . ($this->nom ?? ''));
-    }
+    public function getId(): ?int { return $this->id; }
+    public function getEmail(): string { return $this->email; }
+    public function setEmail(string $email): static { $this->email = $email; return $this; }
+    public function getUserIdentifier(): string { return $this->email; }
+    public function getRoles(): array { $roles = $this->roles; $roles[] = 'ROLE_USER'; return array_unique($roles); }
+    public function setRoles(array $roles): static { $this->roles = $roles; return $this; }
+    public function getPassword(): string { return $this->password; }
+    public function setPassword(string $password): static { $this->password = $password; return $this; }
+    public function eraseCredentials(): void {}
+    public function getPrenom(): ?string { return $this->prenom; }
+    public function setPrenom(?string $prenom): static { $this->prenom = $prenom; return $this; }
+    public function getNom(): ?string { return $this->nom; }
+    public function setNom(?string $nom): static { $this->nom = $nom; return $this; }
+    public function getTelephone(): ?string { return $this->telephone; }
+    public function setTelephone(?string $telephone): static { $this->telephone = $telephone; return $this; }
+    public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
+    public function getFullName(): string { return trim(($this->prenom ?? '') . ' ' . ($this->nom ?? '')); }
 }

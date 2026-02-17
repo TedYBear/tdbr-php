@@ -1,0 +1,118 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% block title %}{{ caracteristique ? 'Modifier' : 'Nouvelle' }} Caractéristique{% endblock %}
+
+{% block page_title %}{{ caracteristique ? 'Modifier' : 'Nouvelle' }} Caractéristique{% endblock %}
+
+{% block body %}
+<div x-data="{
+    type: '{{ caracteristique and caracteristique.type is defined ? caracteristique.type : 'text' }}',
+    valeurs: {{ caracteristique and caracteristique.valeurs is defined ? caracteristique.valeurs|json_encode : '[]' }},
+    nouvelleValeur: '',
+    ajouterValeur() {
+        const v = this.nouvelleValeur.trim();
+        if (v && !this.valeurs.includes(v)) {
+            this.valeurs.push(v);
+            this.nouvelleValeur = '';
+        }
+    },
+    supprimerValeur(index) {
+        this.valeurs.splice(index, 1);
+    }
+}">
+    <form method="post" class="max-w-2xl">
+        <div class="space-y-6">
+            {# Informations de base #}
+            <div class="card p-6">
+                <h2 class="text-xl font-bold mb-4">Informations</h2>
+
+                <div class="space-y-4">
+                    <div class="form-group">
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Nom *</label>
+                        <input type="text"
+                               name="nom"
+                               value="{{ caracteristique ? caracteristique.nom : '' }}"
+                               required
+                               placeholder="ex : Couleur, Taille, Matière..."
+                               class="form-input">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Type *</label>
+                        <select name="type" class="form-select" x-model="type">
+                            <option value="text">Texte libre</option>
+                            <option value="select">Sélection (liste déroulante)</option>
+                            <option value="color">Couleur (sélecteur)</option>
+                        </select>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox"
+                               name="obligatoire"
+                               id="obligatoire"
+                               {% if caracteristique %}
+                                   {% if caracteristique.obligatoire is defined and caracteristique.obligatoire %}checked{% endif %}
+                               {% endif %}
+                               class="w-5 h-5 text-primary rounded">
+                        <label for="obligatoire" class="text-sm text-gray-700 cursor-pointer">
+                            Obligatoire (requis pour chaque article)
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            {# Valeurs possibles #}
+            <div class="card p-6">
+                <h2 class="text-xl font-bold mb-1">Valeurs possibles</h2>
+                <p class="text-sm text-gray-500 mb-4">Définissez les valeurs disponibles pour cette caractéristique</p>
+
+                {# Champ caché qui enverra la liste finale #}
+                <template x-for="valeur in valeurs">
+                    <input type="hidden" name="valeurs" :value="valeur">
+                </template>
+
+                {# Ajouter une valeur #}
+                <div class="flex gap-2 mb-4">
+                    <input type="text"
+                           x-model="nouvelleValeur"
+                           @keydown.enter.prevent="ajouterValeur()"
+                           placeholder="Nouvelle valeur (ex: Rouge, XL, Coton...)"
+                           class="form-input flex-1">
+                    <button type="button" @click="ajouterValeur()" class="btn-primary px-4">
+                        Ajouter
+                    </button>
+                </div>
+
+                {# Liste des valeurs #}
+                <div class="flex flex-wrap gap-2 min-h-12">
+                    <template x-for="(valeur, index) in valeurs" :key="index">
+                        <div class="flex items-center gap-1 px-3 py-1.5 bg-accent rounded-lg">
+                            <span class="text-sm font-medium text-dark" x-text="valeur"></span>
+                            <button type="button"
+                                    @click="supprimerValeur(index)"
+                                    class="ml-1 text-gray-500 hover:text-red-600 transition-colors">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </template>
+                    <p x-show="valeurs.length === 0" class="text-sm text-gray-400 italic">
+                        Aucune valeur — ajoutez-en ci-dessus
+                    </p>
+                </div>
+            </div>
+
+            {# Actions #}
+            <div class="flex gap-3">
+                <button type="submit" class="btn-primary">
+                    {{ caracteristique ? 'Mettre à jour' : 'Créer' }} la caractéristique
+                </button>
+                <a href="{{ path('admin_caracteristiques') }}" class="btn-outline">
+                    Annuler
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

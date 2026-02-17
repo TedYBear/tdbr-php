@@ -50,7 +50,7 @@
             {# Statut #}
             <div class="card p-6">
                 <h2 class="text-xl font-bold mb-4">Statut</h2>
-                <form method="post" action="{{ path('admin_commandes_update_status', {id: commande._id}) }}">
+                <form method="post" action="{{ path('admin_commandes_update_status', {id: commande.id}) }}">
                     <select name="statut" class="form-select mb-3" onchange="this.form.submit()">
                         <option value="en_attente" {{ commande.statut == 'en_attente' ? 'selected' : '' }}>En attente</option>
                         <option value="validee" {{ commande.statut == 'validee' ? 'selected' : '' }}>Validée</option>

@@ -2,18 +2,33 @@
 
 namespace App\Controller;
 
-use App\Service\MongoDBService;
+use App\Entity\Commande;
+use App\Entity\Message;
+use App\Entity\User;
+use App\Repository\ArticleRepository;
+use App\Repository\CategoryRepository;
+use App\Repository\CommandeRepository;
+use App\Repository\ProductCollectionRepository;
+use App\Repository\UserRepository;
 use App\Service\CartService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class PublicController extends AbstractController
 {
     public function __construct(
-        private MongoDBService $mongoService,
-        private CartService $cartService
+        private EntityManagerInterface $em,
+        private ArticleRepository $articleRepo,
+        private CategoryRepository $categoryRepo,
+        private ProductCollectionRepository $collectionRepo,
+        private CommandeRepository $commandeRepo,
+        private UserRepository $userRepo,
+        private CartService $cartService,
     ) {
     }
 
@@ -32,126 +47,91 @@ class PublicController extends AbstractController
     #[Route('/catalogue', name: 'catalogue')]
     public function catalogue(Request $request): Response
     {
-        $collection = $this->mongoService->getCollection('articles');
-        $categoriesCollection = $this->mongoService->getCollection('categories');
+        $articles = $this->articleRepo->findBy(
+            ['actif' => true, 'enVedette' => true],
+            ['createdAt' => 'DESC'],
+            8
+        );
 
-        // Filtres
-        $categoryId = $request->query->get('categorie');
-        $page = max(1, $request->query->getInt('page', 1));
-        $limit = 12;
-        $offset = ($page - 1) * $limit;
+        $categories = $this->categoryRepo->findBy(['actif' => true], ['ordre' => 'ASC']);
 
-        // Construction du filtre
-        $filter = ['actif' => true];
-        if ($categoryId) {
-            try {
-                $filter['categorieId'] = new \MongoDB\BSON\ObjectId($categoryId);
-            } catch (\Exception $e) {
-                // ID invalide, on ignore le filtre
+        // Compter les articles par catégorie via les collections
+        foreach ($categories as $category) {
+            $collections = $this->collectionRepo->findBy(['actif' => true, 'categorie' => $category]);
+            $count = 0;
+            foreach ($collections as $col) {
+                $count += $this->articleRepo->count(['actif' => true, 'collection' => $col]);
             }
+            $category->articleCount = $count;
         }
-
-        // Récupération des articles
-        $articles = $collection->find($filter, [
-            'limit' => $limit,
-            'skip' => $offset,
-            'sort' => ['createdAt' => -1]
-        ])->toArray();
-
-        $total = $collection->countDocuments($filter);
-        $totalPages = ceil($total / $limit);
-
-        // Récupération des catégories pour les filtres
-        $categories = $categoriesCollection->find(['actif' => true], [
-            'sort' => ['ordre' => 1]
-        ])->toArray();
 
         return $this->render('public/catalogue.html.twig', [
             'articles' => $articles,
-            'categories' => $categories,
-            'total' => $total,
-            'currentPage' => $page,
-            'totalPages' => $totalPages,
-            'selectedCategory' => $categoryId
+            'categories' => $categories
         ]);
     }
 
     #[Route('/categorie/{slug}', name: 'categorie')]
-    public function categorie(string $slug, Request $request): Response
+    public function categorie(string $slug): Response
     {
-        $categoriesCollection = $this->mongoService->getCollection('categories');
-        $articlesCollection = $this->mongoService->getCollection('articles');
-
-        // Récupérer la catégorie
-        $category = $categoriesCollection->findOne(['slug' => $slug, 'actif' => true]);
+        $category = $this->categoryRepo->findOneBy(['slug' => $slug, 'actif' => true]);
 
         if (!$category) {
             throw $this->createNotFoundException('Catégorie introuvable');
         }
 
-        // Pagination
-        $page = max(1, $request->query->getInt('page', 1));
-        $limit = 12;
-        $offset = ($page - 1) * $limit;
+        $collections = $this->collectionRepo->findBy(
+            ['actif' => true, 'categorie' => $category],
+            ['ordre' => 'ASC']
+        );
 
-        // Récupérer les articles de cette catégorie
-        $articles = $articlesCollection->find([
-            'categorieId' => $category['_id'],
-            'actif' => true
-        ], [
-            'limit' => $limit,
-            'skip' => $offset,
-            'sort' => ['createdAt' => -1]
-        ])->toArray();
+        // Compter les articles par collection
+        foreach ($collections as $col) {
+            $col->articleCount = $this->articleRepo->count(['actif' => true, 'collection' => $col]);
+        }
 
-        $total = $articlesCollection->countDocuments([
-            'categorieId' => $category['_id'],
-            'actif' => true
-        ]);
-        $totalPages = ceil($total / $limit);
+        // Articles en vedette de cette catégorie
+        $articles = [];
+        if (!empty($collections)) {
+            $qb = $this->articleRepo->createQueryBuilder('a')
+                ->where('a.actif = true')
+                ->andWhere('a.enVedette = true')
+                ->andWhere('a.collection IN (:collections)')
+                ->setParameter('collections', $collections)
+                ->orderBy('a.createdAt', 'DESC')
+                ->setMaxResults(8);
+            $articles = $qb->getQuery()->getResult();
+        }
 
         return $this->render('public/categorie.html.twig', [
             'category' => $category,
-            'articles' => $articles,
-            'total' => $total,
-            'currentPage' => $page,
-            'totalPages' => $totalPages
+            'collections' => $collections,
+            'articles' => $articles
         ]);
     }
 
     #[Route('/collection/{slug}', name: 'collection')]
     public function collection(string $slug, Request $request): Response
     {
-        $collectionsCollection = $this->mongoService->getCollection('collections');
-        $articlesCollection = $this->mongoService->getCollection('articles');
-
-        // Récupérer la collection
-        $collection = $collectionsCollection->findOne(['slug' => $slug, 'actif' => true]);
+        $collection = $this->collectionRepo->findOneBy(['slug' => $slug, 'actif' => true]);
 
         if (!$collection) {
             throw $this->createNotFoundException('Collection introuvable');
         }
 
-        // Pagination
         $page = max(1, $request->query->getInt('page', 1));
         $limit = 12;
         $offset = ($page - 1) * $limit;
 
-        // Récupérer les articles de cette collection
-        $articles = $articlesCollection->find([
-            'collectionId' => $collection['_id'],
-            'actif' => true
-        ], [
-            'limit' => $limit,
-            'skip' => $offset,
-            'sort' => ['createdAt' => -1]
-        ])->toArray();
+        $articles = $this->articleRepo->findBy(
+            ['actif' => true, 'collection' => $collection],
+            ['createdAt' => 'DESC'],
+            $limit,
+            $offset
+        );
 
-        $total = $articlesCollection->countDocuments([
-            'collectionId' => $collection['_id'],
-            'actif' => true
-        ]);
-        $totalPages = ceil($total / $limit);
+        $total = $this->articleRepo->count(['actif' => true, 'collection' => $collection]);
+        $totalPages = (int)ceil($total / $limit);
 
         return $this->render('public/collection.html.twig', [
             'collection' => $collection,
@@ -165,40 +145,26 @@ class PublicController extends AbstractController
     #[Route('/article/{slug}', name: 'article_detail')]
     public function articleDetail(string $slug): Response
     {
-        $articlesCollection = $this->mongoService->getCollection('articles');
-        $categoriesCollection = $this->mongoService->getCollection('categories');
-        $collectionsCollection = $this->mongoService->getCollection('collections');
-
-        // Récupérer l'article
-        $article = $articlesCollection->findOne(['slug' => $slug, 'actif' => true]);
+        $article = $this->articleRepo->findOneBy(['slug' => $slug, 'actif' => true]);
 
         if (!$article) {
             throw $this->createNotFoundException('Article introuvable');
         }
 
-        // Récupérer la catégorie de l'article
-        $category = null;
-        if (isset($article['categorieId'])) {
-            $category = $categoriesCollection->findOne(['_id' => $article['categorieId']]);
-        }
+        $collection = $article->getCollection();
+        $category = $collection?->getCategorie();
 
-        // Récupérer la collection de l'article
-        $collection = null;
-        if (isset($article['collectionId'])) {
-            $collection = $collectionsCollection->findOne(['_id' => $article['collectionId']]);
-        }
-
-        // Articles similaires (même catégorie, 4 articles max)
         $similarArticles = [];
-        if (isset($article['categorieId'])) {
-            $similarArticles = $articlesCollection->find([
-                'categorieId' => $article['categorieId'],
-                'actif' => true,
-                '_id' => ['$ne' => $article['_id']]
-            ], [
-                'limit' => 4,
-                'sort' => ['createdAt' => -1]
-            ])->toArray();
+        if ($collection) {
+            $qb = $this->articleRepo->createQueryBuilder('a')
+                ->where('a.actif = true')
+                ->andWhere('a.collection = :col')
+                ->andWhere('a.id != :id')
+                ->setParameter('col', $collection)
+                ->setParameter('id', $article->getId())
+                ->orderBy('a.createdAt', 'DESC')
+                ->setMaxResults(4);
+            $similarArticles = $qb->getQuery()->getResult();
         }
 
         return $this->render('public/article.html.twig', [
@@ -231,13 +197,7 @@ class PublicController extends AbstractController
             return $this->json(['error' => 'Article ID manquant'], 400);
         }
 
-        // Charger l'article depuis MongoDB
-        $collection = $this->mongoService->getCollection('articles');
-        try {
-            $article = $collection->findOne(['_id' => new \MongoDB\BSON\ObjectId($articleId)]);
-        } catch (\Exception $e) {
-            return $this->json(['error' => 'Article invalide'], 400);
-        }
+        $article = $this->articleRepo->find((int)$articleId);
 
         if (!$article) {
             return $this->json(['error' => 'Article introuvable'], 404);
@@ -245,16 +205,30 @@ class PublicController extends AbstractController
 
         // Trouver la variante si nécessaire
         $variant = null;
-        if ($variantId && isset($article['variantes'])) {
-            foreach ($article['variantes'] as $v) {
-                if (($v['id'] ?? $v['_id'] ?? null) == $variantId) {
-                    $variant = (array)$v;
+        if ($variantId) {
+            foreach ($article->getVariantes() as $v) {
+                if ($v->getId() == $variantId) {
+                    $variant = [
+                        'id' => $v->getId(),
+                        'nom' => $v->getNom(),
+                        'prix' => $v->getPrix(),
+                        'sku' => $v->getSku(),
+                    ];
                     break;
                 }
             }
         }
 
-        $this->cartService->addItem((array)$article, $quantity, $variant);
+        // Convertir l'article en array pour le CartService
+        $articleArray = [
+            'id' => $article->getId(),
+            'nom' => $article->getNom(),
+            'slug' => $article->getSlug(),
+            'prix' => $article->getPrixBase(),
+            'image' => $article->getFirstImageUrl(),
+        ];
+
+        $this->cartService->addItem($articleArray, $quantity, $variant);
 
         return $this->json([
             'success' => true,
@@ -290,7 +264,6 @@ class PublicController extends AbstractController
     #[Route('/checkout', name: 'checkout', methods: ['GET', 'POST'])]
     public function checkout(Request $request): Response
     {
-        // Vérifier que le panier n'est pas vide
         if ($this->cartService->getTotalQuantity() === 0) {
             $this->addFlash('error', 'Votre panier est vide');
             return $this->redirectToRoute('panier');
@@ -302,12 +275,10 @@ class PublicController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $data = $form->getData();
 
-            // Préparer les articles de la commande
             $orderItems = [];
-            $cartItems = $this->cartService->getCart();
-            foreach ($cartItems as $itemId => $item) {
+            foreach ($this->cartService->getCart() as $itemId => $item) {
                 $orderItems[] = [
-                    'articleId' => $item['article']['_id'],
+                    'articleId' => $item['article']['id'],
                     'nom' => $item['article']['nom'],
                     'prix' => $item['variant']['prix'] ?? $item['article']['prix'],
                     'quantity' => $item['quantity'],
@@ -315,43 +286,37 @@ class PublicController extends AbstractController
                         'id' => $item['variant']['id'],
                         'nom' => $item['variant']['nom'] ?? 'Standard'
                     ] : null,
-                    'image' => $item['article']['images'][0] ?? null
+                    'image' => $item['article']['image'] ?? null
                 ];
             }
 
-            // Créer la commande dans MongoDB
-            $commandesCollection = $this->mongoService->getCollection('commandes');
-            $result = $commandesCollection->insertOne([
-                'numero' => 'CMD-' . strtoupper(uniqid()),
-                'client' => [
-                    'prenom' => $data['prenom'],
-                    'nom' => $data['nom'],
-                    'email' => $data['email'],
-                    'telephone' => $data['telephone']
-                ],
-                'adresseLivraison' => [
-                    'adresse' => $data['adresse'],
-                    'complementAdresse' => $data['complementAdresse'],
-                    'codePostal' => $data['codePostal'],
-                    'ville' => $data['ville'],
-                    'pays' => $data['pays']
-                ],
-                'articles' => $orderItems,
-                'total' => $this->cartService->getTotal(),
-                'modePaiement' => $data['modePaiement'],
-                'notes' => $data['notes'],
-                'statut' => 'en_attente',
-                'createdAt' => new \MongoDB\BSON\UTCDateTime(),
-                'updatedAt' => new \MongoDB\BSON\UTCDateTime()
+            $commande = new Commande();
+            $commande->setNumero('CMD-' . strtoupper(uniqid()));
+            $commande->setClient([
+                'prenom' => $data['prenom'],
+                'nom' => $data['nom'],
+                'email' => $data['email'],
+                'telephone' => $data['telephone'],
             ]);
+            $commande->setAdresseLivraison([
+                'adresse' => $data['adresse'],
+                'complementAdresse' => $data['complementAdresse'] ?? '',
+                'codePostal' => $data['codePostal'],
+                'ville' => $data['ville'],
+                'pays' => $data['pays'],
+            ]);
+            $commande->setArticles($orderItems);
+            $commande->setTotal($this->cartService->getTotal());
+            $commande->setModePaiement($data['modePaiement']);
+            $commande->setNotes($data['notes'] ?? null);
+            $commande->setStatut('en_attente');
 
-            // Vider le panier
+            $this->em->persist($commande);
+            $this->em->flush();
+
             $this->cartService->clear();
 
-            // Rediriger vers la page de confirmation
-            return $this->redirectToRoute('confirmation', [
-                'id' => (string)$result->getInsertedId()
-            ]);
+            return $this->redirectToRoute('confirmation', ['id' => $commande->getId()]);
         }
 
         return $this->render('public/checkout.html.twig', [
@@ -363,15 +328,9 @@ class PublicController extends AbstractController
     }
 
     #[Route('/confirmation/{id}', name: 'confirmation')]
-    public function confirmation(string $id): Response
+    public function confirmation(int $id): Response
     {
-        $commandesCollection = $this->mongoService->getCollection('commandes');
-
-        try {
-            $commande = $commandesCollection->findOne(['_id' => new \MongoDB\BSON\ObjectId($id)]);
-        } catch (\Exception $e) {
-            throw $this->createNotFoundException('Commande introuvable');
-        }
+        $commande = $this->commandeRepo->find($id);
 
         if (!$commande) {
             throw $this->createNotFoundException('Commande introuvable');
@@ -391,16 +350,14 @@ class PublicController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $data = $form->getData();
 
-            // Sauvegarder le message dans MongoDB
-            $collection = $this->mongoService->getCollection('messages');
-            $collection->insertOne([
-                'nom' => $data['nom'],
-                'email' => $data['email'],
-                'sujet' => $data['sujet'],
-                'message' => $data['message'],
-                'lu' => false,
-                'createdAt' => new \MongoDB\BSON\UTCDateTime()
-            ]);
+            $message = new Message();
+            $message->setNom($data['nom']);
+            $message->setEmail($data['email']);
+            $message->setSujet($data['sujet'] ?? null);
+            $message->setMessage($data['message']);
+
+            $this->em->persist($message);
+            $this->em->flush();
 
             $this->addFlash('success', 'Votre message a été envoyé avec succès ! Nous vous répondrons dans les plus brefs délais.');
             return $this->redirectToRoute('contact');
@@ -412,33 +369,27 @@ class PublicController extends AbstractController
     }
 
     #[Route('/connexion', name: 'connexion', methods: ['GET', 'POST'])]
-    public function connexion(Request $request, \Symfony\Component\Security\Http\Authentication\AuthenticationUtils $authenticationUtils): Response
+    public function connexion(AuthenticationUtils $authenticationUtils): Response
     {
-        // Si déjà connecté, rediriger vers l'accueil
         if ($this->getUser()) {
             return $this->redirectToRoute('home');
         }
 
-        // Récupérer l'erreur de connexion s'il y en a une
         $error = $authenticationUtils->getLastAuthenticationError();
-
-        // Dernier nom d'utilisateur saisi
         $lastUsername = $authenticationUtils->getLastUsername();
 
-        $form = $this->createForm(\App\Form\LoginType::class, [
-            'email' => $lastUsername
-        ]);
+        $form = $this->createForm(\App\Form\LoginType::class);
 
         return $this->render('auth/connexion.html.twig', [
             'form' => $form->createView(),
-            'error' => $error
+            'error' => $error,
+            'last_username' => $lastUsername
         ]);
     }
 
     #[Route('/inscription', name: 'inscription', methods: ['GET', 'POST'])]
-    public function inscription(Request $request, \Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface $passwordHasher): Response
+    public function inscription(Request $request, UserPasswordHasherInterface $passwordHasher): Response
     {
-        // Si déjà connecté, rediriger vers l'accueil
         if ($this->getUser()) {
             return $this->redirectToRoute('home');
         }
@@ -449,41 +400,22 @@ class PublicController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $data = $form->getData();
 
-            // Vérifier si l'email existe déjà
-            $utilisateursCollection = $this->mongoService->getCollection('utilisateurs');
-            $existingUser = $utilisateursCollection->findOne(['email' => $data['email']]);
-
-            if ($existingUser) {
+            $existing = $this->userRepo->findOneBy(['email' => $data['email']]);
+            if ($existing) {
                 $this->addFlash('error', 'Cet email est déjà utilisé');
-                return $this->render('auth/inscription.html.twig', [
-                    'form' => $form->createView()
-                ]);
+                return $this->render('auth/inscription.html.twig', ['form' => $form->createView()]);
             }
 
-            // Hasher le mot de passe
-            $user = new \App\Entity\User(
-                '',
-                $data['email'],
-                '',
-                ['ROLE_USER'],
-                $data['prenom'],
-                $data['nom'],
-                $data['telephone'] ?? null
-            );
+            $user = new User();
+            $user->setEmail($data['email']);
+            $user->setPrenom($data['prenom']);
+            $user->setNom($data['nom']);
+            $user->setTelephone($data['telephone'] ?? null);
+            $user->setRoles(['ROLE_USER']);
+            $user->setPassword($passwordHasher->hashPassword($user, $data['password']));
 
-            $hashedPassword = $passwordHasher->hashPassword($user, $data['password']);
-
-            // Créer l'utilisateur dans MongoDB
-            $utilisateursCollection->insertOne([
-                'prenom' => $data['prenom'],
-                'nom' => $data['nom'],
-                'email' => $data['email'],
-                'telephone' => $data['telephone'] ?? null,
-                'password' => $hashedPassword,
-                'roles' => ['ROLE_USER'],
-                'createdAt' => new \MongoDB\BSON\UTCDateTime(),
-                'updatedAt' => new \MongoDB\BSON\UTCDateTime()
-            ]);
+            $this->em->persist($user);
+            $this->em->flush();
 
             $this->addFlash('success', 'Votre compte a été créé avec succès ! Vous pouvez maintenant vous connecter.');
             return $this->redirectToRoute('connexion');
@@ -500,13 +432,13 @@ class PublicController extends AbstractController
         $this->denyAccessUnlessGranted('ROLE_USER');
 
         $user = $this->getUser();
-
-        // Récupérer les commandes de l'utilisateur
-        $commandesCollection = $this->mongoService->getCollection('commandes');
-        $commandes = $commandesCollection->find(
-            ['client.email' => $user->getUserIdentifier()],
-            ['sort' => ['createdAt' => -1], 'limit' => 10]
-        )->toArray();
+        $commandes = $this->commandeRepo->createQueryBuilder('c')
+            ->where("JSON_EXTRACT(c.client, '$.email') = :email")
+            ->setParameter('email', $user->getUserIdentifier())
+            ->orderBy('c.createdAt', 'DESC')
+            ->setMaxResults(10)
+            ->getQuery()
+            ->getResult();
 
         return $this->render('auth/profil.html.twig', [
             'user' => $user,
@@ -517,13 +449,6 @@ class PublicController extends AbstractController
     #[Route('/logout', name: 'logout')]
     public function logout(): void
     {
-        // Cette méthode peut rester vide, elle sera interceptée par le firewall
         throw new \LogicException('This method can be blank - it will be intercepted by the logout key on your firewall.');
-    }
-
-    #[Route('/admin', name: 'admin_dashboard')]
-    public function adminDashboard(): Response
-    {
-        return new Response('<h1>Admin Dashboard - À venir</h1>');
     }
 }

@@ -38,15 +38,22 @@
                 <tbody class="divide-y">
                     {% for commande in commandes %}
                         <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 font-semibold text-primary">{{ commande.numero }}</td>
+                            <td class="px-6 py-4 font-semibold text-primary">{{ commande.numero ?? commande.numeroCommande ?? commande.id }}</td>
                             <td class="px-6 py-4">
                                 <div>
-                                    <div class="font-medium">{{ commande.client.prenom }} {{ commande.client.nom }}</div>
-                                    <div class="text-sm text-gray-500">{{ commande.client.email }}</div>
+                                    {% if commande.client is defined %}
+                                        <div class="font-medium">{{ commande.client.prenom ?? '' }} {{ commande.client.nom ?? '' }}</div>
+                                        <div class="text-sm text-gray-500">{{ commande.client.email ?? '' }}</div>
+                                    {% else %}
+                                        <div class="font-medium">{{ commande.prenom ?? '' }} {{ commande.nom ?? '' }}</div>
+                                        <div class="text-sm text-gray-500">{{ commande.email ?? '' }}</div>
+                                    {% endif %}
                                 </div>
                             </td>
-                            <td class="px-6 py-4 text-sm text-gray-600">{{ commande.createdAt.toDateTime().format('d/m/Y H:i') }}</td>
-                            <td class="px-6 py-4 font-bold">{{ commande.total|number_format(2, ',', ' ') }} €</td>
+                            <td class="px-6 py-4 text-sm text-gray-600">
+                                {% if commande.createdAt is defined %}{{ commande.createdAt.toDateTime().format('d/m/Y H:i') }}{% endif %}
+                            </td>
+                            <td class="px-6 py-4 font-bold">{{ (commande.total ?? commande.sousTotal ?? 0)|number_format(2, ',', ' ') }} €</td>
                             <td class="px-6 py-4">
                                 <span class="px-3 py-1 rounded-full text-xs font-semibold
                                     {% if commande.statut == 'en_attente' %}bg-yellow-100 text-yellow-800
@@ -60,7 +67,7 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4">
-                                <a href="{{ path('admin_commandes_detail', {id: commande._id}) }}" class="text-primary hover:text-secondary">Voir détails →</a>
+                                <a href="{{ path('admin_commandes_detail', {id: commande.id}) }}" class="text-primary hover:text-secondary">Voir détails →</a>
                             </td>
                         </tr>
                     {% endfor %}
