@@ -2,7 +2,6 @@
 
 namespace App\Twig;
 
-use MongoDB\BSON\UTCDateTime;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFilter;
 use Twig\TwigFunction;
@@ -15,6 +14,7 @@ class AppExtension extends AbstractExtension
             new TwigFilter('price', [$this, 'formatPrice']),
             new TwigFilter('date_french', [$this, 'formatDateFrench']),
             new TwigFilter('truncate', [$this, 'truncate']),
+            new TwigFilter('to_string', [$this, 'toString']),
         ];
     }
 
@@ -34,9 +34,9 @@ class AppExtension extends AbstractExtension
     }
 
     /**
-     * Formatte une date MongoDB en format français
+     * Formatte une date en format français
      */
-    public function formatDateFrench(UTCDateTime $date, string $format = 'd/m/Y à H:i'): string
+    public function formatDateFrench(\DateTimeInterface $date, string $format = 'd/m/Y à H:i'): string
     {
         return $date->toDateTime()->format($format);
     }
@@ -60,5 +60,31 @@ class AppExtension extends AbstractExtension
     {
         $publicPath = __DIR__ . '/../../public/' . ltrim($path, '/');
         return file_exists($publicPath);
+    }
+
+    /**
+     * Convertit une valeur en string de façon robuste
+     * Gère les arrays, objets BSON, etc.
+     */
+    public function toString($value): string
+    {
+        if (is_string($value)) {
+            return $value;
+        }
+
+        if (is_array($value)) {
+            // Si c'est un array, retourner le premier élément s'il existe
+            return $this->toString(reset($value) ?: '');
+        }
+
+        if (is_object($value) && method_exists($value, '__toString')) {
+            return (string) $value;
+        }
+
+        if (is_numeric($value)) {
+            return (string) $value;
+        }
+
+        return '';
     }
 }

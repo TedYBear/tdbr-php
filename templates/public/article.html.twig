@@ -2,74 +2,93 @@
 
 {% block title %}{{ article.nom }} - TDBR{% endblock %}
 
-{% block body %}
-<div x-data="{
-    selectedImage: 0,
-    selectedVariant: {{ article.variantes|length > 0 ? 'null' : 'null' }},
-    quantity: 1,
-    lightboxOpen: false,
-    addingToCart: false,
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('articlePage', () => ({
+                selectedImage: 0,
+                selectedVariant: null,
+                quantity: 1,
+                lightboxOpen: false,
+                addingToCart: false,
+                imagesData: {{ article.images|default([])|json_encode|raw }},
+                variants: {{ article.variantes|default([])|json_encode|raw }},
+                basePrice: {{ article.prix ?? article.prixBase ?? 0 }},
+                baseStock: {{ article.stock ?? 999 }},
 
-    get currentPrice() {
-        if (this.selectedVariant !== null && {{ article.variantes|json_encode|raw }}[this.selectedVariant]) {
-            return {{ article.variantes|json_encode|raw }}[this.selectedVariant].prix;
-        }
-        return {{ article.prix }};
-    },
-
-    get currentStock() {
-        if (this.selectedVariant !== null && {{ article.variantes|json_encode|raw }}[this.selectedVariant]) {
-            return {{ article.variantes|json_encode|raw }}[this.selectedVariant].stock || 999;
-        }
-        return {{ article.stock ?? 999 }};
-    },
-
-    async addToCart() {
-        this.addingToCart = true;
-
-        const data = {
-            articleId: '{{ article._id }}',
-            quantity: this.quantity
-        };
-
-        if (this.selectedVariant !== null) {
-            data.variantId = {{ article.variantes|json_encode|raw }}[this.selectedVariant].id;
-        }
-
-        try {
-            const response = await fetch('{{ path('panier_add') }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
+                get images() {
+                    return this.imagesData.map(img => img.url || img);
                 },
-                body: JSON.stringify(data)
-            });
 
-            const result = await response.json();
+                get currentPrice() {
+                    if (this.selectedVariant !== null && this.variants[this.selectedVariant]) {
+                        return this.variants[this.selectedVariant].prix || this.variants[this.selectedVariant].prixBase || this.basePrice;
+                    }
+                    return this.basePrice;
+                },
 
-            if (result.success) {
-                // Mettre à jour le badge panier dans la navbar
-                const badge = document.querySelector('[data-cart-count]');
-                if (badge) {
-                    badge.textContent = result.cartCount;
-                    badge.classList.remove('hidden');
+                get currentStock() {
+                    if (this.selectedVariant !== null && this.variants[this.selectedVariant]) {
+                        return this.variants[this.selectedVariant].stock || 999;
+                    }
+                    return this.baseStock;
+                },
+
+                async addToCart() {
+                    this.addingToCart = true;
+
+                    const data = {
+                        articleId: '{{ article._id }}',
+                        quantity: this.quantity
+                    };
+
+                    if (this.selectedVariant !== null && this.variants[this.selectedVariant]) {
+                        data.variantId = this.variants[this.selectedVariant].id;
+                    }
+
+                    try {
+                        const response = await fetch('{{ path('panier_add') }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(data)
+                        });
+
+                        const result = await response.json();
+
+                        if (result.success) {
+                            // Mettre à jour le badge panier dans la navbar
+                            const badge = document.querySelector('[data-cart-count]');
+                            if (badge) {
+                                badge.textContent = result.cartCount;
+                                badge.classList.remove('hidden');
+                            }
+
+                            // Animation de confirmation
+                            const btn = this.$refs.addBtn;
+                            if (btn) {
+                                btn.classList.add('animate-pulse');
+                                setTimeout(() => btn.classList.remove('animate-pulse'), 1000);
+                            }
+
+                            // Message de succès
+                            alert('✓ Article ajouté au panier !');
+                        }
+                    } catch (error) {
+                        alert('Erreur lors de l\'ajout au panier');
+                    } finally {
+                        this.addingToCart = false;
+                    }
                 }
+            }));
+        });
+    </script>
+{% endblock %}
 
-                // Animation de confirmation
-                const btn = this.$refs.addBtn;
-                btn.classList.add('animate-pulse');
-                setTimeout(() => btn.classList.remove('animate-pulse'), 1000);
-
-                // Message de succès
-                alert('✓ Article ajouté au panier !');
-            }
-        } catch (error) {
-            alert('Erreur lors de l\'ajout au panier');
-        } finally {
-            this.addingToCart = false;
-        }
-    }
-}">
+{% block body %}
+<div x-data="articlePage">
     {# Breadcrumb #}
     <section class="bg-gray-50 py-4">
         <div class="container mx-auto px-4">
@@ -96,10 +115,11 @@
                     {# Image principale #}
                     <div class="relative aspect-square bg-gradient-to-br from-accent/20 to-white rounded-2xl overflow-hidden shadow-xl group">
                         {% if article.images|length > 0 %}
-                            <img :src="'{{ article.images[0] }}'.split(',')[selectedImage] || '{{ article.images[0] }}'"
-                                 alt="{{ article.nom }}"
+                            <img :src="images && images[selectedImage] ? images[selectedImage] : '{{ article.images[0].url }}'"
+                                 alt="{{ article.images[0].alt ?? article.nom }}"
                                  class="w-full h-full object-cover cursor-zoom-in transition-transform duration-500 group-hover:scale-105"
-                                 @click="lightboxOpen = true">
+                                 @click="lightboxOpen = true"
+                                 onerror="this.src='{{ article.images[0].url }}'"
 
                             {# Badge Nouveau si moins de 7 jours #}
                             {% set daysSinceCreation = 'now'|date('U') - article.createdAt.toDateTime().format('U') %}
@@ -124,7 +144,7 @@
                                 <div class="aspect-square bg-gray-100 rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:ring-4 hover:ring-primary hover:scale-105"
                                      :class="selectedImage === {{ loop.index0 }} ? 'ring-4 ring-primary' : ''"
                                      @click="selectedImage = {{ loop.index0 }}">
-                                    <img src="{{ image }}" alt="{{ article.nom }}" class="w-full h-full object-cover">
+                                    <img src="{{ image.url }}" alt="{{ image.alt ?? article.nom }}" class="w-full h-full object-cover">
                                 </div>
                             {% endfor %}
                         </div>
@@ -159,9 +179,9 @@
                     {# Prix #}
                     <div class="flex items-baseline gap-4">
                         <span class="text-5xl font-black text-primary" x-text="currentPrice.toFixed(2).replace('.', ',') + ' €'">
-                            {{ article.prix|number_format(2, ',', ' ') }} €
+                            {{ (article.prix ?? article.prixBase ?? 0)|number_format(2, ',', ' ') }} €
                         </span>
-                        {% if article.prixBarre %}
+                        {% if article.prixBarre is defined and article.prixBarre %}
                             <span class="text-2xl text-gray-400 line-through">
                                 {{ article.prixBarre|number_format(2, ',', ' ') }} €
                             </span>
@@ -318,9 +338,10 @@
         </button>
 
         {% if article.images|length > 0 %}
-            <img :src="'{{ article.images[0] }}'.split(',')[selectedImage] || '{{ article.images[0] }}'"
-                 alt="{{ article.nom }}"
-                 class="max-w-full max-h-full object-contain rounded-xl">
+            <img :src="images && images[selectedImage] ? images[selectedImage] : '{{ article.images[0].url }}'"
+                 alt="{{ article.images[0].alt ?? article.nom }}"
+                 class="max-w-full max-h-full object-contain rounded-xl"
+                 onerror="this.src='{{ article.images[0].url }}'">
         {% endif %}
     </div>
 </div>

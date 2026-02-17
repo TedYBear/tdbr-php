@@ -6,6 +6,18 @@
 /* Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700;800&display=swap');
 
+/* Alpine.js x-cloak */
+[x-cloak] {
+  display: none !important;
+}
+
+/* Images articles - affichage en entier (pas de rognage) */
+.article-image img,
+.article-img,
+img[src*="/uploads/articles/"] {
+  object-fit: contain !important;
+}
+
 /* Base Styles */
 @layer base {
   body {

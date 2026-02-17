@@ -9,7 +9,6 @@
         "ext-iconv": "*",
         "doctrine/doctrine-bundle": "^2.11",
         "firebase/php-jwt": "^6.10",
-        "mongodb/mongodb": "^1.17",
         "doctrine/doctrine-migrations-bundle": "^3.3",
         "doctrine/orm": "^2.17",
         "phpdocumentor/reflection-docblock": "^5.3",

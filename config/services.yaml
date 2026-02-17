@@ -23,13 +23,6 @@ services:
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
 
-    # MongoDB Service (lazy - uniquement pour commande de migration)
-    App\Service\MongoDBService:
-        lazy: true
-        arguments:
-            $mongoUri: '%env(MONGO_URI)%'
-            $databaseName: '%env(MONGO_DB_NAME)%'
-
     # JWT Service
     App\Service\JWTService:
         arguments:

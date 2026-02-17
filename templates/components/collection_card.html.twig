@@ -1,0 +1,49 @@
+{# Collection Card Component #}
+{% set collection = collection|default(null) %}
+{% if collection %}
+<a href="{{ path('collection', {slug: collection.slug}) }}" class="card card-hover block">
+    {# Image #}
+    <div class="relative h-48 bg-gradient-to-br from-accent/20 to-white overflow-hidden">
+        {% if collection.image is defined and collection.image %}
+            <img src="{{ collection.image }}"
+                 alt="{{ collection.nom }}"
+                 class="w-full h-full object-cover transition-transform duration-300 hover:scale-110">
+        {% else %}
+            <div class="w-full h-full flex items-center justify-center">
+                {% if collection.icon is defined %}
+                    <span class="text-6xl">{{ collection.icon }}</span>
+                {% else %}
+                    <svg class="w-20 h-20 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                    </svg>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+
+    {# Contenu #}
+    <div class="p-6">
+        <h3 class="font-heading text-xl font-bold text-dark mb-2">
+            {{ collection.nom }}
+        </h3>
+
+        {% if collection.description is defined %}
+            <p class="text-gray-600 text-sm mb-4 line-clamp-2">
+                {{ collection.description|striptags|slice(0, 100) }}
+            </p>
+        {% endif %}
+
+        <div class="flex items-center justify-between">
+            <span class="text-sm text-gray-500">
+                {{ collection.articleCount ?? 0 }} article{{ (collection.articleCount ?? 0) > 1 ? 's' : '' }}
+            </span>
+            <span class="text-primary font-semibold flex items-center gap-2">
+                Découvrir
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </span>
+        </div>
+    </div>
+</a>
+{% endif %}
