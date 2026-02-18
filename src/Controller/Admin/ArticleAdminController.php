@@ -52,6 +52,7 @@ class ArticleAdminController extends AbstractController
         $offset = ($page - 1) * $limit;
 
         $search = $request->query->get('search');
+        $collectionId = $request->query->get('collection') ? (int)$request->query->get('collection') : null;
 
         $qb = $this->articleRepo->createQueryBuilder('a')
             ->orderBy('a.createdAt', 'DESC')
@@ -62,6 +63,10 @@ class ArticleAdminController extends AbstractController
             $qb->andWhere('a.nom LIKE :search')
                ->setParameter('search', '%' . $search . '%');
         }
+        if ($collectionId) {
+            $qb->andWhere('a.collection = :collection')
+               ->setParameter('collection', $collectionId);
+        }
 
         $articles = $qb->getQuery()->getResult();
 
@@ -71,15 +76,23 @@ class ArticleAdminController extends AbstractController
             $countQb->andWhere('a.nom LIKE :search')
                     ->setParameter('search', '%' . $search . '%');
         }
+        if ($collectionId) {
+            $countQb->andWhere('a.collection = :collection')
+                    ->setParameter('collection', $collectionId);
+        }
         $total = (int)$countQb->getQuery()->getSingleScalarResult();
         $totalPages = (int)ceil($total / $limit);
+
+        $collections = $this->collectionRepo->findBy([], ['nom' => 'ASC']);
 
         return $this->render('admin/articles/index.html.twig', [
             'articles' => $articles,
             'total' => $total,
             'currentPage' => $page,
             'totalPages' => $totalPages,
-            'search' => $search
+            'search' => $search,
+            'collections' => $collections,
+            'collectionId' => $collectionId,
         ]);
     }
 
