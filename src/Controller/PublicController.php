@@ -15,8 +15,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Mime\Email;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
@@ -31,7 +29,6 @@ class PublicController extends AbstractController
         private CommandeRepository $commandeRepo,
         private UserRepository $userRepo,
         private CartService $cartService,
-        private MailerInterface $mailer,
     ) {
     }
 
@@ -364,21 +361,17 @@ class PublicController extends AbstractController
 
             try {
                 $sujet = $data['sujet'] ?? 'Sans sujet';
-                $email = (new Email())
-                    ->from($_ENV['MAILER_FROM'] ?? 'boutique.tdbr@gmail.com')
-                    ->to('boutique.tdbr@gmail.com')
-                    ->replyTo($data['email'])
-                    ->subject('[TDBR Contact] ' . $sujet)
-                    ->text(
-                        "Nouveau message de contact\n\n" .
-                        "Nom : " . $data['nom'] . "\n" .
-                        "Email : " . $data['email'] . "\n" .
-                        "Sujet : " . $sujet . "\n\n" .
-                        "Message :\n" . $data['message']
-                    );
-                $this->mailer->send($email);
+                $corps =
+                    "Nouveau message de contact\n\n" .
+                    "Nom : " . $data['nom'] . "\n" .
+                    "Email : " . $data['email'] . "\n" .
+                    "Sujet : " . $sujet . "\n\n" .
+                    "Message :\n" . $data['message'];
+                $headers = "Reply-To: " . $data['email'] . "\r\n" .
+                           "Content-Type: text/plain; charset=UTF-8\r\n";
+                mail('boutique.tdbr@gmail.com', '[TDBR Contact] ' . $sujet, $corps, $headers);
             } catch (\Throwable) {
-                // Echec d'envoi email — le message est quand même sauvegardé en base
+                // Echec silencieux — le message est quand même sauvegardé en base
             }
 
             $this->addFlash('success', 'Votre message a été envoyé avec succès ! Nous vous répondrons dans les plus brefs délais.');
