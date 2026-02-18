@@ -68,7 +68,7 @@
 
                 {# Champ caché qui enverra la liste finale #}
                 <template x-for="valeur in valeurs">
-                    <input type="hidden" name="valeurs" :value="valeur">
+                    <input type="hidden" name="valeurs[]" :value="valeur">
                 </template>
 
                 {# Ajouter une valeur #}

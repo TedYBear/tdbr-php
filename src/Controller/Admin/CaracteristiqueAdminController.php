@@ -38,7 +38,7 @@ class CaracteristiqueAdminController extends AbstractController
             $data = $request->request->all();
 
             $valeurs = array_filter(
-                array_map('trim', explode("\n", $data['valeurs'] ?? '')),
+                array_map('trim', (array)($data['valeurs'] ?? [])),
                 fn($v) => $v !== ''
             );
 
@@ -73,7 +73,7 @@ class CaracteristiqueAdminController extends AbstractController
             $data = $request->request->all();
 
             $valeurs = array_filter(
-                array_map('trim', explode("\n", $data['valeurs'] ?? '')),
+                array_map('trim', (array)($data['valeurs'] ?? [])),
                 fn($v) => $v !== ''
             );
 
