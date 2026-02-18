@@ -15,6 +15,8 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
@@ -342,7 +344,7 @@ class PublicController extends AbstractController
     }
 
     #[Route('/contact', name: 'contact', methods: ['GET', 'POST'])]
-    public function contact(Request $request): Response
+    public function contact(Request $request, MailerInterface $mailer): Response
     {
         $form = $this->createForm(\App\Form\ContactType::class);
         $form->handleRequest($request);
@@ -367,9 +369,14 @@ class PublicController extends AbstractController
                     "Email : " . $data['email'] . "\n" .
                     "Sujet : " . $sujet . "\n\n" .
                     "Message :\n" . $data['message'];
-                $headers = "Reply-To: " . $data['email'] . "\r\n" .
-                           "Content-Type: text/plain; charset=UTF-8\r\n";
-                mail('boutique.tdbr@gmail.com', '[TDBR Contact] ' . $sujet, $corps, $headers);
+                $from = $_ENV['MAILER_FROM'] ?? 'tdbrlaboutique@gmail.com';
+                $email = (new Email())
+                    ->from($from)
+                    ->to($from)
+                    ->replyTo($data['email'])
+                    ->subject('[TDBR Contact] ' . $sujet)
+                    ->text($corps);
+                $mailer->send($email);
             } catch (\Throwable) {
                 // Echec silencieux — le message est quand même sauvegardé en base
             }
