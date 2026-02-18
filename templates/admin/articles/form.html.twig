@@ -217,6 +217,12 @@
                                 Générer depuis un template
                             </button>
                             <button type="button" @click="addVariante()" class="btn-primary text-sm">+ Ajouter manuellement</button>
+                            <button type="button"
+                                    x-show="variantes.length > 0"
+                                    @click="if(confirm('Supprimer toutes les variantes ?')) variantes = []"
+                                    class="text-sm px-3 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50">
+                                Tout supprimer
+                            </button>
                         </div>
                     </div>
 
