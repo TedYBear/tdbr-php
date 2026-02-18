@@ -223,6 +223,49 @@ class ArticleAdminController extends AbstractController
         ]);
     }
 
+    #[Route('/{id}/clone', name: 'admin_articles_clone', methods: ['POST'])]
+    public function clone(int $id): Response
+    {
+        $source = $this->articleRepo->find($id);
+
+        if (!$source) {
+            throw $this->createNotFoundException('Article introuvable');
+        }
+
+        $clone = new Article();
+        $clone->setNom($source->getNom() . ' (copie)');
+        $clone->setSlug($this->slugify->slugify($source->getNom()) . '-copie-' . substr(uniqid(), -6));
+        $clone->setDescription($source->getDescription());
+        $clone->setPrixBase($source->getPrixBase());
+        $clone->setActif(false);
+        $clone->setEnVedette(false);
+        $clone->setCollection($source->getCollection());
+
+        foreach ($source->getImages() as $img) {
+            $newImg = new ArticleImage();
+            $newImg->setUrl($img->getUrl());
+            $newImg->setAlt($img->getAlt());
+            $newImg->setOrdre($img->getOrdre());
+            $clone->addImage($newImg);
+        }
+
+        foreach ($source->getVariantes() as $v) {
+            $newV = new Variante();
+            $newV->setNom($v->getNom());
+            $newV->setSku($v->getSku() ? $v->getSku() . '-C' : null);
+            $newV->setPrix($v->getPrix());
+            $newV->setStock(0);
+            $newV->setActif(false);
+            $clone->addVariante($newV);
+        }
+
+        $this->em->persist($clone);
+        $this->em->flush();
+
+        $this->addFlash('success', 'Article cloné avec succès');
+        return $this->redirectToRoute('admin_articles_edit', ['id' => $clone->getId()]);
+    }
+
     #[Route('/{id}/delete', name: 'admin_articles_delete', methods: ['POST'])]
     public function delete(int $id): Response
     {
