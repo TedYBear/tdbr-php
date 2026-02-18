@@ -426,12 +426,39 @@ class PublicController extends AbstractController
         ]);
     }
 
-    #[Route('/profil', name: 'profil')]
-    public function profil(): Response
+    #[Route('/profil', name: 'profil', methods: ['GET', 'POST'])]
+    public function profil(Request $request): Response
     {
         $this->denyAccessUnlessGranted('ROLE_USER');
 
+        /** @var User $user */
         $user = $this->getUser();
+
+        if ($request->isMethod('POST')) {
+            $prenom = trim($request->request->get('prenom', ''));
+            $nom    = trim($request->request->get('nom', ''));
+            $email  = trim($request->request->get('email', ''));
+            $tel    = trim($request->request->get('telephone', ''));
+
+            if (empty($email)) {
+                $this->addFlash('error', 'L\'adresse email est obligatoire.');
+            } else {
+                $existing = $this->userRepo->findOneBy(['email' => $email]);
+                if ($existing && $existing->getId() !== $user->getId()) {
+                    $this->addFlash('error', 'Cette adresse email est déjà utilisée par un autre compte.');
+                } else {
+                    $user->setPrenom($prenom ?: null);
+                    $user->setNom($nom ?: null);
+                    $user->setEmail($email);
+                    $user->setTelephone($tel ?: null);
+                    $this->em->flush();
+                    $this->addFlash('success', 'Vos informations ont été mises à jour.');
+                }
+            }
+
+            return $this->redirectToRoute('profil');
+        }
+
         $userEmail = $user->getUserIdentifier();
         $allCommandes = $this->commandeRepo->findBy([], ['createdAt' => 'DESC']);
         $commandes = array_slice(array_values(array_filter($allCommandes, function($c) use ($userEmail) {
