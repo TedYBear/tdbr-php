@@ -53,10 +53,13 @@
                 {# User Menu #}
                 {% if app.user %}
                     <div class="relative" x-data="{ open: false }">
-                        <button @click="open = !open" @click.away="open = false" class="flex items-center space-x-2 hover:text-primary transition">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                            </svg>
+                        <button @click="open = !open" @click.away="open = false" class="flex items-center gap-2 hover:text-primary transition">
+                            <div class="text-right hidden sm:block">
+                                <div class="text-sm font-semibold text-gray-900 leading-tight">{{ app.user.prenom }} {{ app.user.nom }}</div>
+                            </div>
+                            <div class="w-9 h-9 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                                {{ app.user.prenom|first }}{{ app.user.nom|first }}
+                            </div>
                         </button>
                         <div x-show="open" x-transition class="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg py-2">
                             <a href="{{ path('profil', {}) }}" class="block px-4 py-2 hover:bg-gray-100">Mon profil</a>
