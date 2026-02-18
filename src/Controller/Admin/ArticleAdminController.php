@@ -223,6 +223,29 @@ class ArticleAdminController extends AbstractController
         ]);
     }
 
+    #[Route('/{id}/toggle/{field}', name: 'admin_articles_toggle', methods: ['POST'])]
+    public function toggle(int $id, string $field): \Symfony\Component\HttpFoundation\JsonResponse
+    {
+        $article = $this->articleRepo->find($id);
+        if (!$article) {
+            return $this->json(['error' => 'Article introuvable'], 404);
+        }
+
+        if ($field === 'actif') {
+            $article->setActif(!$article->isActif());
+            $value = $article->isActif();
+        } elseif ($field === 'enVedette') {
+            $article->setEnVedette(!$article->isEnVedette());
+            $value = $article->isEnVedette();
+        } else {
+            return $this->json(['error' => 'Champ invalide'], 400);
+        }
+
+        $this->em->flush();
+
+        return $this->json(['success' => true, 'value' => $value]);
+    }
+
     #[Route('/{id}/clone', name: 'admin_articles_clone', methods: ['POST'])]
     public function clone(int $id): Response
     {

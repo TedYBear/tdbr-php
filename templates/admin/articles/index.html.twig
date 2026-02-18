@@ -33,6 +33,7 @@
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Prix</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Variantes</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Statut</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Vedette</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Actions</th>
                     </tr>
                 </thead>
@@ -56,12 +57,19 @@
                             <td class="px-6 py-4 text-sm text-gray-600">
                                 {{ article.variantes|length }} variante{{ article.variantes|length > 1 ? 's' : '' }}
                             </td>
-                            <td class="px-6 py-4">
-                                {% if article.actif %}
-                                    <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">Actif</span>
-                                {% else %}
-                                    <span class="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-semibold">Inactif</span>
-                                {% endif %}
+                            <td class="px-6 py-4"
+                                x-data="{ val: {{ article.actif ? 'true' : 'false' }} }"
+                                @click="fetch('{{ path('admin_articles_toggle', {id: article.id, field: 'actif'}) }}', {method:'POST'}).then(r=>r.json()).then(d=>{ if(d.success) val=d.value; })"
+                                style="cursor:pointer" title="Cliquer pour basculer">
+                                <span x-show="val" class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">Actif</span>
+                                <span x-show="!val" class="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-semibold">Inactif</span>
+                            </td>
+                            <td class="px-6 py-4"
+                                x-data="{ val: {{ article.enVedette ? 'true' : 'false' }} }"
+                                @click="fetch('{{ path('admin_articles_toggle', {id: article.id, field: 'enVedette'}) }}', {method:'POST'}).then(r=>r.json()).then(d=>{ if(d.success) val=d.value; })"
+                                style="cursor:pointer" title="Cliquer pour basculer">
+                                <span x-show="val" class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-semibold">Oui</span>
+                                <span x-show="!val" class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-semibold">Non</span>
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex gap-2">
