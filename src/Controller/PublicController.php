@@ -15,6 +15,8 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
@@ -29,6 +31,7 @@ class PublicController extends AbstractController
         private CommandeRepository $commandeRepo,
         private UserRepository $userRepo,
         private CartService $cartService,
+        private MailerInterface $mailer,
     ) {
     }
 
@@ -358,6 +361,25 @@ class PublicController extends AbstractController
 
             $this->em->persist($message);
             $this->em->flush();
+
+            try {
+                $sujet = $data['sujet'] ?? 'Sans sujet';
+                $email = (new Email())
+                    ->from($_ENV['MAILER_FROM'] ?? 'boutique.tdbr@gmail.com')
+                    ->to('boutique.tdbr@gmail.com')
+                    ->replyTo($data['email'])
+                    ->subject('[TDBR Contact] ' . $sujet)
+                    ->text(
+                        "Nouveau message de contact\n\n" .
+                        "Nom : " . $data['nom'] . "\n" .
+                        "Email : " . $data['email'] . "\n" .
+                        "Sujet : " . $sujet . "\n\n" .
+                        "Message :\n" . $data['message']
+                    );
+                $this->mailer->send($email);
+            } catch (\Throwable) {
+                // Echec d'envoi email — le message est quand même sauvegardé en base
+            }
 
             $this->addFlash('success', 'Votre message a été envoyé avec succès ! Nous vous répondrons dans les plus brefs délais.');
             return $this->redirectToRoute('contact');
