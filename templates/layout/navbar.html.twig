@@ -54,11 +54,11 @@
                 {% if app.user %}
                     <div class="relative" x-data="{ open: false }">
                         <button @click="open = !open" @click.away="open = false" class="flex items-center gap-2 hover:text-primary transition">
-                            <div class="text-right" style="display:block">
-                                <div class="text-sm font-semibold text-gray-900" style="white-space:nowrap">{{ app.user.prenom }} {{ app.user.nom }}</div>
-                            </div>
                             <div class="w-9 h-9 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
                                 {{ app.user.prenom|first }}{{ app.user.nom|first }}
+                            </div>
+                            <div style="display:block">
+                                <div class="text-sm font-semibold text-gray-900" style="white-space:nowrap">{{ app.user.prenom }} {{ app.user.nom }}</div>
                             </div>
                         </button>
                         <div x-show="open" x-transition class="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg py-2">
