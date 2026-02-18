@@ -7,7 +7,7 @@
 {% block body %}
 <div x-data="{
     type: '{{ caracteristique and caracteristique.type is defined ? caracteristique.type : 'text' }}',
-    valeurs: {{ caracteristique and caracteristique.valeurs is defined ? caracteristique.valeurs|json_encode : '[]' }},
+    valeurs: {{ caracteristique ? caracteristique.valeursArray|json_encode : '[]' }},
     nouvelleValeur: '',
     ajouterValeur() {
         const v = this.nouvelleValeur.trim();
