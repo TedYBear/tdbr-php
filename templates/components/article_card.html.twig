@@ -19,7 +19,7 @@
 
             {# Badge si nouveau #}
             {% if article.createdAt is defined %}
-                {% set daysSinceCreation = 'now'|date('U') - article.createdAt.toDateTime()|date('U') %}
+                {% set daysSinceCreation = 'now'|date('U') - article.createdAt|date('U') %}
                 {% if daysSinceCreation < (7 * 24 * 3600) %}
                     <span class="absolute top-2 right-2 bg-secondary text-white text-xs font-bold px-3 py-1 rounded-full">
                         Nouveau

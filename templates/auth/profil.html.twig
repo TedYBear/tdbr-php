@@ -116,7 +116,7 @@
                                                     {{ commande.numero }}
                                                 </div>
                                                 <div class="text-sm text-gray-600">
-                                                    {{ commande.createdAt.toDateTime().format('d/m/Y à H:i') }}
+                                                    {{ commande.createdAt|date('d/m/Y à H:i') }}
                                                 </div>
                                             </div>
                                             <div class="text-right">

@@ -51,7 +51,7 @@
                                 </div>
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-600">
-                                {% if commande.createdAt is defined %}{{ commande.createdAt.toDateTime().format('d/m/Y H:i') }}{% endif %}
+                                {% if commande.createdAt is defined %}{{ commande.createdAt|date('d/m/Y H:i') }}{% endif %}
                             </td>
                             <td class="px-6 py-4 font-bold">{{ (commande.total ?? commande.sousTotal ?? 0)|number_format(2, ',', ' ') }} €</td>
                             <td class="px-6 py-4">

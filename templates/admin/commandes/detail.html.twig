@@ -97,8 +97,8 @@
             <div class="card p-6">
                 <h2 class="text-xl font-bold mb-4">Dates</h2>
                 <div class="space-y-2 text-sm">
-                    <div><strong>Créée le:</strong><br>{{ commande.createdAt.toDateTime().format('d/m/Y à H:i') }}</div>
-                    <div><strong>Modifiée le:</strong><br>{{ commande.updatedAt.toDateTime().format('d/m/Y à H:i') }}</div>
+                    <div><strong>Créée le:</strong><br>{{ commande.createdAt|date('d/m/Y à H:i') }}</div>
+                    <div><strong>Modifiée le:</strong><br>{{ commande.updatedAt ? commande.updatedAt|date('d/m/Y à H:i') : '-' }}</div>
                 </div>
             </div>
         </div>
