@@ -9,7 +9,7 @@
         <p style="margin: 0 0 10px 0;"><strong>De :</strong> {{ message.nom }}</p>
         <p style="margin: 0 0 10px 0;"><strong>Email :</strong> <a href="mailto:{{ message.email }}" style="color: #8B7355;">{{ message.email }}</a></p>
         <p style="margin: 0 0 10px 0;"><strong>Sujet :</strong> {{ message.sujet }}</p>
-        <p style="margin: 0;"><strong>Date :</strong> {{ message.createdAt.toDateTime().format('d/m/Y à H:i') }}</p>
+        <p style="margin: 0;"><strong>Date :</strong> {{ message.createdAt|date('d/m/Y à H:i') }}</p>
     </div>
 
     <h3 style="color: #8B7355;">Message :</h3>

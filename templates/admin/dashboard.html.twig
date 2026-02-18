@@ -112,7 +112,7 @@
                                 </td>
                                 <td class="px-4 py-3 text-sm text-gray-600">
                                     {% if commande.createdAt is defined %}
-                                        {{ commande.createdAt.toDateTime().format('d/m/Y H:i') }}
+                                        {{ commande.createdAt|date('d/m/Y H:i') }}
                                     {% endif %}
                                 </td>
                                 <td class="px-4 py-3">

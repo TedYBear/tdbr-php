@@ -19,7 +19,7 @@
                                     {% endif %}
                                 </div>
                                 <div class="text-sm text-gray-600">
-                                    {{ message.email }} • {% if message.createdAt is defined %}{{ message.createdAt.toDateTime().format('d/m/Y à H:i') }}{% endif %}
+                                    {{ message.email }} • {% if message.createdAt is defined %}{{ message.createdAt|date('d/m/Y à H:i') }}{% endif %}
                                 </div>
                             </div>
                             <div class="flex gap-2">
