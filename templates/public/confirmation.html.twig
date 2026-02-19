@@ -144,7 +144,7 @@
                             <div class="flex gap-6 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition">
                                 <div class="w-20 h-20 bg-white rounded-lg overflow-hidden flex-shrink-0 shadow-sm">
                                     {% if item.image %}
-                                        <img src="{{ item.image }}" alt="{{ item.nom }}" class="w-full h-full object-cover">
+                                        <img src="{{ item.image }}" alt="{{ item.nom }}" class="w-full h-full object-contain">
                                     {% else %}
                                         <div class="w-full h-full flex items-center justify-center text-gray-400">
                                             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">

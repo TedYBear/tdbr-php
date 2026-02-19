@@ -117,7 +117,7 @@
                         {% if article.images|length > 0 %}
                             <img :src="images && images[selectedImage] ? images[selectedImage] : '{{ article.images[0].url }}'"
                                  alt="{{ article.images[0].alt ?? article.nom }}"
-                                 class="w-full h-full object-cover cursor-zoom-in transition-transform duration-500 group-hover:scale-105"
+                                 class="w-full h-full object-contain cursor-zoom-in transition-transform duration-500 group-hover:scale-105"
                                  @click="lightboxOpen = true"
                                  onerror="this.src='{{ article.images[0].url }}'"
 
@@ -144,7 +144,7 @@
                                 <div class="aspect-square bg-gray-100 rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:ring-4 hover:ring-primary hover:scale-105"
                                      :class="selectedImage === {{ loop.index0 }} ? 'ring-4 ring-primary' : ''"
                                      @click="selectedImage = {{ loop.index0 }}">
-                                    <img src="{{ image.url }}" alt="{{ image.alt ?? article.nom }}" class="w-full h-full object-cover">
+                                    <img src="{{ image.url }}" alt="{{ image.alt ?? article.nom }}" class="w-full h-full object-contain">
                                 </div>
                             {% endfor %}
                         </div>
