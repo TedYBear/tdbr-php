@@ -139,7 +139,7 @@
 
                     {# Miniatures #}
                     {% if article.images|length > 1 %}
-                        <div class="grid grid-cols-4 gap-4">
+                        <div class="grid grid-cols-4 gap-2 md:gap-4">
                             {% for image in article.images|slice(0, 4) %}
                                 <div class="aspect-square bg-gray-100 rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:ring-4 hover:ring-primary hover:scale-105"
                                      :class="selectedImage === {{ loop.index0 }} ? 'ring-4 ring-primary' : ''"
@@ -165,7 +165,7 @@
                             </a>
                         {% endif %}
 
-                        <h1 class="font-heading text-5xl font-black text-gray-900 mb-4">
+                        <h1 class="font-heading text-3xl sm:text-4xl md:text-5xl font-black text-gray-900 mb-4">
                             {{ article.nom }}
                         </h1>
 
@@ -178,7 +178,7 @@
 
                     {# Prix #}
                     <div class="flex items-baseline gap-4">
-                        <span class="text-5xl font-black text-primary" x-text="currentPrice.toFixed(2).replace('.', ',') + ' €'">
+                        <span class="text-4xl md:text-5xl font-black text-primary" x-text="currentPrice.toFixed(2).replace('.', ',') + ' €'">
                             {{ (article.prix ?? article.prixBase ?? 0)|number_format(2, ',', ' ') }} €
                         </span>
                         {% if article.prixBarre is defined and article.prixBarre %}
@@ -209,7 +209,7 @@
                     {# Quantité et Ajout Panier #}
                     <div class="space-y-4">
                         <label class="block text-lg font-bold text-gray-900">Quantité</label>
-                        <div class="flex items-center gap-6">
+                        <div class="flex items-center gap-3 md:gap-6">
                             <div class="flex items-center border-2 border-gray-200 rounded-xl overflow-hidden">
                                 <button type="button"
                                         @click="quantity = Math.max(1, quantity - 1)"
