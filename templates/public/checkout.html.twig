@@ -180,7 +180,7 @@
                                 <div class="flex gap-4">
                                     <div class="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                                         {% if item.article.images|length > 0 %}
-                                            <img src="{{ item.article.images[0]|to_string }}" alt="{{ item.article.nom }}" class="w-full h-full object-cover">
+                                            <img src="{{ item.article.images[0]|to_string }}" alt="{{ item.article.nom }}" class="w-full h-full object-contain">
                                         {% endif %}
                                     </div>
                                     <div class="flex-1 min-w-0">
