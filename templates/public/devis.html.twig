@@ -1,0 +1,153 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Demande de Devis - TDBR{% endblock %}
+
+{% block body %}
+    {# Hero #}
+    <section class="py-12 bg-gradient-to-br from-accent to-white">
+        <div class="container mx-auto px-4 text-center">
+            <h1 class="font-heading text-5xl font-bold mb-4">
+                Demande de <span class="gradient-text">Devis</span>
+            </h1>
+            <p class="text-lg text-gray-700 max-w-2xl mx-auto">
+                Vous souhaitez une création personnalisée ? Décrivez-nous votre projet et nous vous recontacterons rapidement.
+            </p>
+        </div>
+    </section>
+
+    <section class="py-16 bg-white">
+        <div class="container mx-auto px-4">
+            <div class="max-w-3xl mx-auto">
+
+                {# Flash messages #}
+                {% for message in app.flashes('success') %}
+                    <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl text-green-800">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+                {% for message in app.flashes('error') %}
+                    <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-800">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+
+                {{ form_start(form, {'attr': {'class': 'space-y-8', 'novalidate': 'novalidate'}}) }}
+
+                {# Section 1 : Contact #}
+                <div class="card p-8">
+                    <h2 class="font-heading text-2xl font-bold mb-6 flex items-center gap-3">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-bold">1</span>
+                        Vos coordonnées
+                    </h2>
+                    <div class="grid sm:grid-cols-2 gap-4">
+                        <div>
+                            {{ form_label(form.nom, null, {'label_attr': {'class': 'block text-sm font-semibold text-gray-700 mb-2'}}) }}
+                            {{ form_widget(form.nom) }}
+                            {{ form_errors(form.nom) }}
+                        </div>
+                        <div>
+                            {{ form_label(form.email, null, {'label_attr': {'class': 'block text-sm font-semibold text-gray-700 mb-2'}}) }}
+                            {{ form_widget(form.email) }}
+                            {{ form_errors(form.email) }}
+                        </div>
+                        <div class="sm:col-span-2">
+                            {{ form_label(form.telephone, null, {'label_attr': {'class': 'block text-sm font-semibold text-gray-700 mb-2'}}) }}
+                            {{ form_widget(form.telephone) }}
+                        </div>
+                    </div>
+                </div>
+
+                {# Section 2 : Projet #}
+                <div class="card p-8">
+                    <h2 class="font-heading text-2xl font-bold mb-6 flex items-center gap-3">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-bold">2</span>
+                        Votre projet
+                    </h2>
+                    <div class="space-y-4">
+                        <div>
+                            {{ form_label(form.concept, null, {'label_attr': {'class': 'block text-sm font-semibold text-gray-700 mb-2'}}) }}
+                            {{ form_widget(form.concept) }}
+                            {{ form_errors(form.concept) }}
+                        </div>
+                        <div>
+                            {{ form_label(form.contexte, null, {'label_attr': {'class': 'block text-sm font-semibold text-gray-700 mb-2'}}) }}
+                            {{ form_widget(form.contexte) }}
+                        </div>
+
+                        {# Supports (checkboxes manuelles) #}
+                        <div>
+                            <div class="block text-sm font-semibold text-gray-700 mb-2">Supports souhaités</div>
+                            <div class="grid sm:grid-cols-2 gap-3" x-data="{ autre: false }">
+                                {% set supportsList = ['Mugs', 'T-shirts', 'Tote-bags', 'Accessoires', 'Autre'] %}
+                                {% for support in supportsList %}
+                                    <label class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:border-primary transition"
+                                           {% if support == 'Autre' %}@click="autre = !autre"{% endif %}>
+                                        <input type="checkbox" name="supports[]" value="{{ support|lower }}"
+                                               class="w-4 h-4 text-primary rounded">
+                                        <span>{{ support }}</span>
+                                    </label>
+                                {% endfor %}
+                                <div x-show="autre" class="sm:col-span-2">
+                                    <input type="text" name="autreSupport" class="form-input"
+                                           placeholder="Précisez le support souhaité">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# Section 3 : Quantité #}
+                <div class="card p-8">
+                    <h2 class="font-heading text-2xl font-bold mb-6 flex items-center gap-3">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-bold">3</span>
+                        Quantité
+                    </h2>
+                    <div class="grid sm:grid-cols-2 gap-3">
+                        {% for child in form.quantite %}
+                            <label class="flex items-center gap-3 p-4 border-2 rounded-xl cursor-pointer hover:border-primary transition has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+                                {{ form_widget(child) }}
+                                <span class="font-medium">{{ child.vars.label }}</span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                    {{ form_errors(form.quantite) }}
+                </div>
+
+                {# Section 4 : Contact #}
+                <div class="card p-8">
+                    <h2 class="font-heading text-2xl font-bold mb-6 flex items-center gap-3">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-bold">4</span>
+                        Préférence de contact
+                    </h2>
+                    <div class="space-y-4">
+                        <div class="flex flex-col gap-3">
+                            {% for child in form.moyenContact %}
+                                <label class="flex items-center gap-3 p-4 border-2 rounded-xl cursor-pointer hover:border-primary transition has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+                                    {{ form_widget(child) }}
+                                    <span class="font-medium">{{ child.vars.label }}</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                        {{ form_errors(form.moyenContact) }}
+
+                        <div>
+                            {{ form_label(form.messageAdditionnel, null, {'label_attr': {'class': 'block text-sm font-semibold text-gray-700 mb-2'}}) }}
+                            {{ form_widget(form.messageAdditionnel) }}
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary w-full py-4 text-lg glow">
+                    <span class="flex items-center justify-center gap-3">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                        </svg>
+                        Envoyer ma demande de devis
+                    </span>
+                </button>
+
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </section>
+{% endblock %}
