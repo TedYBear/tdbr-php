@@ -377,8 +377,12 @@ class PublicController extends AbstractController
                     ->subject('[TDBR Contact] ' . $sujet)
                     ->text($corps);
                 $mailer->send($email);
-            } catch (\Throwable) {
-                // Echec silencieux — le message est quand même sauvegardé en base
+            } catch (\Throwable $e) {
+                file_put_contents(
+                    __DIR__ . '/../../var/log/mail_error.log',
+                    date('Y-m-d H:i:s') . ' - ' . $e->getMessage() . "\n",
+                    FILE_APPEND
+                );
             }
 
             $this->addFlash('success', 'Votre message a été envoyé avec succès ! Nous vous répondrons dans les plus brefs délais.');
