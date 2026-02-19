@@ -25,11 +25,11 @@
                     {# Liste articles #}
                     <div class="lg:col-span-2 space-y-6">
                         {% for itemId, item in items %}
-                            <div class="card p-6 hover:shadow-xl transition-all duration-300">
-                                <div class="flex gap-6">
+                            <div class="card p-4 md:p-6 hover:shadow-xl transition-all duration-300">
+                                <div class="flex gap-4 md:gap-6">
                                     {# Image #}
                                     <div class="flex-shrink-0">
-                                        <div class="w-32 h-32 rounded-xl overflow-hidden bg-gray-100">
+                                        <div class="w-20 h-20 md:w-32 md:h-32 rounded-xl overflow-hidden bg-gray-100">
                                             {% if item.article.images is defined and item.article.images|length > 0 %}
                                                 <img src="{{ item.article.images[0]|to_string }}"
                                                      alt="{{ item.article.nom }}"
@@ -61,9 +61,9 @@
                                             </p>
                                         {% endif %}
 
-                                        <div class="flex items-center gap-6">
+                                        <div class="flex flex-wrap items-center gap-3 md:gap-6">
                                             {# Quantité #}
-                                            <form method="post" action="{{ path('panier_update', {itemId: itemId}) }}" class="flex items-center gap-3">
+                                            <form method="post" action="{{ path('panier_update', {itemId: itemId}) }}" class="flex items-center gap-2">
                                                 <label class="text-sm font-medium text-gray-700">Quantité:</label>
                                                 <div class="flex items-center border-2 border-gray-200 rounded-lg overflow-hidden">
                                                     <button type="button"
@@ -186,9 +186,9 @@
                 </div>
             {% else %}
                 {# Panier vide #}
-                <div class="text-center py-32">
-                    <div class="inline-flex items-center justify-center w-40 h-40 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-full mb-10">
-                        <svg class="w-20 h-20 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="text-center py-16 md:py-32">
+                    <div class="inline-flex items-center justify-center w-24 h-24 md:w-40 md:h-40 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-full mb-8 md:mb-10">
+                        <svg class="w-12 h-12 md:w-20 md:h-20 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
                         </svg>
                     </div>
