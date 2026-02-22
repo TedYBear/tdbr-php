@@ -109,9 +109,9 @@
                     {# Du fromage au dessert #}
                     <div class="flex flex-col sm:flex-row gap-6">
                         <div class="flex-shrink-0">
-                            <div class="w-20 h-20 bg-gradient-to-br from-secondary/20 to-accent rounded-xl flex items-center justify-center text-4xl">
-                                🧀
-                            </div>
+                            <img src="{{ asset('uploads/general/fromage_dessert.jpg') }}"
+                                 alt="Du fromage au dessert - Orthez"
+                                 class="w-20 h-20 object-cover rounded-xl border border-gray-200">
                         </div>
                         <div class="flex-1">
                             <h3 class="font-heading text-xl font-bold text-gray-900 mb-1">Du fromage au dessert</h3>
@@ -127,6 +127,22 @@
                                 Myriam est ma sœur et Baptiste mon beau-frère.
                                 Un grand merci à eux pour leur confiance et leur soutien depuis le début de l'aventure TDBR !
                             </p>
+
+                            {# Photos #}
+                            <div class="mt-5 grid grid-cols-2 gap-3">
+                                <figure>
+                                    <img src="{{ asset('uploads/general/fromage_dessert.jpg') }}"
+                                         alt="La boutique Du fromage au dessert"
+                                         class="w-full h-40 object-cover rounded-xl border border-gray-200">
+                                    <figcaption class="text-xs text-gray-500 mt-1 text-center">La boutique</figcaption>
+                                </figure>
+                                <figure>
+                                    <img src="{{ asset('uploads/general/baptiste.jpg') }}"
+                                         alt="Baptiste, fromager"
+                                         class="w-full h-40 object-cover rounded-xl border border-gray-200">
+                                    <figcaption class="text-xs text-gray-500 mt-1 text-center">Baptiste, fromager</figcaption>
+                                </figure>
+                            </div>
                         </div>
                     </div>
                 </div>
