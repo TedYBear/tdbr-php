@@ -42,6 +42,10 @@ class Article
     #[ORM\ManyToOne(inversedBy: 'articles')]
     private ?ProductCollection $collection = null;
 
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Fournisseur $fournisseur = null;
+
     #[ORM\OneToMany(mappedBy: 'article', targetEntity: ArticleImage::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[ORM\OrderBy(['ordre' => 'ASC'])]
     private Collection $images;
@@ -81,6 +85,8 @@ class Article
     public function setOrdre(int $o): static { $this->ordre = $o; return $this; }
     public function getCollection(): ?ProductCollection { return $this->collection; }
     public function setCollection(?ProductCollection $c): static { $this->collection = $c; return $this; }
+    public function getFournisseur(): ?Fournisseur { return $this->fournisseur; }
+    public function setFournisseur(?Fournisseur $f): static { $this->fournisseur = $f; return $this; }
     public function getImages(): Collection { return $this->images; }
     public function addImage(ArticleImage $img): static { if (!$this->images->contains($img)) { $this->images->add($img); $img->setArticle($this); } return $this; }
     public function removeImage(ArticleImage $img): static { if ($this->images->removeElement($img)) { if ($img->getArticle() === $this) { $img->setArticle(null); } } return $this; }

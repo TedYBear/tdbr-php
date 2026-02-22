@@ -6,6 +6,7 @@ use App\Entity\Article;
 use App\Entity\ArticleImage;
 use App\Entity\Variante;
 use App\Repository\ArticleRepository;
+use App\Repository\FournisseurRepository;
 use App\Repository\ProductCollectionRepository;
 use App\Repository\VarianteTemplateRepository;
 use App\Service\SlugifyService;
@@ -24,6 +25,7 @@ class ArticleAdminController extends AbstractController
         private EntityManagerInterface $em,
         private ArticleRepository $articleRepo,
         private ProductCollectionRepository $collectionRepo,
+        private FournisseurRepository $fournisseurRepo,
         private VarianteTemplateRepository $templateRepo,
         private SlugifyService $slugify,
     ) {
@@ -100,6 +102,7 @@ class ArticleAdminController extends AbstractController
     public function new(Request $request): Response
     {
         $collections = $this->collectionRepo->findBy(['actif' => true], ['nom' => 'ASC']);
+        $fournisseurs = $this->fournisseurRepo->findBy([], ['nom' => 'ASC']);
 
         if ($request->isMethod('POST')) {
             $data = $request->request->all();
@@ -116,6 +119,9 @@ class ArticleAdminController extends AbstractController
                 $col = $this->collectionRepo->find((int)$data['collection']);
                 $article->setCollection($col);
             }
+
+            $fournisseur = !empty($data['fournisseur']) ? $this->fournisseurRepo->find((int)$data['fournisseur']) : null;
+            $article->setFournisseur($fournisseur);
 
             // Images
             if (!empty($data['images'])) {
@@ -158,6 +164,7 @@ class ArticleAdminController extends AbstractController
         return $this->render('admin/articles/form.html.twig', [
             'article' => null,
             'collections' => $collections,
+            'fournisseurs' => $fournisseurs,
             'templates' => $this->buildTemplatesData(),
         ]);
     }
@@ -172,6 +179,7 @@ class ArticleAdminController extends AbstractController
         }
 
         $collections = $this->collectionRepo->findBy(['actif' => true], ['nom' => 'ASC']);
+        $fournisseurs = $this->fournisseurRepo->findBy([], ['nom' => 'ASC']);
 
         if ($request->isMethod('POST')) {
             $data = $request->request->all();
@@ -186,6 +194,9 @@ class ArticleAdminController extends AbstractController
 
             $col = !empty($data['collection']) ? $this->collectionRepo->find((int)$data['collection']) : null;
             $article->setCollection($col);
+
+            $fournisseur = !empty($data['fournisseur']) ? $this->fournisseurRepo->find((int)$data['fournisseur']) : null;
+            $article->setFournisseur($fournisseur);
 
             // Images : remplacer si nouvelles fournies
             if (!empty($data['images'])) {
@@ -232,6 +243,7 @@ class ArticleAdminController extends AbstractController
         return $this->render('admin/articles/form.html.twig', [
             'article' => $article,
             'collections' => $collections,
+            'fournisseurs' => $fournisseurs,
             'templates' => $this->buildTemplatesData(),
         ]);
     }
@@ -276,6 +288,7 @@ class ArticleAdminController extends AbstractController
         $clone->setActif(false);
         $clone->setEnVedette(false);
         $clone->setCollection($source->getCollection());
+        $clone->setFournisseur($source->getFournisseur());
 
         foreach ($source->getImages() as $img) {
             $newImg = new ArticleImage();

@@ -1,0 +1,56 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% block title %}{{ fournisseur ? 'Modifier' : 'Nouveau' }} fournisseur{% endblock %}
+{% block page_title %}{{ fournisseur ? 'Modifier' : 'Nouveau' }} fournisseur{% endblock %}
+
+{% block body %}
+<div class="max-w-xl">
+    <form method="post" enctype="multipart/form-data" class="space-y-6">
+
+        <div class="card p-6 space-y-5">
+
+            <div class="form-group">
+                <label>Nom *</label>
+                <input type="text" name="nom" value="{{ fournisseur ? fournisseur.nom : '' }}"
+                       required class="form-input" placeholder="Ex: Printful, Spreadshirt...">
+            </div>
+
+            <div class="form-group">
+                <label>URL du site</label>
+                <input type="url" name="url" value="{{ fournisseur ? fournisseur.url : '' }}"
+                       class="form-input" placeholder="https://...">
+            </div>
+
+            <div class="form-group">
+                <label>Logo</label>
+                {% if fournisseur and fournisseur.logoFilename %}
+                    <div class="mb-3 p-3 bg-gray-50 rounded-lg inline-flex items-center gap-3">
+                        <img src="/uploads/fournisseurs/{{ fournisseur.logoFilename }}"
+                             alt="{{ fournisseur.nom }}"
+                             class="h-12 w-auto object-contain">
+                        <span class="text-sm text-gray-500">Logo actuel</span>
+                    </div>
+                {% endif %}
+                <input type="file" name="logo" accept="image/*" class="form-input">
+                <p class="text-xs text-gray-500 mt-1">
+                    PNG recommandé (fond transparent). Max 2 Mo.
+                    {% if fournisseur and fournisseur.logoFilename %}
+                        Laisser vide pour conserver le logo actuel.
+                    {% endif %}
+                </p>
+            </div>
+
+        </div>
+
+        <div class="flex gap-3">
+            <button type="submit" class="btn-primary">
+                {{ fournisseur ? 'Mettre à jour' : 'Créer' }}
+            </button>
+            <a href="{{ path('admin_fournisseurs') }}" class="btn-outline">
+                Annuler
+            </a>
+        </div>
+
+    </form>
+</div>
+{% endblock %}
