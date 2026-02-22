@@ -37,7 +37,7 @@
                 <a href="{{ path('avis_liste') }}" class="hover:text-primary transition">Vos retours</a>
                 <a href="{{ path('devis') }}" class="btn-primary text-sm">Demander un devis</a>
                 <a href="{{ path('contact', {}) }}" class="hover:text-primary transition">Contact</a>
-                <a href="{{ path('presentation') }}" class="hover:text-primary transition">À propos</a>
+                <a href="{{ path('presentation') }}" class="hover:text-primary transition">Présentation</a>
             </div>
 
             {# Actions (toujours visibles) #}
@@ -120,7 +120,7 @@
 
             <a href="{{ path('avis_liste') }}" class="block px-3 py-3 rounded-xl hover:bg-gray-50 font-medium" @click="mobileOpen = false">Vos retours</a>
             <a href="{{ path('contact', {}) }}" class="block px-3 py-3 rounded-xl hover:bg-gray-50 font-medium" @click="mobileOpen = false">Contact</a>
-            <a href="{{ path('presentation') }}" class="block px-3 py-3 rounded-xl hover:bg-gray-50 font-medium" @click="mobileOpen = false">À propos</a>
+            <a href="{{ path('presentation') }}" class="block px-3 py-3 rounded-xl hover:bg-gray-50 font-medium" @click="mobileOpen = false">Présentation</a>
 
             <div class="pt-2 pb-1">
                 <a href="{{ path('devis') }}" class="btn-primary block text-center" @click="mobileOpen = false">Demander un devis</a>
