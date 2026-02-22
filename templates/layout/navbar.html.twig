@@ -12,6 +12,7 @@
             {# Menu Desktop (md+) #}
             <div class="hidden md:flex items-center space-x-6">
                 <a href="{{ path('home') }}" class="hover:text-primary transition">Accueil</a>
+                <a href="{{ path('presentation') }}" class="hover:text-primary transition">Présentation</a>
                 <a href="{{ path('catalogue', {}) }}" class="hover:text-primary transition">Catalogue</a>
 
                 {# Dropdown Catégories #}
@@ -37,7 +38,6 @@
                 <a href="{{ path('avis_liste') }}" class="hover:text-primary transition">Vos retours</a>
                 <a href="{{ path('devis') }}" class="btn-primary text-sm">Demander un devis</a>
                 <a href="{{ path('contact', {}) }}" class="hover:text-primary transition">Contact</a>
-                <a href="{{ path('presentation') }}" class="hover:text-primary transition">Présentation</a>
             </div>
 
             {# Actions (toujours visibles) #}
@@ -96,6 +96,7 @@
     <div x-show="mobileOpen" x-cloak class="md:hidden border-t border-gray-100 bg-white shadow-lg">
         <div class="px-4 py-3 space-y-1">
             <a href="{{ path('home') }}" class="block px-3 py-3 rounded-xl hover:bg-gray-50 font-medium" @click="mobileOpen = false">Accueil</a>
+            <a href="{{ path('presentation') }}" class="block px-3 py-3 rounded-xl hover:bg-gray-50 font-medium" @click="mobileOpen = false">Présentation</a>
             <a href="{{ path('catalogue', {}) }}" class="block px-3 py-3 rounded-xl hover:bg-gray-50 font-medium" @click="mobileOpen = false">Catalogue</a>
 
             {# Catégories mobile #}
@@ -120,7 +121,6 @@
 
             <a href="{{ path('avis_liste') }}" class="block px-3 py-3 rounded-xl hover:bg-gray-50 font-medium" @click="mobileOpen = false">Vos retours</a>
             <a href="{{ path('contact', {}) }}" class="block px-3 py-3 rounded-xl hover:bg-gray-50 font-medium" @click="mobileOpen = false">Contact</a>
-            <a href="{{ path('presentation') }}" class="block px-3 py-3 rounded-xl hover:bg-gray-50 font-medium" @click="mobileOpen = false">Présentation</a>
 
             <div class="pt-2 pb-1">
                 <a href="{{ path('devis') }}" class="btn-primary block text-center" @click="mobileOpen = false">Demander un devis</a>
