@@ -152,9 +152,14 @@
                                 <span class="text-primary text-3xl">{{ total|number_format(2, ',', ' ') }} €</span>
                             </div>
 
-                            <a href="{{ path('checkout') }}" class="btn-primary w-full text-center text-lg py-4 glow mb-4">
-                                Procéder au paiement
-                            </a>
+                            <button type="button" disabled
+                                    class="w-full text-center text-lg py-4 mb-2 bg-gray-200 text-gray-400 rounded-xl cursor-not-allowed font-semibold">
+                                Commande temporairement indisponible
+                            </button>
+                            <p class="text-xs text-gray-500 text-center mb-4">
+                                Vous pouvez <a href="{{ path('devis') }}" class="underline hover:text-gray-700">faire un devis</a>
+                                ou <a href="{{ path('contact') }}" class="underline hover:text-gray-700">nous contacter</a>.
+                            </p>
 
                             <a href="{{ path('catalogue') }}" class="btn-outline w-full text-center">
                                 Continuer mes achats
