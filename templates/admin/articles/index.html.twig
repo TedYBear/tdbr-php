@@ -1,7 +1,6 @@
 {% extends 'admin/base_admin.html.twig' %}
 
 {% block title %}Articles{% endblock %}
-
 {% block page_title %}Articles{% endblock %}
 {% block page_subtitle %}
     <p class="text-sm text-gray-600">Gérez vos articles - {{ total }} article{{ total > 1 ? 's' : '' }} au total</p>
@@ -18,8 +17,14 @@
                     <option value="{{ col.id }}" {{ collectionId == col.id ? 'selected' : '' }}>{{ col.nom }}</option>
                 {% endfor %}
             </select>
+            <select name="fournisseur" class="form-input w-48">
+                <option value="">Tous les fournisseurs</option>
+                {% for f in fournisseurs %}
+                    <option value="{{ f.id }}" {{ fournisseurId == f.id ? 'selected' : '' }}>{{ f.nom }}</option>
+                {% endfor %}
+            </select>
             <button type="submit" class="btn-primary">Filtrer</button>
-            {% if search or collectionId %}
+            {% if search or collectionId or fournisseurId %}
                 <a href="{{ path('admin_articles') }}" class="btn-outline">Réinitialiser</a>
             {% endif %}
         </form>
@@ -30,6 +35,11 @@
         </a>
     </div>
 
+    {# Données fournisseurs pour Alpine #}
+    <script>
+        const fournisseursData = [{% for f in fournisseurs %}{"id":{{ f.id }},"nom":{{ f.nom|json_encode|raw }}}{% if not loop.last %},{% endif %}{% endfor %}];
+    </script>
+
     <div class="card overflow-hidden">
         {% if articles|length > 0 %}
             <table class="w-full">
@@ -38,6 +48,7 @@
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Nom</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Prix</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Variantes</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Fournisseur</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Statut</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Vedette</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Actions</th>
@@ -63,6 +74,44 @@
                             <td class="px-6 py-4 text-sm text-gray-600">
                                 {{ article.variantes|length }} variante{{ article.variantes|length > 1 ? 's' : '' }}
                             </td>
+
+                            {# Fournisseur — édition inline #}
+                            <td class="px-6 py-4"
+                                x-data="{
+                                    editing: false,
+                                    fid: {{ article.fournisseur ? article.fournisseur.id : 'null' }},
+                                    fname: '{{ article.fournisseur ? article.fournisseur.nom|e('js') : '' }}',
+                                    async set(val) {
+                                        const fid = val ? parseInt(val) : null;
+                                        const f = fournisseursData.find(f => f.id === fid);
+                                        const r = await fetch('{{ path('admin_articles_set_fournisseur', {id: article.id}) }}', {
+                                            method: 'POST',
+                                            headers: {'Content-Type':'application/json'},
+                                            body: JSON.stringify({fournisseurId: fid})
+                                        });
+                                        const d = await r.json();
+                                        if (d.success) { this.fid = fid; this.fname = f ? f.nom : ''; this.editing = false; }
+                                    }
+                                }">
+                                <span x-show="!editing"
+                                      @click="editing = true; $nextTick(() => $refs.fsel.focus())"
+                                      class="inline-flex items-center gap-1.5 cursor-pointer text-sm px-2 py-1 rounded hover:bg-gray-100">
+                                    <span x-text="fname || 'Aucun'" :class="fname ? 'text-gray-800' : 'text-gray-400 italic'"></span>
+                                    <svg class="w-3 h-3 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                                    </svg>
+                                </span>
+                                <select x-show="editing" x-ref="fsel"
+                                        @change="set($event.target.value)"
+                                        @blur="editing = false"
+                                        class="form-select text-sm py-1">
+                                    <option value="">Aucun</option>
+                                    {% for f in fournisseurs %}
+                                        <option value="{{ f.id }}" {{ article.fournisseur and article.fournisseur.id == f.id ? 'selected' : '' }}>{{ f.nom }}</option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+
                             <td class="px-6 py-4"
                                 x-data="{ val: {{ article.actif ? 'true' : 'false' }} }"
                                 @click="fetch('{{ path('admin_articles_toggle', {id: article.id, field: 'actif'}) }}', {method:'POST'}).then(r=>r.json()).then(d=>{ if(d.success) val=d.value; })"
@@ -98,19 +147,19 @@
                 <div class="px-6 py-4 border-t bg-gray-50 flex justify-center">
                     <nav class="flex gap-2">
                         {% if currentPage > 1 %}
-                            <a href="{{ path('admin_articles', {page: currentPage - 1, search: search, collection: collectionId}) }}" class="px-4 py-2 bg-white border rounded hover:bg-gray-50">← Précédent</a>
+                            <a href="{{ path('admin_articles', {page: currentPage - 1, search: search, collection: collectionId, fournisseur: fournisseurId}) }}" class="px-4 py-2 bg-white border rounded hover:bg-gray-50">← Précédent</a>
                         {% endif %}
                         {% for i in 1..totalPages %}
                             {% if i == currentPage %}
                                 <span class="px-4 py-2 bg-primary text-white rounded font-semibold">{{ i }}</span>
                             {% elseif i == 1 or i == totalPages or (i >= currentPage - 2 and i <= currentPage + 2) %}
-                                <a href="{{ path('admin_articles', {page: i, search: search, collection: collectionId}) }}" class="px-4 py-2 bg-white border rounded hover:bg-gray-50">{{ i }}</a>
+                                <a href="{{ path('admin_articles', {page: i, search: search, collection: collectionId, fournisseur: fournisseurId}) }}" class="px-4 py-2 bg-white border rounded hover:bg-gray-50">{{ i }}</a>
                             {% elseif i == currentPage - 3 or i == currentPage + 3 %}
                                 <span class="px-4 py-2">...</span>
                             {% endif %}
                         {% endfor %}
                         {% if currentPage < totalPages %}
-                            <a href="{{ path('admin_articles', {page: currentPage + 1, search: search, collection: collectionId}) }}" class="px-4 py-2 bg-white border rounded hover:bg-gray-50">Suivant →</a>
+                            <a href="{{ path('admin_articles', {page: currentPage + 1, search: search, collection: collectionId, fournisseur: fournisseurId}) }}" class="px-4 py-2 bg-white border rounded hover:bg-gray-50">Suivant →</a>
                         {% endif %}
                     </nav>
                 </div>

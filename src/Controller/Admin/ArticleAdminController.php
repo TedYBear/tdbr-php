@@ -55,6 +55,7 @@ class ArticleAdminController extends AbstractController
 
         $search = $request->query->get('search');
         $collectionId = $request->query->get('collection') ? (int)$request->query->get('collection') : null;
+        $fournisseurId = $request->query->get('fournisseur') ? (int)$request->query->get('fournisseur') : null;
 
         $qb = $this->articleRepo->createQueryBuilder('a')
             ->orderBy('a.createdAt', 'DESC')
@@ -69,6 +70,10 @@ class ArticleAdminController extends AbstractController
             $qb->andWhere('a.collection = :collection')
                ->setParameter('collection', $collectionId);
         }
+        if ($fournisseurId) {
+            $qb->andWhere('a.fournisseur = :fournisseur')
+               ->setParameter('fournisseur', $fournisseurId);
+        }
 
         $articles = $qb->getQuery()->getResult();
 
@@ -82,10 +87,15 @@ class ArticleAdminController extends AbstractController
             $countQb->andWhere('a.collection = :collection')
                     ->setParameter('collection', $collectionId);
         }
+        if ($fournisseurId) {
+            $countQb->andWhere('a.fournisseur = :fournisseur')
+                    ->setParameter('fournisseur', $fournisseurId);
+        }
         $total = (int)$countQb->getQuery()->getSingleScalarResult();
         $totalPages = (int)ceil($total / $limit);
 
         $collections = $this->collectionRepo->findBy([], ['nom' => 'ASC']);
+        $fournisseurs = $this->fournisseurRepo->findBy([], ['nom' => 'ASC']);
 
         return $this->render('admin/articles/index.html.twig', [
             'articles' => $articles,
@@ -95,6 +105,8 @@ class ArticleAdminController extends AbstractController
             'search' => $search,
             'collections' => $collections,
             'collectionId' => $collectionId,
+            'fournisseurs' => $fournisseurs,
+            'fournisseurId' => $fournisseurId,
         ]);
     }
 
@@ -245,6 +257,27 @@ class ArticleAdminController extends AbstractController
             'collections' => $collections,
             'fournisseurs' => $fournisseurs,
             'templates' => $this->buildTemplatesData(),
+        ]);
+    }
+
+    #[Route('/{id}/set-fournisseur', name: 'admin_articles_set_fournisseur', methods: ['POST'])]
+    public function setFournisseur(int $id, Request $request): \Symfony\Component\HttpFoundation\JsonResponse
+    {
+        $article = $this->articleRepo->find($id);
+        if (!$article) {
+            return $this->json(['error' => 'Article introuvable'], 404);
+        }
+
+        $data = json_decode($request->getContent(), true);
+        $fournisseurId = $data['fournisseurId'] ?? null;
+
+        $fournisseur = $fournisseurId ? $this->fournisseurRepo->find((int)$fournisseurId) : null;
+        $article->setFournisseur($fournisseur);
+        $this->em->flush();
+
+        return $this->json([
+            'success' => true,
+            'nom' => $fournisseur ? $fournisseur->getNom() : null,
         ]);
     }
 
