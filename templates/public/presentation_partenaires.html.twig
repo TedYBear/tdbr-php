@@ -1,0 +1,88 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes partenaires - TDBR{% endblock %}
+
+{% block body %}
+    {% include 'public/_presentation_subnav.html.twig' %}
+
+    <div class="min-h-screen bg-gradient-to-b from-gray-50 to-white py-12 md:py-20">
+        <div class="container mx-auto px-4 max-w-4xl">
+
+            {# Header #}
+            <div class="text-center mb-12 md:mb-16">
+                <h1 class="font-heading text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+                    Mes partenaires
+                </h1>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                    Producteurs, dépôts-vente et collaborateurs qui font partie de l'aventure TDBR.
+                </p>
+            </div>
+
+            {# Contenu à venir #}
+            <div class="space-y-8">
+
+                {# Bloc producteurs #}
+                <div class="card p-8 md:p-10">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center text-white text-2xl flex-shrink-0">
+                            🏭
+                        </div>
+                        <h2 class="font-heading text-2xl md:text-3xl font-bold text-gray-900">
+                            Producteurs
+                        </h2>
+                    </div>
+                    <div class="p-6 bg-accent/40 rounded-xl border border-primary/20 text-center">
+                        <p class="text-gray-500 italic">Contenu à venir — présentation des producteurs et fabricants avec qui je travaille.</p>
+                    </div>
+                </div>
+
+                {# Bloc dépôts-vente #}
+                <div class="card p-8 md:p-10">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center text-white text-2xl flex-shrink-0">
+                            🏪
+                        </div>
+                        <h2 class="font-heading text-2xl md:text-3xl font-bold text-gray-900">
+                            Dépôts-vente
+                        </h2>
+                    </div>
+                    <div class="p-6 bg-accent/40 rounded-xl border border-primary/20 text-center">
+                        <p class="text-gray-500 italic">Contenu à venir — les boutiques et points de vente physiques où retrouver mes créations.</p>
+                    </div>
+                </div>
+
+                {# Bloc autres partenaires #}
+                <div class="card p-8 md:p-10">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center text-white text-2xl flex-shrink-0">
+                            🤝
+                        </div>
+                        <h2 class="font-heading text-2xl md:text-3xl font-bold text-gray-900">
+                            Autres collaborations
+                        </h2>
+                    </div>
+                    <div class="p-6 bg-accent/40 rounded-xl border border-primary/20 text-center">
+                        <p class="text-gray-500 italic">Contenu à venir — autres partenaires et collaborations ponctuelles.</p>
+                    </div>
+                </div>
+
+            </div>
+
+            {# Navigation entre pages #}
+            <div class="mt-16 flex flex-col sm:flex-row gap-4 justify-between">
+                <a href="{{ path('presentation_workflow') }}" class="btn-outline px-6 py-3 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                    Ma façon de travailler
+                </a>
+                <a href="{{ path('catalogue') }}" class="btn-primary px-6 py-3 flex items-center gap-2">
+                    Voir le catalogue
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,29 @@
+{# Sous-navigation section Présentation #}
+{% set currentRoute = app.request.attributes.get('_route') %}
+<div class="bg-white border-b border-gray-200 sticky top-[65px] z-40">
+    <div class="container mx-auto px-4">
+        <nav class="flex gap-1 overflow-x-auto">
+            <a href="{{ path('presentation') }}"
+               class="flex-shrink-0 px-5 py-4 text-sm font-medium border-b-2 transition-colors
+                      {{ currentRoute == 'presentation'
+                         ? 'border-primary text-primary'
+                         : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300' }}">
+                À propos
+            </a>
+            <a href="{{ path('presentation_workflow') }}"
+               class="flex-shrink-0 px-5 py-4 text-sm font-medium border-b-2 transition-colors
+                      {{ currentRoute == 'presentation_workflow'
+                         ? 'border-primary text-primary'
+                         : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300' }}">
+                Ma façon de travailler
+            </a>
+            <a href="{{ path('presentation_partenaires') }}"
+               class="flex-shrink-0 px-5 py-4 text-sm font-medium border-b-2 transition-colors
+                      {{ currentRoute == 'presentation_partenaires'
+                         ? 'border-primary text-primary'
+                         : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300' }}">
+                Mes partenaires
+            </a>
+        </nav>
+    </div>
+</div>

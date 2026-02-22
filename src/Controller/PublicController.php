@@ -46,6 +46,18 @@ class PublicController extends AbstractController
         return $this->render('public/presentation.html.twig');
     }
 
+    #[Route('/presentation/ma-facon-de-travailler', name: 'presentation_workflow')]
+    public function presentationWorkflow(): Response
+    {
+        return $this->render('public/presentation_workflow.html.twig');
+    }
+
+    #[Route('/presentation/partenaires', name: 'presentation_partenaires')]
+    public function presentationPartenaires(): Response
+    {
+        return $this->render('public/presentation_partenaires.html.twig');
+    }
+
     #[Route('/catalogue', name: 'catalogue')]
     public function catalogue(Request $request): Response
     {
