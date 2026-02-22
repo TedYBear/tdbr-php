@@ -1,0 +1,109 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% block title %}Avis{% endblock %}
+{% block page_title %}Gestion des avis{% endblock %}
+
+{% block body %}
+    <div class="card overflow-hidden">
+        {% if avis|length > 0 %}
+            <div class="divide-y">
+                {% for a in avis %}
+                    <div class="p-6 hover:bg-gray-50">
+                        <div class="flex flex-col lg:flex-row gap-4">
+
+                            {# Photo si présente #}
+                            {% if a.photoFilename %}
+                                <div class="flex-shrink-0">
+                                    <img src="{{ asset('uploads/avis/' ~ a.photoFilename) }}"
+                                         alt="Photo"
+                                         class="w-24 h-24 object-cover rounded-lg">
+                                </div>
+                            {% endif %}
+
+                            {# Contenu principal #}
+                            <div class="flex-1 min-w-0">
+                                <div class="flex flex-wrap items-start justify-between gap-3 mb-3">
+                                    <div>
+                                        <div class="flex items-center gap-3 mb-1">
+                                            <span class="font-semibold text-lg">
+                                                {{ a.user.prenom }} {{ a.user.nom }}
+                                            </span>
+                                            {% if a.visible %}
+                                                <span class="px-2 py-0.5 bg-green-100 text-green-800 rounded-full text-xs font-semibold">Publié</span>
+                                            {% else %}
+                                                <span class="px-2 py-0.5 bg-amber-100 text-amber-800 rounded-full text-xs font-semibold">En attente</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="text-sm text-gray-500">
+                                            {{ a.user.email }} •
+                                            {{ a.createdAt|date('d/m/Y à H:i') }}
+                                            {% if a.note %}
+                                                •
+                                                {% for i in 1..5 %}
+                                                    <span class="{{ i <= a.note ? 'text-yellow-400' : 'text-gray-300' }}">★</span>
+                                                {% endfor %}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    {# Actions #}
+                                    <div class="flex flex-wrap items-center gap-2">
+
+                                        {# Ordre d'affichage #}
+                                        <form method="post" action="{{ path('admin_avis_ordre', {id: a.id}) }}" class="flex items-center gap-1">
+                                            <label class="text-xs text-gray-500 whitespace-nowrap">Ordre :</label>
+                                            <input type="number"
+                                                   name="ordre"
+                                                   value="{{ a.ordre ?? '' }}"
+                                                   placeholder="—"
+                                                   min="1"
+                                                   class="w-16 px-2 py-1 border border-gray-300 rounded-lg text-sm text-center focus:border-primary focus:ring-1 focus:ring-primary/20">
+                                            <button type="submit" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs transition">
+                                                OK
+                                            </button>
+                                        </form>
+
+                                        {# Valider / Masquer #}
+                                        {% if a.visible %}
+                                            <form method="post" action="{{ path('admin_avis_masquer', {id: a.id}) }}">
+                                                <button type="submit" class="text-sm px-3 py-1.5 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-lg transition">
+                                                    Masquer
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <form method="post" action="{{ path('admin_avis_valider', {id: a.id}) }}">
+                                                <button type="submit" class="text-sm px-3 py-1.5 bg-green-100 text-green-700 hover:bg-green-200 rounded-lg transition">
+                                                    Publier
+                                                </button>
+                                            </form>
+                                        {% endif %}
+
+                                        {# Supprimer #}
+                                        <form method="post" action="{{ path('admin_avis_delete', {id: a.id}) }}"
+                                              onsubmit="return confirm('Supprimer cet avis définitivement ?');">
+                                            <button type="submit" class="text-sm px-3 py-1.5 bg-red-100 text-red-700 hover:bg-red-200 rounded-lg transition">
+                                                Supprimer
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <div class="p-4 bg-gray-50 rounded-lg">
+                                    <p class="text-gray-700 whitespace-pre-line">{{ a.contenu }}</p>
+                                </div>
+
+                                {% if a.ordre is not null %}
+                                    <p class="mt-2 text-xs text-gray-400">Affiché en position {{ a.ordre }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-16">
+                <p class="text-gray-500">Aucun avis reçu pour l'instant.</p>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
