@@ -346,7 +346,24 @@ class PublicController extends AbstractController
     #[Route('/contact', name: 'contact', methods: ['GET', 'POST'])]
     public function contact(Request $request, MailerInterface $mailer): Response
     {
+        // Si non connecté : mémoriser la page pour y revenir après login
+        if (!$this->getUser()) {
+            $request->getSession()->set('_security.main.target_path', $this->generateUrl('contact'));
+
+            if ($request->isMethod('POST')) {
+                $this->addFlash('error', 'Vous devez être connecté pour envoyer un message.');
+                return $this->redirectToRoute('connexion');
+            }
+        }
+
         $form = $this->createForm(\App\Form\ContactType::class);
+
+        // Pré-remplir nom et email depuis le compte connecté
+        if ($user = $this->getUser()) {
+            $form->get('nom')->setData(trim(($user->getPrenom() ?? '') . ' ' . ($user->getNom() ?? '')));
+            $form->get('email')->setData($user->getEmail());
+        }
+
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
