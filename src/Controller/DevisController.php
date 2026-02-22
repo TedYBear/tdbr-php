@@ -18,7 +18,27 @@ class DevisController extends AbstractController
     #[Route('/devis', name: 'devis', methods: ['GET', 'POST'])]
     public function devis(Request $request, MailerInterface $mailer): Response
     {
+        // Si non connecté : mémoriser la page pour y revenir après login
+        if (!$this->getUser()) {
+            $request->getSession()->set('_security.main.target_path', $this->generateUrl('devis'));
+
+            if ($request->isMethod('POST')) {
+                $this->addFlash('error', 'Vous devez être connecté pour envoyer une demande de devis.');
+                return $this->redirectToRoute('connexion');
+            }
+        }
+
         $form = $this->createForm(DevisType::class);
+
+        // Pré-remplir nom, email et téléphone depuis le compte connecté
+        if ($user = $this->getUser()) {
+            $form->get('nom')->setData(trim(($user->getPrenom() ?? '') . ' ' . ($user->getNom() ?? '')));
+            $form->get('email')->setData($user->getEmail());
+            if ($user->getTelephone()) {
+                $form->get('telephone')->setData($user->getTelephone());
+            }
+        }
+
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {

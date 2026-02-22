@@ -31,6 +31,21 @@
                     </div>
                 {% endfor %}
 
+                {% if not app.user %}
+                    <div class="mb-6 p-5 bg-amber-50 border border-amber-200 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                        <svg class="w-6 h-6 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
+                        <div class="flex-1">
+                            <p class="font-semibold text-amber-800">Connectez-vous pour envoyer votre demande</p>
+                            <p class="text-sm text-amber-700 mt-1">Vos coordonnées (nom, email, téléphone) seront pré-remplies depuis votre compte.</p>
+                        </div>
+                        <a href="{{ path('connexion') }}" class="btn-primary text-sm whitespace-nowrap flex-shrink-0">
+                            Se connecter
+                        </a>
+                    </div>
+                {% endif %}
+
                 {{ form_start(form, {'attr': {'class': 'space-y-8', 'novalidate': 'novalidate'}}) }}
 
                 {# Section 1 : Contact #}
@@ -137,14 +152,20 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn-primary w-full py-4 text-lg glow">
-                    <span class="flex items-center justify-center gap-3">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
-                        </svg>
-                        Envoyer ma demande de devis
-                    </span>
-                </button>
+                {% if app.user %}
+                    <button type="submit" class="btn-primary w-full py-4 text-lg glow">
+                        <span class="flex items-center justify-center gap-3">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                            </svg>
+                            Envoyer ma demande de devis
+                        </span>
+                    </button>
+                {% else %}
+                    <a href="{{ path('connexion') }}" class="btn-primary w-full py-4 text-lg text-center block">
+                        Se connecter pour envoyer
+                    </a>
+                {% endif %}
 
                 {{ form_end(form) }}
             </div>
