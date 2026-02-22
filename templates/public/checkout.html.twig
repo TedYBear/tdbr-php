@@ -214,17 +214,16 @@
                             <span class="text-primary text-3xl">{{ total|number_format(2, ',', ' ') }} €</span>
                         </div>
 
-                        <button type="submit" class="btn-primary w-full text-lg py-4 glow">
-                            <span class="flex items-center justify-center gap-3">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                                Valider la Commande
-                            </span>
+                        <button type="button" disabled
+                                class="w-full text-lg py-4 bg-gray-200 text-gray-400 rounded-xl cursor-not-allowed font-semibold">
+                            Commande temporairement indisponible
                         </button>
 
-                        <p class="text-xs text-gray-500 mt-4 text-center">
-                            En validant, vous acceptez nos conditions générales de vente
+                        <p class="text-sm text-amber-700 mt-4 text-center bg-amber-50 border border-amber-200 rounded-xl p-3">
+                            La commande en ligne n'est pas encore disponible.<br>
+                            <a href="{{ path('devis') }}" class="font-semibold underline hover:text-amber-900">Faire un devis</a>
+                            &nbsp;·&nbsp;
+                            <a href="{{ path('contact') }}" class="font-semibold underline hover:text-amber-900">Nous contacter</a>
                         </p>
 
                         {# Sécurité #}
