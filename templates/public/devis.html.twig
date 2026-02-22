@@ -40,7 +40,7 @@
                             <p class="font-semibold text-amber-800">Connectez-vous pour envoyer votre demande</p>
                             <p class="text-sm text-amber-700 mt-1">Vos coordonnées (nom, email, téléphone) seront pré-remplies depuis votre compte.</p>
                         </div>
-                        <a href="{{ path('connexion') }}" class="btn-primary text-sm whitespace-nowrap flex-shrink-0">
+                        <a href="{{ path('connexion', {redirect: '/devis'}) }}" class="btn-primary text-sm whitespace-nowrap flex-shrink-0">
                             Se connecter
                         </a>
                     </div>
@@ -162,7 +162,7 @@
                         </span>
                     </button>
                 {% else %}
-                    <a href="{{ path('connexion') }}" class="btn-primary w-full py-4 text-lg text-center block">
+                    <a href="{{ path('connexion', {redirect: '/devis'}) }}" class="btn-primary w-full py-4 text-lg text-center block">
                         Se connecter pour envoyer
                     </a>
                 {% endif %}

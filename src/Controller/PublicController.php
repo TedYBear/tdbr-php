@@ -346,14 +346,10 @@ class PublicController extends AbstractController
     #[Route('/contact', name: 'contact', methods: ['GET', 'POST'])]
     public function contact(Request $request, MailerInterface $mailer): Response
     {
-        // Si non connecté : mémoriser la page pour y revenir après login
-        if (!$this->getUser()) {
-            $request->getSession()->set('_security.main.target_path', $this->generateUrl('contact'));
-
-            if ($request->isMethod('POST')) {
-                $this->addFlash('error', 'Vous devez être connecté pour envoyer un message.');
-                return $this->redirectToRoute('connexion');
-            }
+        // Si non connecté, bloquer la soumission et rediriger vers login
+        if (!$this->getUser() && $request->isMethod('POST')) {
+            $this->addFlash('error', 'Vous devez être connecté pour envoyer un message.');
+            return $this->redirectToRoute('connexion', ['redirect' => '/contact']);
         }
 
         $form = $this->createForm(\App\Form\ContactType::class);
@@ -412,10 +408,17 @@ class PublicController extends AbstractController
     }
 
     #[Route('/connexion', name: 'connexion', methods: ['GET', 'POST'])]
-    public function connexion(AuthenticationUtils $authenticationUtils): Response
+    public function connexion(AuthenticationUtils $authenticationUtils, Request $request): Response
     {
         if ($this->getUser()) {
             return $this->redirectToRoute('home');
+        }
+
+        // Mémoriser l'URL de redirection post-login si fournie via ?redirect=
+        if ($redirect = $request->query->get('redirect')) {
+            if (str_starts_with($redirect, '/')) {
+                $request->getSession()->set('_security.main.target_path', $redirect);
+            }
         }
 
         $error = $authenticationUtils->getLastAuthenticationError();
