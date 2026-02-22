@@ -1,0 +1,90 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% block title %}Fournisseurs{% endblock %}
+{% block page_title %}Fournisseurs{% endblock %}
+
+{% block body %}
+<div class="space-y-6">
+
+    {# Header #}
+    <div class="flex items-center justify-between">
+        <div>
+            <p class="text-gray-500">{{ fournisseurs|length }} fournisseur(s) enregistré(s)</p>
+        </div>
+        <a href="{{ path('admin_fournisseurs_new') }}" class="btn-primary flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Nouveau fournisseur
+        </a>
+    </div>
+
+    {# Table #}
+    <div class="card overflow-hidden">
+        <table class="w-full">
+            <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Logo</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Nom</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">URL</th>
+                    <th class="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for fournisseur in fournisseurs %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4">
+                        {% if fournisseur.logoFilename %}
+                            <img src="/uploads/fournisseurs/{{ fournisseur.logoFilename }}"
+                                 alt="{{ fournisseur.nom }}"
+                                 class="h-10 w-auto object-contain">
+                        {% else %}
+                            <div class="h-10 w-10 bg-gray-100 rounded flex items-center justify-center text-gray-400">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                            </div>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 font-medium text-gray-900">{{ fournisseur.nom }}</td>
+                    <td class="px-6 py-4">
+                        {% if fournisseur.url %}
+                            <a href="{{ fournisseur.url }}" target="_blank" rel="noopener"
+                               class="text-primary hover:underline text-sm truncate max-w-xs block">
+                                {{ fournisseur.url }}
+                            </a>
+                        {% else %}
+                            <span class="text-gray-400 text-sm">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <div class="flex items-center justify-end gap-2">
+                            <a href="{{ path('admin_fournisseurs_edit', {id: fournisseur.id}) }}"
+                               class="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
+                                Modifier
+                            </a>
+                            <form method="post" action="{{ path('admin_fournisseurs_delete', {id: fournisseur.id}) }}"
+                                  onsubmit="return confirm('Supprimer ce fournisseur ?')">
+                                <button type="submit" class="px-3 py-1.5 text-sm border border-red-200 text-red-600 rounded-lg hover:bg-red-50">
+                                    Supprimer
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="px-6 py-12 text-center text-gray-500">
+                        Aucun fournisseur enregistré.
+                        <a href="{{ path('admin_fournisseurs_new') }}" class="text-primary hover:underline ml-1">
+                            Ajouter le premier
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+{% endblock %}

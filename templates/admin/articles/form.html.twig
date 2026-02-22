@@ -362,6 +362,25 @@
                             {% endfor %}
                         </select>
                     </div>
+
+                    <div class="form-group mt-4">
+                        <label>Fournisseur</label>
+                        <select name="fournisseur" class="form-select">
+                            <option value="">Aucun</option>
+                            {% for f in fournisseurs %}
+                                <option value="{{ f.id }}" {{ article and article.fournisseur and article.fournisseur.id == f.id ? 'selected' : '' }}>
+                                    {{ f.nom }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        {% if fournisseurs|length == 0 %}
+                            <p class="text-xs text-gray-500 mt-1">
+                                <a href="{{ path('admin_fournisseurs_new') }}" class="text-primary hover:underline">
+                                    Créer un fournisseur
+                                </a>
+                            </p>
+                        {% endif %}
+                    </div>
                 </div>
 
                 {# Publication #}
