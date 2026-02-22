@@ -1,88 +1,203 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Ma façon de travailler - TDBR{% endblock %}
+{% block title %}Comment je travaille ? - TDBR{% endblock %}
 
 {% block body %}
     {% include 'public/_presentation_subnav.html.twig' %}
 
-    <div class="min-h-screen bg-gradient-to-b from-gray-50 to-white py-12 md:py-20">
-        <div class="container mx-auto px-4 max-w-4xl">
+    <div class="min-h-screen bg-gradient-to-b from-gray-50 to-white">
 
-            {# Header #}
-            <div class="text-center mb-12 md:mb-16">
+        {# Header #}
+        <section class="py-12 md:py-16 bg-white">
+            <div class="container mx-auto px-4 max-w-4xl text-center">
                 <h1 class="font-heading text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-                    Ma façon de travailler
+                    Comment je travaille ?
                 </h1>
-                <p class="text-lg text-gray-600 max-w-2xl mx-auto">
-                    Du concept à la création — les outils et méthodes derrière chaque production TDBR.
+                <p class="text-lg md:text-xl text-gray-600 leading-relaxed max-w-2xl mx-auto">
+                    De l'idée au produit fini — voici les étapes et les outils qui composent ma chaîne de création.
                 </p>
             </div>
+        </section>
 
-            {# Contenu à venir #}
-            <div class="space-y-8">
+        {# Timeline des étapes #}
+        <section class="py-8 md:py-12 pb-16 md:pb-24">
+            <div class="container mx-auto px-4 max-w-3xl">
+                <div class="space-y-6">
 
-                {# Bloc flux de travail #}
-                <div class="card p-8 md:p-10">
-                    <div class="flex items-center gap-4 mb-6">
-                        <div class="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center text-white text-2xl flex-shrink-0">
-                            ⚙️
+                    {# Étape 1 #}
+                    <div class="relative flex gap-6">
+                        {# Numéro + ligne #}
+                        <div class="flex flex-col items-center flex-shrink-0">
+                            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-black text-lg shadow-md">
+                                1
+                            </div>
+                            <div class="w-0.5 flex-1 bg-gray-200 mt-2"></div>
                         </div>
-                        <h2 class="font-heading text-2xl md:text-3xl font-bold text-gray-900">
-                            Mon flux de travail
-                        </h2>
+                        {# Contenu #}
+                        <div class="card p-6 md:p-8 flex-1 mb-2">
+                            <h2 class="font-heading text-xl md:text-2xl font-bold text-gray-900 mb-3">
+                                L'idée de départ
+                            </h2>
+                            <p class="text-gray-700 leading-relaxed mb-4">
+                                Tout commence par un concept : le plus souvent un <strong>jeu de mots</strong> à transposer en image,
+                                ou la <strong>superposition de deux contextes</strong> décalés qui créent quelque chose d'original.
+                                Je construis d'abord une image mentale de ce que je veux obtenir.
+                            </p>
+                            <p class="text-gray-600 text-sm italic">
+                                C'est la partie invisible du travail — mais souvent la plus longue.
+                            </p>
+                        </div>
                     </div>
-                    <div class="p-6 bg-accent/40 rounded-xl border border-primary/20 text-center">
-                        <p class="text-gray-500 italic">Contenu à venir — je décrirai ici les étapes de ma création, de l'idée initiale jusqu'au produit fini.</p>
+
+                    {# Étape 2 #}
+                    <div class="relative flex gap-6">
+                        <div class="flex flex-col items-center flex-shrink-0">
+                            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-black text-lg shadow-md">
+                                2
+                            </div>
+                            <div class="w-0.5 flex-1 bg-gray-200 mt-2"></div>
+                        </div>
+                        <div class="card p-6 md:p-8 flex-1 mb-2">
+                            <h2 class="font-heading text-xl md:text-2xl font-bold text-gray-900 mb-3">
+                                La génération par IA
+                            </h2>
+                            <p class="text-gray-700 leading-relaxed mb-4">
+                                J'utilise des <strong>IA génératives d'images</strong> pour matérialiser cette image mentale.
+                                Le processus est itératif : je formule un prompt, j'analyse le résultat, je reformule,
+                                je recommence. Parfois c'est rapide, parfois ça demande des <strong>dizaines de tentatives</strong>.
+                                Il m'arrive de mélanger plusieurs IAs — certaines sont plus adaptées à certains styles ou sujets.
+                            </p>
+                            <p class="text-gray-700 leading-relaxed mb-5">
+                                Parfois aussi, c'est une proposition inattendue de l'IA qui fait rebondir vers une meilleure idée.
+                                C'est ça qui rend ce processus créatif et pas juste technique.
+                            </p>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="px-3 py-1.5 bg-accent border border-primary/30 rounded-full text-sm font-medium text-gray-800">
+                                    Gemini (nano banana)
+                                </span>
+                                <span class="px-3 py-1.5 bg-gray-100 border border-gray-200 rounded-full text-sm font-medium text-gray-700">
+                                    Midjourney (édition)
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# Étape 3 #}
+                    <div class="relative flex gap-6">
+                        <div class="flex flex-col items-center flex-shrink-0">
+                            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-black text-lg shadow-md">
+                                3
+                            </div>
+                            <div class="w-0.5 flex-1 bg-gray-200 mt-2"></div>
+                        </div>
+                        <div class="card p-6 md:p-8 flex-1 mb-2">
+                            <h2 class="font-heading text-xl md:text-2xl font-bold text-gray-900 mb-3">
+                                La retouche
+                            </h2>
+                            <p class="text-gray-700 leading-relaxed mb-5">
+                                Le rendu de l'IA est rarement parfait tel quel. J'utilise des outils de retouche classiques
+                                pour affiner : jouer sur la <strong>saturation et la luminosité</strong>, combiner plusieurs images,
+                                corriger des détails ou redimensionner selon les besoins du produit.
+                            </p>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="px-3 py-1.5 bg-accent border border-primary/30 rounded-full text-sm font-medium text-gray-800">
+                                    GIMP
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# Étape 4 #}
+                    <div class="relative flex gap-6">
+                        <div class="flex flex-col items-center flex-shrink-0">
+                            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-black text-lg shadow-md">
+                                4
+                            </div>
+                            <div class="w-0.5 flex-1 bg-gray-200 mt-2"></div>
+                        </div>
+                        <div class="card p-6 md:p-8 flex-1 mb-2">
+                            <h2 class="font-heading text-xl md:text-2xl font-bold text-gray-900 mb-3">
+                                L'upscaling
+                            </h2>
+                            <p class="text-gray-700 leading-relaxed mb-5">
+                                Les images générées par IA ont souvent une résolution insuffisante pour l'impression.
+                                Un <strong>upscaler</strong> augmente la taille et la qualité de l'image sans dégradation visible —
+                                indispensable pour obtenir un rendu imprimé net sur un t-shirt ou un mug.
+                            </p>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="px-3 py-1.5 bg-accent border border-primary/30 rounded-full text-sm font-medium text-gray-800">
+                                    Gigapixel AI
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# Étape 5 #}
+                    <div class="relative flex gap-6">
+                        <div class="flex flex-col items-center flex-shrink-0">
+                            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-black text-lg shadow-md">
+                                5
+                            </div>
+                            {# Pas de ligne après la dernière étape #}
+                        </div>
+                        <div class="card p-6 md:p-8 flex-1">
+                            <h2 class="font-heading text-xl md:text-2xl font-bold text-gray-900 mb-3">
+                                La mise en page produit
+                            </h2>
+                            <p class="text-gray-700 leading-relaxed mb-5">
+                                Dernière étape : adapter le visuel au support. Les outils de design des fournisseurs permettent
+                                de positionner l'image sur le produit, d'ajuster les proportions et d'ajouter du texte si besoin.
+                                J'utilise aussi parfois Canva pour des compositions plus élaborées.
+                            </p>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="px-3 py-1.5 bg-accent border border-primary/30 rounded-full text-sm font-medium text-gray-800">
+                                    Outils fournisseurs
+                                </span>
+                                <span class="px-3 py-1.5 bg-gray-100 border border-gray-200 rounded-full text-sm font-medium text-gray-700">
+                                    Canva
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                {# Résumé visuel de la chaîne #}
+                <div class="mt-12 card p-6 md:p-8 bg-gradient-to-br from-gray-900 via-primary to-gray-900 text-white">
+                    <h3 class="font-heading text-lg font-bold mb-5 text-center text-white/80 uppercase tracking-widest text-sm">
+                        La chaîne complète
+                    </h3>
+                    <div class="flex flex-wrap items-center justify-center gap-2 text-sm font-medium">
+                        <span class="px-3 py-1.5 bg-white/20 rounded-full">Idée</span>
+                        <span class="text-white/50">→</span>
+                        <span class="px-3 py-1.5 bg-white/20 rounded-full">IA générative</span>
+                        <span class="text-white/50">→</span>
+                        <span class="px-3 py-1.5 bg-white/20 rounded-full">GIMP</span>
+                        <span class="text-white/50">→</span>
+                        <span class="px-3 py-1.5 bg-white/20 rounded-full">Gigapixel</span>
+                        <span class="text-white/50">→</span>
+                        <span class="px-3 py-1.5 bg-secondary/80 rounded-full font-semibold">Produit fini</span>
                     </div>
                 </div>
 
-                {# Bloc outils #}
-                <div class="card p-8 md:p-10">
-                    <div class="flex items-center gap-4 mb-6">
-                        <div class="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center text-white text-2xl flex-shrink-0">
-                            🛠️
-                        </div>
-                        <h2 class="font-heading text-2xl md:text-3xl font-bold text-gray-900">
-                            Les outils utilisés
-                        </h2>
-                    </div>
-                    <div class="p-6 bg-accent/40 rounded-xl border border-primary/20 text-center">
-                        <p class="text-gray-500 italic">Contenu à venir — logiciels, IA, matériel... tout ce qui compose ma boîte à outils créative.</p>
-                    </div>
-                </div>
-
-                {# Bloc impression / production #}
-                <div class="card p-8 md:p-10">
-                    <div class="flex items-center gap-4 mb-6">
-                        <div class="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center text-white text-2xl flex-shrink-0">
-                            🖨️
-                        </div>
-                        <h2 class="font-heading text-2xl md:text-3xl font-bold text-gray-900">
-                            Production & impression
-                        </h2>
-                    </div>
-                    <div class="p-6 bg-accent/40 rounded-xl border border-primary/20 text-center">
-                        <p class="text-gray-500 italic">Contenu à venir — comment je passe du design numérique au produit physique.</p>
-                    </div>
+                {# Navigation #}
+                <div class="mt-12 flex flex-col sm:flex-row gap-4 justify-between">
+                    <a href="{{ path('presentation') }}" class="btn-outline px-6 py-3 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                        Qui suis-je ?
+                    </a>
+                    <a href="{{ path('presentation_partenaires') }}" class="btn-primary px-6 py-3 flex items-center gap-2">
+                        Mes partenaires
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </a>
                 </div>
 
             </div>
+        </section>
 
-            {# Navigation entre pages #}
-            <div class="mt-16 flex flex-col sm:flex-row gap-4 justify-between">
-                <a href="{{ path('presentation') }}" class="btn-outline px-6 py-3 flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                    </svg>
-                    À propos
-                </a>
-                <a href="{{ path('presentation_partenaires') }}" class="btn-primary px-6 py-3 flex items-center gap-2">
-                    Mes partenaires
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
-                </a>
-            </div>
-        </div>
     </div>
 {% endblock %}
