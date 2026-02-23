@@ -9,7 +9,7 @@
 {% set imagesJson = [] %}
 {% if article %}
     {% for v in article.variantes %}
-        {% set variantesJson = variantesJson|merge([{id: v.id, nom: v.nom, sku: v.sku, prix: v.prix, stock: v.stock, actif: v.actif}]) %}
+        {% set variantesJson = variantesJson|merge([{id: v.id, nom: v.nom, sku: v.sku, prix: v.prix, actif: v.actif}]) %}
     {% endfor %}
     {% for img in article.images %}
         {% set imagesJson = imagesJson|merge([img.url]) %}
@@ -42,7 +42,7 @@
     onDropImages(e) { e.preventDefault(); this.uploadFiles(e.dataTransfer.files); },
 
     addVariante() {
-        this.variantes.push({ id: Date.now(), nom: '', sku: '', prix: '', stock: 0, actif: true });
+        this.variantes.push({ id: Date.now(), nom: '', sku: '', prix: '', actif: true });
     },
     removeVariante(index) {
         this.variantes.splice(index, 1);
@@ -123,7 +123,6 @@
                 nom: combo.join(' '),
                 sku: this.generateSKU(slug, combo, baseIndex + idx + 1),
                 prix: '',
-                stock: 0,
                 actif: true
             });
         });
@@ -316,11 +315,6 @@
                                            x-model="variante.prix"
                                            placeholder="Prix €"
                                            class="form-input w-28">
-                                    <input type="number"
-                                           :name="'variantes[' + index + '][stock]'"
-                                           x-model="variante.stock"
-                                           placeholder="Stock"
-                                           class="form-input w-24">
                                     <label class="flex items-center gap-1 cursor-pointer text-sm text-gray-600 whitespace-nowrap">
                                         <input type="checkbox"
                                                :name="'variantes[' + index + '][actif]'"
@@ -381,6 +375,40 @@
                             </p>
                         {% endif %}
                     </div>
+                </div>
+
+                {# Caractéristiques applicables #}
+                <div class="card p-6">
+                    <h2 class="text-xl font-bold mb-4">Caractéristiques</h2>
+                    <p class="text-sm text-gray-500 mb-4">Cochez les caractéristiques que le client devra choisir pour cet article.</p>
+
+                    {% if allCaracteristiques|length > 0 %}
+                        <div class="space-y-2">
+                            {% for carac in allCaracteristiques %}
+                                {% set isChecked = article and article.caracteristiques.exists(c => c.id == carac.id) %}
+                                <label class="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer">
+                                    <input type="checkbox"
+                                           name="caracteristiques[]"
+                                           value="{{ carac.id }}"
+                                           {{ isChecked ? 'checked' : '' }}
+                                           class="w-4 h-4 text-primary rounded mt-0.5">
+                                    <div>
+                                        <div class="font-medium text-sm">{{ carac.nom }}</div>
+                                        {% if carac.valeurs|length > 0 %}
+                                            <div class="text-xs text-gray-500 mt-0.5">
+                                                {{ carac.valeurs|map(v => v.valeur)|join(', ') }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </label>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-sm text-gray-400">
+                            Aucune caractéristique définie.
+                            <a href="{{ path('admin_caracteristiques') }}" class="text-primary hover:underline">En créer une</a>
+                        </p>
+                    {% endif %}
                 </div>
 
                 {# Publication #}

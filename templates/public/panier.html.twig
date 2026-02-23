@@ -30,8 +30,8 @@
                                     {# Image #}
                                     <div class="flex-shrink-0">
                                         <div class="w-20 h-20 md:w-32 md:h-32 rounded-xl overflow-hidden bg-gray-100">
-                                            {% if item.article.images is defined and item.article.images|length > 0 %}
-                                                <img src="{{ item.article.images[0]|to_string }}"
+                                            {% if item.article.image %}
+                                                <img src="{{ item.article.image }}"
                                                      alt="{{ item.article.nom }}"
                                                      class="w-full h-full object-contain">
                                             {% else %}
@@ -50,15 +50,14 @@
                                             {{ item.article.nom }}
                                         </h3>
 
-                                        {% if item.variant %}
-                                            <p class="text-sm text-gray-600 mb-3">
-                                                <span class="inline-flex items-center gap-1">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
-                                                    </svg>
-                                                    Variante: {{ item.variant.nom ?? 'Standard' }}
-                                                </span>
-                                            </p>
+                                        {% if item.choices is defined and item.choices|length > 0 %}
+                                            <div class="mb-3 flex flex-wrap gap-2">
+                                                {% for key, val in item.choices %}
+                                                    <span class="inline-flex items-center gap-1 text-xs px-2 py-1 bg-gray-100 rounded-full text-gray-700">
+                                                        <span class="font-semibold">{{ key }} :</span> {{ val }}
+                                                    </span>
+                                                {% endfor %}
+                                            </div>
                                         {% endif %}
 
                                         <div class="flex flex-wrap items-center gap-3 md:gap-6">
@@ -91,7 +90,7 @@
 
                                             {# Prix unitaire #}
                                             <div class="text-lg font-bold text-primary">
-                                                {{ (item.variant.prix ?? item.variant.prixBase ?? item.article.prix ?? item.article.prixBase ?? 0)|number_format(2, ',', ' ') }} €
+                                                {{ (item.article.prix ?? item.article.prixBase ?? 0)|number_format(2, ',', ' ') }} €
                                             </div>
                                         </div>
                                     </div>
@@ -114,7 +113,7 @@
                                 <div class="mt-4 pt-4 border-t flex justify-between items-center">
                                     <span class="text-sm text-gray-600">Sous-total</span>
                                     <span class="text-xl font-bold text-primary">
-                                        {{ ((item.variant.prix ?? item.variant.prixBase ?? item.article.prix ?? item.article.prixBase ?? 0) * item.quantity)|number_format(2, ',', ' ') }} €
+                                        {{ ((item.article.prix ?? item.article.prixBase ?? 0) * item.quantity)|number_format(2, ',', ' ') }} €
                                     </span>
                                 </div>
                             </div>

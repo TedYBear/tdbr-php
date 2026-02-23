@@ -15,19 +15,23 @@ class CartService
     }
 
     /**
-     * Ajoute un article au panier
+     * Ajoute un article au panier.
+     * $choices = ['Taille' => 'M', 'Couleur' => 'Rouge']
      */
-    public function addItem(array $article, int $quantity = 1, ?array $variant = null): void
+    public function addItem(array $article, int $quantity = 1, array $choices = []): void
     {
         $cart = $this->getCart();
-        $itemId = (string)$article['_id'] . ($variant ? '-' . ($variant['id'] ?? $variant['_id']) : '');
+
+        ksort($choices);
+        $choicesHash = $choices ? substr(md5(json_encode($choices)), 0, 8) : '';
+        $itemId = $article['id'] . ($choicesHash ? '-' . $choicesHash : '');
 
         if (isset($cart[$itemId])) {
             $cart[$itemId]['quantity'] += $quantity;
         } else {
             $cart[$itemId] = [
                 'article' => $article,
-                'variant' => $variant,
+                'choices' => $choices,
                 'quantity' => $quantity
             ];
         }
@@ -80,7 +84,7 @@ class CartService
     {
         $total = 0;
         foreach ($this->getCart() as $item) {
-            $price = $item['variant']['prix'] ?? $item['article']['prix'];
+            $price = $item['article']['prix'] ?? 0;
             $total += $price * $item['quantity'];
         }
         return $total;
