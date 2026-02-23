@@ -15,27 +15,7 @@
                 <a href="{{ path('presentation') }}" class="hover:text-primary transition">Présentation</a>
                 <a href="{{ path('catalogue', {}) }}" class="hover:text-primary transition">Catalogue</a>
 
-                {# Dropdown Catégories #}
-                <div class="relative" x-data="{ open: false }">
-                    <button @click="open = !open" @click.away="open = false" class="hover:text-primary transition flex items-center">
-                        Catégories
-                        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                        </svg>
-                    </button>
-                    <div x-show="open" x-transition class="absolute left-0 mt-2 w-48 bg-white shadow-lg rounded-lg py-2">
-                        {% set categories = app.request.attributes.get('_categories') %}
-                        {% if categories %}
-                            {% for category in categories %}
-                                <a href="{{ path('categorie', {slug: category.slug}) }}" class="block px-4 py-2 hover:bg-gray-100">
-                                    {{ category.nom }}
-                                </a>
-                            {% endfor %}
-                        {% endif %}
-                    </div>
-                </div>
-
-                <a href="{{ path('avis_liste') }}" class="hover:text-primary transition">Vos retours</a>
+<a href="{{ path('avis_liste') }}" class="hover:text-primary transition">Vos retours</a>
                 <a href="{{ path('devis') }}" class="btn-primary text-sm">Demander un devis</a>
                 <a href="{{ path('contact', {}) }}" class="hover:text-primary transition">Contact</a>
             </div>
@@ -99,27 +79,7 @@
             <a href="{{ path('presentation') }}" class="block px-3 py-3 rounded-xl hover:bg-gray-50 font-medium" @click="mobileOpen = false">Présentation</a>
             <a href="{{ path('catalogue', {}) }}" class="block px-3 py-3 rounded-xl hover:bg-gray-50 font-medium" @click="mobileOpen = false">Catalogue</a>
 
-            {# Catégories mobile #}
-            {% set categories = app.request.attributes.get('_categories') %}
-            {% if categories and categories|length > 0 %}
-                <div x-data="{ catOpen: false }">
-                    <button @click="catOpen = !catOpen" class="w-full flex items-center justify-between px-3 py-3 rounded-xl hover:bg-gray-50 font-medium">
-                        Catégories
-                        <svg class="w-4 h-4" :style="catOpen ? 'transform:rotate(180deg)' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                        </svg>
-                    </button>
-                    <div x-show="catOpen" class="ml-4 space-y-1 pb-1">
-                        {% for category in categories %}
-                            <a href="{{ path('categorie', {slug: category.slug}) }}" class="block px-3 py-2 rounded-lg hover:bg-gray-50 text-gray-700 text-sm" @click="mobileOpen = false">
-                                {{ category.nom }}
-                            </a>
-                        {% endfor %}
-                    </div>
-                </div>
-            {% endif %}
-
-            <a href="{{ path('avis_liste') }}" class="block px-3 py-3 rounded-xl hover:bg-gray-50 font-medium" @click="mobileOpen = false">Vos retours</a>
+<a href="{{ path('avis_liste') }}" class="block px-3 py-3 rounded-xl hover:bg-gray-50 font-medium" @click="mobileOpen = false">Vos retours</a>
             <a href="{{ path('contact', {}) }}" class="block px-3 py-3 rounded-xl hover:bg-gray-50 font-medium" @click="mobileOpen = false">Contact</a>
 
             <div class="pt-2 pb-1">
