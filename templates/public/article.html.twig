@@ -3,7 +3,10 @@
 {% block title %}{{ article.nom }} - TDBR{% endblock %}
 
 {% block javascripts %}
-    {{ parent() }}
+    {#
+     IMPORTANT: ce <script> doit être AVANT {{ parent() }} pour que le listener
+     alpine:init soit enregistré avant que le bundle app.js appelle Alpine.start().
+    #}
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('articlePage', () => ({
@@ -11,6 +14,7 @@
                 quantity: 1,
                 lightboxOpen: false,
                 addingToCart: false,
+                selectedVarianteId: null,
 
                 {% set variantesJson = [] %}
                 {% for v in article.variantes %}
@@ -20,18 +24,28 @@
                 {% endfor %}
                 variants: {{ variantesJson|json_encode|raw }},
 
-                imagesData: {{ article.images|default([])|json_encode|raw }},
+                {% set imagesArr = [] %}
+                {% for img in article.images %}
+                    {% set imagesArr = imagesArr|merge([{url: img.url, alt: img.alt}]) %}
+                {% endfor %}
+                imagesData: {{ imagesArr|json_encode|raw }},
+
                 basePrice: {{ article.prixBase }},
                 choices: {},
 
                 get images() {
-                    return this.imagesData.map(img => img.url || img);
+                    return this.imagesData.map(img => img.url);
                 },
 
                 /**
-                 * Extrait la liste des caractéristiques et leurs valeurs disponibles
-                 * depuis les variantes actives qui ont des valeurs structurées.
-                 * Ordre préservé d'insertion.
+                 * True si au moins une variante active a des valeurs structurées.
+                 */
+                get hasStructuredVariants() {
+                    return this.variants.some(v => v.valeurs && Object.keys(v.valeurs).length > 0);
+                },
+
+                /**
+                 * Extrait les caractéristiques et leurs valeurs depuis les variantes structurées.
                  */
                 get caracteristiques() {
                     const caracs = {};
@@ -47,15 +61,22 @@
                 },
 
                 /**
-                 * Variante dont les valeurs correspondent exactement aux choix courants.
+                 * Variante sélectionnée.
+                 * - Mode structuré : match par valeurs
+                 * - Mode simple   : match par ID sélectionné dans le dropdown
                  */
                 get selectedVariant() {
-                    if (this.caracteristiques.length === 0) return null;
-                    if (!this.allSelected) return null;
-                    return this.variants.find(v => {
-                        if (!v.valeurs) return false;
-                        return Object.entries(this.choices).every(([k, val]) => v.valeurs[k] === val);
-                    }) || null;
+                    if (this.hasStructuredVariants) {
+                        if (this.caracteristiques.length === 0) return null;
+                        if (!this.allSelected) return null;
+                        return this.variants.find(v => {
+                            if (!v.valeurs) return false;
+                            return Object.entries(this.choices).every(([k, val]) => v.valeurs[k] === val);
+                        }) || null;
+                    } else {
+                        if (!this.selectedVarianteId) return null;
+                        return this.variants.find(v => v.id == this.selectedVarianteId) || null;
+                    }
                 },
 
                 get currentPrice() {
@@ -66,22 +87,30 @@
                 },
 
                 get allSelected() {
+                    if (!this.hasStructuredVariants) {
+                        return this.variants.length === 0 || this.selectedVarianteId !== null;
+                    }
                     const caracs = this.caracteristiques;
                     if (caracs.length === 0) return true;
                     return caracs.every(c => this.choices[c.nom] && this.choices[c.nom] !== '');
                 },
 
                 get variantUnavailable() {
+                    if (!this.hasStructuredVariants) return false;
                     return this.caracteristiques.length > 0 && this.allSelected && !this.selectedVariant;
                 },
 
                 async addToCart() {
                     this.addingToCart = true;
 
+                    const choicesPayload = this.hasStructuredVariants
+                        ? this.choices
+                        : (this.selectedVariant ? { 'Variante': this.selectedVariant.nom } : {});
+
                     const data = {
                         articleId: {{ article.id }},
                         quantity: this.quantity,
-                        choices: this.choices
+                        choices: choicesPayload
                     };
 
                     if (this.selectedVariant) {
@@ -119,6 +148,7 @@
             }));
         });
     </script>
+    {{ parent() }}
 {% endblock %}
 
 {% block body %}
@@ -234,8 +264,37 @@
                         </span>
                     </div>
 
-                    {# Sélection des caractéristiques (dérivées des variantes) #}
-                    <div x-show="caracteristiques.length > 0" class="space-y-5">
+                    {# Sélection variante simple (variantes sans valeurs structurées) #}
+                    <div x-show="!hasStructuredVariants && variants.length > 0" class="space-y-3">
+                        <template x-if="variants.length > 1">
+                            <div>
+                                <label style="display:block;font-size:1.125rem;font-weight:700;color:#111827;margin-bottom:0.5rem;">
+                                    Variante
+                                </label>
+                                <select x-model="selectedVarianteId"
+                                        style="display:block;width:100%;padding:0.75rem 1rem;border:2px solid #e5e7eb;border-radius:0.75rem;font-size:1rem;background:#fff;cursor:pointer;"
+                                        @change="$el.style.borderColor = selectedVarianteId ? '#7c3aed' : '#e5e7eb'">
+                                    <option value="">-- Choisir une variante --</option>
+                                    <template x-for="v in variants" :key="v.id">
+                                        <option :value="v.id" x-text="v.nom"></option>
+                                    </template>
+                                </select>
+                            </div>
+                        </template>
+                        <template x-if="variants.length === 1">
+                            <div x-init="selectedVarianteId = variants[0].id">
+                                <span style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.5rem 1rem;background:#f3f4f6;border-radius:0.5rem;font-weight:600;color:#374151;">
+                                    <svg style="width:1rem;height:1rem;color:#7c3aed;flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span x-text="variants[0].nom"></span>
+                                </span>
+                            </div>
+                        </template>
+                    </div>
+
+                    {# Sélection par caractéristiques (variantes avec valeurs structurées) #}
+                    <div x-show="hasStructuredVariants && caracteristiques.length > 0" class="space-y-5">
                         <template x-for="carac in caracteristiques" :key="carac.nom">
                             <div>
                                 <label style="display:block;font-size:1.125rem;font-weight:700;color:#111827;margin-bottom:0.5rem;"
