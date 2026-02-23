@@ -7,6 +7,7 @@ use App\Entity\ArticleImage;
 use App\Entity\Variante;
 use App\Repository\ArticleRepository;
 use App\Repository\FournisseurRepository;
+use App\Repository\GrillePrixRepository;
 use App\Repository\ProductCollectionRepository;
 use App\Repository\VarianteTemplateRepository;
 use App\Service\SlugifyService;
@@ -26,6 +27,7 @@ class ArticleAdminController extends AbstractController
         private ArticleRepository $articleRepo,
         private ProductCollectionRepository $collectionRepo,
         private FournisseurRepository $fournisseurRepo,
+        private GrillePrixRepository $grillePrixRepo,
         private VarianteTemplateRepository $templateRepo,
         private SlugifyService $slugify,
     ) {
@@ -129,6 +131,7 @@ class ArticleAdminController extends AbstractController
     {
         $collections = $this->collectionRepo->findBy(['actif' => true], ['nom' => 'ASC']);
         $fournisseurs = $this->fournisseurRepo->findBy([], ['nom' => 'ASC']);
+        $grilles = $this->grillePrixRepo->findBy([], ['nom' => 'ASC']);
 
         if ($request->isMethod('POST')) {
             $data = $request->request->all();
@@ -149,6 +152,9 @@ class ArticleAdminController extends AbstractController
 
             $fournisseur = !empty($data['fournisseur']) ? $this->fournisseurRepo->find((int)$data['fournisseur']) : null;
             $article->setFournisseur($fournisseur);
+
+            $grille = !empty($data['grillePrix']) ? $this->grillePrixRepo->find((int)$data['grillePrix']) : null;
+            $article->setGrillePrix($grille);
 
             // Images
             if (!empty($data['images'])) {
@@ -178,6 +184,7 @@ class ArticleAdminController extends AbstractController
             'article' => null,
             'collections' => $collections,
             'fournisseurs' => $fournisseurs,
+            'grilles' => $grilles,
             'templates' => $this->buildTemplatesData(),
         ]);
     }
@@ -193,6 +200,7 @@ class ArticleAdminController extends AbstractController
 
         $collections = $this->collectionRepo->findBy(['actif' => true], ['nom' => 'ASC']);
         $fournisseurs = $this->fournisseurRepo->findBy([], ['nom' => 'ASC']);
+        $grilles = $this->grillePrixRepo->findBy([], ['nom' => 'ASC']);
 
         if ($request->isMethod('POST')) {
             $data = $request->request->all();
@@ -211,6 +219,9 @@ class ArticleAdminController extends AbstractController
 
             $fournisseur = !empty($data['fournisseur']) ? $this->fournisseurRepo->find((int)$data['fournisseur']) : null;
             $article->setFournisseur($fournisseur);
+
+            $grille = !empty($data['grillePrix']) ? $this->grillePrixRepo->find((int)$data['grillePrix']) : null;
+            $article->setGrillePrix($grille);
 
             // Images : remplacer si nouvelles fournies
             if (!empty($data['images'])) {
@@ -241,6 +252,7 @@ class ArticleAdminController extends AbstractController
             'article' => $article,
             'collections' => $collections,
             'fournisseurs' => $fournisseurs,
+            'grilles' => $grilles,
             'templates' => $this->buildTemplatesData(),
         ]);
     }
@@ -307,6 +319,7 @@ class ArticleAdminController extends AbstractController
         $clone->setEnVedette(false);
         $clone->setCollection($source->getCollection());
         $clone->setFournisseur($source->getFournisseur());
+        $clone->setGrillePrix($source->getGrillePrix());
 
         foreach ($source->getImages() as $img) {
             $newImg = new ArticleImage();

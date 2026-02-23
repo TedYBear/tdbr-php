@@ -1,0 +1,111 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% block title %}{{ grille.id ? 'Modifier' : 'Nouvelle' }} grille de prix{% endblock %}
+{% block page_title %}{{ grille.id ? 'Modifier' : 'Nouvelle' }} grille de prix{% endblock %}
+
+{% block body %}
+<form method="post" class="space-y-6 max-w-3xl">
+
+    {# Informations #}
+    <div class="card p-6 space-y-4">
+        <h2 class="text-xl font-bold">Informations</h2>
+
+        <div class="form-group">
+            <label>Nom *</label>
+            <input type="text" name="nom" value="{{ grille.id ? grille.nom : '' }}"
+                   required class="form-input" placeholder="Ex : T-shirt standard, Mug classique…">
+        </div>
+
+        <div class="form-group">
+            <label>Description</label>
+            <textarea name="description" rows="2" class="form-textarea"
+                      placeholder="Usage ou remarques (facultatif)">{{ grille.id ? grille.description : '' }}</textarea>
+        </div>
+    </div>
+
+    {# Tableau de tarification #}
+    <div class="card p-6">
+        <h2 class="text-xl font-bold mb-4">Tarification par quantité</h2>
+        <p class="text-sm text-gray-500 mb-4">
+            Renseignez le prix fournisseur (coût d'achat) et le prix de vente pour chaque quantité commandée.
+            Les champs vides seront ignorés.
+        </p>
+
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700 w-24">Quantité</th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Prix fournisseur (€)</th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Prix de vente (€)</th>
+                        <th class="px-4 py-3 text-right text-sm font-semibold text-gray-700 w-28">Marge</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y" x-data="grilleForm()">
+                    {% for i in 0..9 %}
+                        {% set ligne = grille.lignes[i] ?? {quantite: i+1, prixFournisseur: null, prixVente: null} %}
+                        <tr class="hover:bg-gray-50"
+                            x-data="{
+                                pf: {{ ligne.prixFournisseur is not null ? ligne.prixFournisseur : 'null' }},
+                                pv: {{ ligne.prixVente is not null ? ligne.prixVente : 'null' }},
+                                get marge() {
+                                    if (!this.pf || !this.pv || this.pv <= 0) return null;
+                                    return ((this.pv - this.pf) / this.pv * 100).toFixed(1);
+                                },
+                                get margeEuros() {
+                                    if (!this.pf || !this.pv) return null;
+                                    return (this.pv - this.pf).toFixed(2);
+                                }
+                            }">
+                            <td class="px-4 py-3 text-center">
+                                <span style="display:inline-flex;align-items:center;justify-content:center;width:2rem;height:2rem;background:#ede9fe;color:#5b21b6;border-radius:9999px;font-weight:700;font-size:0.875rem;">
+                                    {{ i + 1 }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <input type="number" step="0.01" min="0"
+                                       name="lignes[{{ i }}][prixFournisseur]"
+                                       value="{{ ligne.prixFournisseur is not null ? ligne.prixFournisseur : '' }}"
+                                       x-model.number="pf"
+                                       class="form-input w-36" placeholder="—">
+                            </td>
+                            <td class="px-4 py-3">
+                                <input type="number" step="0.01" min="0"
+                                       name="lignes[{{ i }}][prixVente]"
+                                       value="{{ ligne.prixVente is not null ? ligne.prixVente : '' }}"
+                                       x-model.number="pv"
+                                       class="form-input w-36" placeholder="—">
+                            </td>
+                            <td class="px-4 py-3 text-right text-sm">
+                                <template x-if="marge !== null">
+                                    <div>
+                                        <span :style="marge >= 0 ? 'color:#059669;font-weight:600;' : 'color:#dc2626;font-weight:600;'"
+                                              x-text="marge + ' %'"></span>
+                                        <span class="text-gray-400 ml-1"
+                                              x-text="'(' + margeEuros + ' €)'"></span>
+                                    </div>
+                                </template>
+                                <template x-if="marge === null">
+                                    <span class="text-gray-300">—</span>
+                                </template>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {# Actions #}
+    <div class="flex gap-3">
+        <button type="submit" class="btn-primary">
+            {{ grille.id ? 'Enregistrer les modifications' : 'Créer la grille' }}
+        </button>
+        <a href="{{ path('admin_grilles_prix') }}" class="btn-outline">Annuler</a>
+    </div>
+</form>
+
+<script>
+    function grilleForm() { return {}; }
+</script>
+{% endblock %}
