@@ -53,10 +53,6 @@ class Article
     #[ORM\OneToMany(mappedBy: 'article', targetEntity: Variante::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $variantes;
 
-    #[ORM\ManyToMany(targetEntity: Caracteristique::class)]
-    #[ORM\JoinTable(name: 'article_caracteristiques')]
-    private Collection $caracteristiques;
-
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
@@ -68,7 +64,6 @@ class Article
         $this->createdAt = new \DateTimeImmutable();
         $this->images = new ArrayCollection();
         $this->variantes = new ArrayCollection();
-        $this->caracteristiques = new ArrayCollection();
     }
 
     public function getId(): ?int { return $this->id; }
@@ -98,9 +93,6 @@ class Article
     public function getVariantes(): Collection { return $this->variantes; }
     public function addVariante(Variante $v): static { if (!$this->variantes->contains($v)) { $this->variantes->add($v); $v->setArticle($this); } return $this; }
     public function removeVariante(Variante $v): static { if ($this->variantes->removeElement($v)) { if ($v->getArticle() === $this) { $v->setArticle(null); } } return $this; }
-    public function getCaracteristiques(): Collection { return $this->caracteristiques; }
-    public function addCaracteristique(Caracteristique $c): static { if (!$this->caracteristiques->contains($c)) { $this->caracteristiques->add($c); } return $this; }
-    public function removeCaracteristique(Caracteristique $c): static { $this->caracteristiques->removeElement($c); return $this; }
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
     public function getUpdatedAt(): ?\DateTimeImmutable { return $this->updatedAt; }
     public function setUpdatedAt(?\DateTimeImmutable $u): static { $this->updatedAt = $u; return $this; }

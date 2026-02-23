@@ -9,7 +9,7 @@
 {% set imagesJson = [] %}
 {% if article %}
     {% for v in article.variantes %}
-        {% set variantesJson = variantesJson|merge([{id: v.id, nom: v.nom, sku: v.sku, prix: v.prix, actif: v.actif}]) %}
+        {% set variantesJson = variantesJson|merge([{id: v.id, nom: v.nom, sku: v.sku, prix: v.prix, valeurs: v.valeurs, actif: v.actif}]) %}
     {% endfor %}
     {% for img in article.images %}
         {% set imagesJson = imagesJson|merge([img.url]) %}
@@ -42,10 +42,15 @@
     onDropImages(e) { e.preventDefault(); this.uploadFiles(e.dataTransfer.files); },
 
     addVariante() {
-        this.variantes.push({ id: Date.now(), nom: '', sku: '', prix: '', actif: true });
+        this.variantes.push({ id: Date.now(), nom: '', sku: '', prix: '', valeurs: null, actif: true });
     },
     removeVariante(index) {
         this.variantes.splice(index, 1);
+    },
+
+    valeursLabel(variante) {
+        if (!variante.valeurs) return '';
+        return Object.entries(variante.valeurs).map(([k, v]) => k + ': ' + v).join(' · ');
     },
 
     /* === Template selector === */
@@ -118,11 +123,14 @@
         const slug = document.querySelector('[name=nom]')?.value || 'ARTICLE';
         const baseIndex = this.variantes.length;
         combos.forEach((combo, idx) => {
+            const valeurs = {};
+            caracs.forEach((c, i) => { valeurs[c.nom] = combo[i]; });
             this.variantes.push({
                 id: Date.now() + idx,
                 nom: combo.join(' '),
                 sku: this.generateSKU(slug, combo, baseIndex + idx + 1),
                 prix: '',
+                valeurs: valeurs,
                 actif: true
             });
         });
@@ -166,12 +174,10 @@
                         <span class="text-sm text-gray-500" x-text="images.length + ' image(s)'"></span>
                     </div>
 
-                    {# Hidden inputs pour soumission #}
                     <template x-for="(img, i) in images" :key="i">
                         <input type="hidden" name="images[]" :value="img">
                     </template>
 
-                    {# Zone de drop #}
                     <div @dragover.prevent
                          @drop="onDropImages($event)"
                          @click="$refs.imagesInput.click()"
@@ -187,7 +193,6 @@
 
                     <p x-show="uploadError" x-text="uploadError" class="text-sm text-red-600 mb-3"></p>
 
-                    {# Grille aperçu #}
                     <div x-show="images.length > 0" class="grid grid-cols-3 gap-3">
                         <template x-for="(img, index) in images" :key="index">
                             <div class="relative aspect-square rounded-lg border border-gray-200" style="overflow:hidden">
@@ -229,7 +234,6 @@
                     <div x-show="templateSelectorOpen" x-transition class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl space-y-4">
                         <h3 class="font-semibold text-blue-900">Générer des variantes depuis un template</h3>
 
-                        {# Choix du template #}
                         <div class="form-group">
                             <label class="text-sm font-medium text-blue-800">Template</label>
                             <select x-model="selectedTemplateId" @change="onTemplateChange()" class="form-select mt-1">
@@ -240,7 +244,6 @@
                             </select>
                         </div>
 
-                        {# Caractéristiques du template sélectionné #}
                         <template x-if="selectedTemplate">
                             <div class="space-y-4">
                                 <p class="text-sm text-blue-700" x-text="selectedTemplate.description || ''"></p>
@@ -272,7 +275,6 @@
                                     </div>
                                 </template>
 
-                                {# Compteur + bouton générer #}
                                 <div class="flex items-center justify-between pt-2">
                                     <div>
                                         <p class="text-sm text-blue-700">Variantes à générer :</p>
@@ -296,13 +298,24 @@
                     {# Liste des variantes #}
                     <div class="space-y-3">
                         <template x-for="(variante, index) in variantes" :key="variante.id">
-                            <div class="p-4 bg-gray-50 rounded-lg space-y-3">
+                            <div class="p-4 bg-gray-50 rounded-lg space-y-2">
+                                {# Étiquette des valeurs structurées #}
+                                <div x-show="variante.valeurs && Object.keys(variante.valeurs).length > 0"
+                                     class="flex flex-wrap gap-1">
+                                    <template x-for="[k, v] in Object.entries(variante.valeurs || {})" :key="k">
+                                        <span style="display:inline-flex;align-items:center;padding:2px 8px;background:#ede9fe;color:#5b21b6;border-radius:9999px;font-size:0.75rem;font-weight:600;"
+                                              x-text="k + ': ' + v"></span>
+                                    </template>
+                                </div>
+
                                 <div class="flex gap-3 flex-wrap">
                                     <input type="hidden" :name="'variantes[' + index + '][id]'" x-model="variante.id">
+                                    <input type="hidden" :name="'variantes[' + index + '][valeurs]'"
+                                           :value="variante.valeurs ? JSON.stringify(variante.valeurs) : ''">
                                     <input type="text"
                                            :name="'variantes[' + index + '][nom]'"
                                            x-model="variante.nom"
-                                           placeholder="Nom (ex: Taille M)"
+                                           placeholder="Nom (ex: S Rouge)"
                                            class="form-input flex-1 min-w-32">
                                     <input type="text"
                                            :name="'variantes[' + index + '][sku]'"
@@ -375,40 +388,6 @@
                             </p>
                         {% endif %}
                     </div>
-                </div>
-
-                {# Caractéristiques applicables #}
-                <div class="card p-6">
-                    <h2 class="text-xl font-bold mb-4">Caractéristiques</h2>
-                    <p class="text-sm text-gray-500 mb-4">Cochez les caractéristiques que le client devra choisir pour cet article.</p>
-
-                    {% if allCaracteristiques|length > 0 %}
-                        <div class="space-y-2">
-                            {% for carac in allCaracteristiques %}
-                                {% set isChecked = article and article.caracteristiques.exists(c => c.id == carac.id) %}
-                                <label class="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer">
-                                    <input type="checkbox"
-                                           name="caracteristiques[]"
-                                           value="{{ carac.id }}"
-                                           {{ isChecked ? 'checked' : '' }}
-                                           class="w-4 h-4 text-primary rounded mt-0.5">
-                                    <div>
-                                        <div class="font-medium text-sm">{{ carac.nom }}</div>
-                                        {% if carac.valeurs|length > 0 %}
-                                            <div class="text-xs text-gray-500 mt-0.5">
-                                                {{ carac.valeurs|map(v => v.valeur)|join(', ') }}
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                                </label>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <p class="text-sm text-gray-400">
-                            Aucune caractéristique définie.
-                            <a href="{{ path('admin_caracteristiques') }}" class="text-primary hover:underline">En créer une</a>
-                        </p>
-                    {% endif %}
                 </div>
 
                 {# Publication #}
