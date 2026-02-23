@@ -221,6 +221,7 @@ class PublicController extends AbstractController
             'slug' => $article->getSlug(),
             'prix' => $article->getPrixBase(),
             'image' => $article->getFirstImageUrl(),
+            'paliers' => $article->getGrillePrix() ? $article->getGrillePrix()->getPaliers() : [],
         ];
 
         // Utiliser le prix de la variante sélectionnée si disponible

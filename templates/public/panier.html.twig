@@ -89,8 +89,19 @@
                                             </form>
 
                                             {# Prix unitaire #}
-                                            <div class="text-lg font-bold text-primary">
-                                                {{ (item.article.prix ?? item.article.prixBase ?? 0)|number_format(2, ',', ' ') }} €
+                                            <div>
+                                                <div class="text-lg font-bold text-primary">
+                                                    {{ (item.article.prix ?? item.article.prixBase ?? 0)|number_format(2, ',', ' ') }} € <span class="text-sm font-normal text-gray-500">/ unité</span>
+                                                </div>
+                                                {% if item.article.paliers is defined and item.article.paliers|length > 0 %}
+                                                    {% set activePalier = null %}
+                                                    {% for p in item.article.paliers %}
+                                                        {% if item.quantity >= p.min %}{% set activePalier = p %}{% endif %}
+                                                    {% endfor %}
+                                                    {% if activePalier %}
+                                                        <div class="text-xs text-gray-500 mt-0.5">Tarif : {{ activePalier.label }}</div>
+                                                    {% endif %}
+                                                {% endif %}
                                             </div>
                                         </div>
                                     </div>
