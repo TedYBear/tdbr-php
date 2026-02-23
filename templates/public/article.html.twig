@@ -264,6 +264,49 @@
                         </span>
                     </div>
 
+                    {# Tableau de prix dégressifs #}
+                    {% if article.grillePrix %}
+                        {% set lignes = article.grillePrix.lignes %}
+                        {% set ligne10 = lignes|last %}
+                        <div class="bg-gray-50 rounded-xl border border-gray-200 overflow-hidden">
+                            <div class="px-4 py-3 bg-gray-100 border-b border-gray-200">
+                                <h3 class="font-semibold text-gray-700 text-sm">Tarifs dégressifs</h3>
+                            </div>
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="text-xs text-gray-500 uppercase border-b border-gray-200">
+                                        <th class="px-4 py-2 text-left font-semibold">Quantité</th>
+                                        <th class="px-4 py-2 text-right font-semibold">Prix unitaire</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    {% for ligne in lignes %}
+                                        {% if ligne.prixVente is not null %}
+                                            <tr class="hover:bg-white transition-colors">
+                                                <td class="px-4 py-2 text-gray-700">
+                                                    {{ ligne.quantite }} exemplaire{{ ligne.quantite > 1 ? 's' : '' }}
+                                                </td>
+                                                <td class="px-4 py-2 text-right font-bold text-primary">
+                                                    {{ (ligne.prixVente / ligne.quantite)|number_format(2, ',', ' ') }} €
+                                                </td>
+                                            </tr>
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% if ligne10.prixVente is not null %}
+                                        <tr class="bg-primary/5 hover:bg-primary/10 transition-colors">
+                                            <td class="px-4 py-2 font-semibold text-gray-800">
+                                                + de 10 exemplaires
+                                            </td>
+                                            <td class="px-4 py-2 text-right font-bold text-primary">
+                                                {{ (ligne10.prixVente / 10)|number_format(2, ',', ' ') }} €
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+
                     {# Sélection variante simple (variantes sans valeurs structurées) #}
                     <div x-show="!hasStructuredVariants && variants.length > 0" class="space-y-3">
                         <template x-if="variants.length > 1">
