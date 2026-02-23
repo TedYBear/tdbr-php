@@ -38,6 +38,7 @@ class GrillePrixAdminController extends AbstractController
             $data = $request->request->all();
             $grille->setNom($data['nom']);
             $grille->setDescription($data['description'] ?? null);
+            $grille->setPaliers($this->buildPaliers($data['paliers'] ?? []));
             $grille->setLignes($this->buildLignes($data['lignes'] ?? []));
 
             $this->em->persist($grille);
@@ -63,6 +64,7 @@ class GrillePrixAdminController extends AbstractController
             $data = $request->request->all();
             $grille->setNom($data['nom']);
             $grille->setDescription($data['description'] ?? null);
+            $grille->setPaliers($this->buildPaliers($data['paliers'] ?? []));
             $grille->setLignes($this->buildLignes($data['lignes'] ?? []));
 
             $this->em->flush();
@@ -85,6 +87,31 @@ class GrillePrixAdminController extends AbstractController
 
         $this->addFlash('success', 'Grille de prix supprimée');
         return $this->redirectToRoute('admin_grilles_prix');
+    }
+
+    /**
+     * Construit les 4 paliers tarifaires (prix unitaires) depuis les données du formulaire.
+     */
+    private function buildPaliers(array $raw): array
+    {
+        $defaults = [
+            ['label' => '1 exemplaire',        'min' => 1,  'max' => 1],
+            ['label' => '2 à 4 exemplaires',   'min' => 2,  'max' => 4],
+            ['label' => '5 à 9 exemplaires',   'min' => 5,  'max' => 9],
+            ['label' => '10 exemplaires et +', 'min' => 10, 'max' => null],
+        ];
+        $paliers = [];
+        for ($i = 0; $i < 4; $i++) {
+            $row = $raw[$i] ?? [];
+            $paliers[] = [
+                'label'           => $defaults[$i]['label'],
+                'min'             => $defaults[$i]['min'],
+                'max'             => $defaults[$i]['max'],
+                'prixFournisseur' => isset($row['prixFournisseur']) && $row['prixFournisseur'] !== '' ? (float)$row['prixFournisseur'] : null,
+                'prixVente'       => isset($row['prixVente'])       && $row['prixVente']       !== '' ? (float)$row['prixVente']       : null,
+            ];
+        }
+        return $paliers;
     }
 
     /**
