@@ -94,12 +94,13 @@
                                                     {{ (item.article.prix ?? item.article.prixBase ?? 0)|number_format(2, ',', ' ') }} € <span class="text-sm font-normal text-gray-500">/ unité</span>
                                                 </div>
                                                 {% if item.article.paliers is defined and item.article.paliers|length > 0 %}
+                                                    {% set grilleQty = grilleTotals[item.article.grilleId] ?? item.quantity %}
                                                     {% set activePalier = null %}
                                                     {% for p in item.article.paliers %}
-                                                        {% if item.quantity >= p.min %}{% set activePalier = p %}{% endif %}
+                                                        {% if grilleQty >= p.min %}{% set activePalier = p %}{% endif %}
                                                     {% endfor %}
                                                     {% if activePalier %}
-                                                        <div class="text-xs text-gray-500 mt-0.5">Tarif : {{ activePalier.label }}</div>
+                                                        <div class="text-xs text-gray-500 mt-0.5">Tarif : {{ activePalier.label }}{% if grilleQty > item.quantity %} ({{ grilleQty }} ex. au total){% endif %}</div>
                                                     {% endif %}
                                                 {% endif %}
                                             </div>

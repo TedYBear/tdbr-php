@@ -192,7 +192,8 @@ class PublicController extends AbstractController
         return $this->render('public/panier.html.twig', [
             'items' => $this->cartService->getCart(),
             'total' => $this->cartService->getTotal(),
-            'quantity' => $this->cartService->getTotalQuantity()
+            'quantity' => $this->cartService->getTotalQuantity(),
+            'grilleTotals' => $this->cartService->getGrilleTotals(),
         ]);
     }
 
@@ -222,6 +223,7 @@ class PublicController extends AbstractController
             'prix' => $article->getPrixBase(),
             'image' => $article->getFirstImageUrl(),
             'paliers' => $article->getGrillePrix() ? $article->getGrillePrix()->getPaliers() : [],
+            'grilleId' => $article->getGrillePrix() ? $article->getGrillePrix()->getId() : null,
         ];
 
         // Utiliser le prix de la variante sélectionnée si disponible
