@@ -27,8 +27,23 @@ class CartService
         $itemId = $article['id'] . ($choicesHash ? '-' . $choicesHash : '');
 
         if (isset($cart[$itemId])) {
-            $cart[$itemId]['quantity'] += $quantity;
+            $newQty = $cart[$itemId]['quantity'] + $quantity;
+            $cart[$itemId]['quantity'] = $newQty;
+            $paliers = $cart[$itemId]['article']['paliers'] ?? [];
+            if (!empty($paliers)) {
+                $resolved = $this->resolveUnitPrice($paliers, $newQty);
+                if ($resolved !== null) {
+                    $cart[$itemId]['article']['prix'] = $resolved;
+                }
+            }
         } else {
+            $paliers = $article['paliers'] ?? [];
+            if (!empty($paliers)) {
+                $resolved = $this->resolveUnitPrice($paliers, $quantity);
+                if ($resolved !== null) {
+                    $article['prix'] = $resolved;
+                }
+            }
             $cart[$itemId] = [
                 'article' => $article,
                 'choices' => $choices,
@@ -64,9 +79,31 @@ class CartService
                 unset($cart[$itemId]);
             } else {
                 $cart[$itemId]['quantity'] = $quantity;
+                $paliers = $cart[$itemId]['article']['paliers'] ?? [];
+                if (!empty($paliers)) {
+                    $resolved = $this->resolveUnitPrice($paliers, $quantity);
+                    if ($resolved !== null) {
+                        $cart[$itemId]['article']['prix'] = $resolved;
+                    }
+                }
             }
             $this->session->set('cart', $cart);
         }
+    }
+
+    /**
+     * Retourne le prix unitaire correspondant à la quantité selon les paliers tarifaires.
+     * Les paliers sont parcourus dans l'ordre croissant ; le dernier dont min <= quantité est retenu.
+     */
+    private function resolveUnitPrice(array $paliers, int $quantity): ?float
+    {
+        $resolved = null;
+        foreach ($paliers as $palier) {
+            if ($quantity >= ($palier['min'] ?? 0) && isset($palier['prixVente']) && $palier['prixVente'] !== null) {
+                $resolved = (float)$palier['prixVente'];
+            }
+        }
+        return $resolved;
     }
 
     /**
