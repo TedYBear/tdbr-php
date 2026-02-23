@@ -1,0 +1,59 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% block title %}Grilles de prix{% endblock %}
+{% block page_title %}Grilles de prix{% endblock %}
+{% block page_subtitle %}
+    <p class="text-sm text-gray-600">Tableaux de tarification par quantité (1 à 10 articles)</p>
+{% endblock %}
+
+{% block body %}
+    <div class="flex justify-end mb-6">
+        <a href="{{ path('admin_grilles_prix_new') }}" class="btn-primary">+ Nouvelle grille</a>
+    </div>
+
+    <div class="card overflow-hidden">
+        {% if grilles|length > 0 %}
+            <table class="w-full">
+                <thead class="bg-gray-50 border-b">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Nom</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Description</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Aperçu (qté 1)</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y">
+                    {% for grille in grilles %}
+                        {% set ligne1 = grille.lignes[0] ?? null %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 font-semibold">{{ grille.nom }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-600">{{ grille.description ?? '—' }}</td>
+                            <td class="px-6 py-4 text-sm">
+                                {% if ligne1 %}
+                                    <span class="text-gray-500">Fourn. : </span>
+                                    <span class="font-medium">{{ ligne1.prixFournisseur is not null ? ligne1.prixFournisseur|number_format(2, ',', ' ') ~ ' €' : '—' }}</span>
+                                    <span class="mx-2 text-gray-300">|</span>
+                                    <span class="text-gray-500">Vente : </span>
+                                    <span class="font-medium">{{ ligne1.prixVente is not null ? ligne1.prixVente|number_format(2, ',', ' ') ~ ' €' : '—' }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex gap-3">
+                                    <a href="{{ path('admin_grilles_prix_edit', {id: grille.id}) }}" class="text-primary hover:text-secondary">Modifier</a>
+                                    <form method="post" action="{{ path('admin_grilles_prix_delete', {id: grille.id}) }}" onsubmit="return confirm('Supprimer cette grille ?');">
+                                        <button type="submit" class="text-red-600 hover:text-red-700">Supprimer</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="text-center py-16">
+                <p class="text-gray-500 mb-4">Aucune grille de prix</p>
+                <a href="{{ path('admin_grilles_prix_new') }}" class="btn-primary">Créer la première grille</a>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
