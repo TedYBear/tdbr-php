@@ -27,23 +27,8 @@ class CartService
         $itemId = $article['id'] . ($choicesHash ? '-' . $choicesHash : '');
 
         if (isset($cart[$itemId])) {
-            $newQty = $cart[$itemId]['quantity'] + $quantity;
-            $cart[$itemId]['quantity'] = $newQty;
-            $paliers = $cart[$itemId]['article']['paliers'] ?? [];
-            if (!empty($paliers)) {
-                $resolved = $this->resolveUnitPrice($paliers, $newQty);
-                if ($resolved !== null) {
-                    $cart[$itemId]['article']['prix'] = $resolved;
-                }
-            }
+            $cart[$itemId]['quantity'] += $quantity;
         } else {
-            $paliers = $article['paliers'] ?? [];
-            if (!empty($paliers)) {
-                $resolved = $this->resolveUnitPrice($paliers, $quantity);
-                if ($resolved !== null) {
-                    $article['prix'] = $resolved;
-                }
-            }
             $cart[$itemId] = [
                 'article' => $article,
                 'choices' => $choices,
@@ -51,6 +36,7 @@ class CartService
             ];
         }
 
+        $this->recalculatePalierPrices($cart);
         $this->session->set('cart', $cart);
     }
 
@@ -63,6 +49,7 @@ class CartService
 
         if (isset($cart[$itemId])) {
             unset($cart[$itemId]);
+            $this->recalculatePalierPrices($cart);
             $this->session->set('cart', $cart);
         }
     }
@@ -79,16 +66,55 @@ class CartService
                 unset($cart[$itemId]);
             } else {
                 $cart[$itemId]['quantity'] = $quantity;
-                $paliers = $cart[$itemId]['article']['paliers'] ?? [];
-                if (!empty($paliers)) {
-                    $resolved = $this->resolveUnitPrice($paliers, $quantity);
-                    if ($resolved !== null) {
-                        $cart[$itemId]['article']['prix'] = $resolved;
-                    }
-                }
             }
+            $this->recalculatePalierPrices($cart);
             $this->session->set('cart', $cart);
         }
+    }
+
+    /**
+     * Recalcule les prix de tous les items ayant une grille de prix.
+     * Les articles partageant la même grille (grilleId) voient leur prix calculé
+     * sur la somme de leurs quantités respectives.
+     */
+    private function recalculatePalierPrices(array &$cart): void
+    {
+        // Totaliser les quantités par grilleId
+        $grilleTotals = [];
+        foreach ($cart as $item) {
+            $grilleId = $item['article']['grilleId'] ?? null;
+            if ($grilleId !== null && !empty($item['article']['paliers'])) {
+                $grilleTotals[$grilleId] = ($grilleTotals[$grilleId] ?? 0) + $item['quantity'];
+            }
+        }
+
+        // Mettre à jour le prix de chaque item selon la quantité totale de sa grille
+        foreach ($cart as &$item) {
+            $grilleId = $item['article']['grilleId'] ?? null;
+            if ($grilleId !== null && !empty($item['article']['paliers'])) {
+                $totalQty = $grilleTotals[$grilleId];
+                $resolved = $this->resolveUnitPrice($item['article']['paliers'], $totalQty);
+                if ($resolved !== null) {
+                    $item['article']['prix'] = $resolved;
+                }
+            }
+        }
+    }
+
+    /**
+     * Retourne la quantité totale par grilleId (pour affichage du palier actif dans le template).
+     * @return array<int, int>  [grilleId => totalQty]
+     */
+    public function getGrilleTotals(): array
+    {
+        $totals = [];
+        foreach ($this->getCart() as $item) {
+            $grilleId = $item['article']['grilleId'] ?? null;
+            if ($grilleId !== null && !empty($item['article']['paliers'])) {
+                $totals[$grilleId] = ($totals[$grilleId] ?? 0) + $item['quantity'];
+            }
+        }
+        return $totals;
     }
 
     /**
