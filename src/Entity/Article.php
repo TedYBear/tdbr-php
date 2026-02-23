@@ -27,6 +27,9 @@ class Article
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
     private float $prixBase = 0.0;
 
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2, nullable: true)]
+    private ?float $prixFournisseur = null;
+
     #[ORM\Column]
     private bool $actif = true;
 
@@ -75,6 +78,8 @@ class Article
     public function setDescription(?string $d): static { $this->description = $d; return $this; }
     public function getPrixBase(): float { return (float)$this->prixBase; }
     public function setPrixBase(float $p): static { $this->prixBase = $p; return $this; }
+    public function getPrixFournisseur(): ?float { return $this->prixFournisseur !== null ? (float)$this->prixFournisseur : null; }
+    public function setPrixFournisseur(?float $p): static { $this->prixFournisseur = $p; return $this; }
     public function isActif(): bool { return $this->actif; }
     public function setActif(bool $a): static { $this->actif = $a; return $this; }
     public function isEnVedette(): bool { return $this->enVedette; }
