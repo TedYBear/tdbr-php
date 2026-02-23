@@ -47,7 +47,6 @@
                     <tr>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Nom</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Prix vente</th>
-                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Prix fourn.</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Variantes</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Fournisseur</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Statut</th>
@@ -72,13 +71,6 @@
                                 </div>
                             </td>
                             <td class="px-6 py-4 font-semibold">{{ article.prixBase|number_format(2, ',', ' ') }} €</td>
-                            <td class="px-6 py-4 text-sm">
-                                {% if article.prixFournisseur %}
-                                    <span class="text-gray-700">{{ article.prixFournisseur|number_format(2, ',', ' ') }} €</span>
-                                {% else %}
-                                    <span class="text-gray-400">—</span>
-                                {% endif %}
-                            </td>
                             <td class="px-6 py-4 text-sm text-gray-600">
                                 {{ article.variantes|length }} variante{{ article.variantes|length > 1 ? 's' : '' }}
                             </td>
