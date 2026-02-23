@@ -11,41 +11,68 @@
                 quantity: 1,
                 lightboxOpen: false,
                 addingToCart: false,
-                imagesData: {{ article.images|default([])|json_encode|raw }},
-                basePrice: {{ article.prixBase }},
 
-                {% set requiredCaracNames = [] %}
-                {% for carac in article.caracteristiques %}
-                    {% if carac.valeurs|length > 1 %}
-                        {% set requiredCaracNames = requiredCaracNames|merge([carac.nom]) %}
+                {% set variantesJson = [] %}
+                {% for v in article.variantes %}
+                    {% if v.actif %}
+                        {% set variantesJson = variantesJson|merge([{id: v.id, nom: v.nom, prix: v.prix, valeurs: v.valeurs}]) %}
                     {% endif %}
                 {% endfor %}
-                requiredCaracNames: {{ requiredCaracNames|json_encode|raw }},
+                variants: {{ variantesJson|json_encode|raw }},
 
-                choices: (() => {
-                    const c = {};
-                    {% for carac in article.caracteristiques %}
-                        {% if carac.valeurs|length == 1 %}
-                            {% for v in carac.valeurs %}
-                    c['{{ carac.nom|e('js') }}'] = '{{ v.valeur|e('js') }}';
-                            {% endfor %}
-                        {% endif %}
-                    {% endfor %}
-                    return c;
-                })(),
+                imagesData: {{ article.images|default([])|json_encode|raw }},
+                basePrice: {{ article.prixBase }},
+                choices: {},
 
                 get images() {
                     return this.imagesData.map(img => img.url || img);
                 },
 
+                /**
+                 * Extrait la liste des caractéristiques et leurs valeurs disponibles
+                 * depuis les variantes actives qui ont des valeurs structurées.
+                 * Ordre préservé d'insertion.
+                 */
+                get caracteristiques() {
+                    const caracs = {};
+                    const order = [];
+                    this.variants.forEach(v => {
+                        if (!v.valeurs) return;
+                        Object.entries(v.valeurs).forEach(([nom, val]) => {
+                            if (!caracs[nom]) { caracs[nom] = []; order.push(nom); }
+                            if (!caracs[nom].includes(val)) caracs[nom].push(val);
+                        });
+                    });
+                    return order.map(nom => ({ nom, valeurs: caracs[nom] }));
+                },
+
+                /**
+                 * Variante dont les valeurs correspondent exactement aux choix courants.
+                 */
+                get selectedVariant() {
+                    if (this.caracteristiques.length === 0) return null;
+                    if (!this.allSelected) return null;
+                    return this.variants.find(v => {
+                        if (!v.valeurs) return false;
+                        return Object.entries(this.choices).every(([k, val]) => v.valeurs[k] === val);
+                    }) || null;
+                },
+
                 get currentPrice() {
+                    if (this.selectedVariant && this.selectedVariant.prix) {
+                        return parseFloat(this.selectedVariant.prix);
+                    }
                     return this.basePrice;
                 },
 
                 get allSelected() {
-                    return this.requiredCaracNames.every(
-                        name => this.choices[name] && this.choices[name] !== ''
-                    );
+                    const caracs = this.caracteristiques;
+                    if (caracs.length === 0) return true;
+                    return caracs.every(c => this.choices[c.nom] && this.choices[c.nom] !== '');
+                },
+
+                get variantUnavailable() {
+                    return this.caracteristiques.length > 0 && this.allSelected && !this.selectedVariant;
                 },
 
                 async addToCart() {
@@ -57,33 +84,30 @@
                         choices: this.choices
                     };
 
+                    if (this.selectedVariant) {
+                        data.variantId = this.selectedVariant.id;
+                    }
+
                     try {
                         const response = await fetch('{{ path('panier_add') }}', {
                             method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
+                            headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(data)
                         });
 
                         const result = await response.json();
 
                         if (result.success) {
-                            // Mettre à jour le badge panier dans la navbar
                             const badge = document.querySelector('[data-cart-count]');
                             if (badge) {
                                 badge.textContent = result.cartCount;
                                 badge.classList.remove('hidden');
                             }
-
-                            // Animation de confirmation
                             const btn = this.$refs.addBtn;
                             if (btn) {
                                 btn.classList.add('animate-pulse');
                                 setTimeout(() => btn.classList.remove('animate-pulse'), 1000);
                             }
-
-                            // Message de succès
                             alert('Article ajouté au panier !');
                         }
                     } catch (error) {
@@ -131,7 +155,6 @@
                                  @click="lightboxOpen = true"
                                  onerror="this.src='{{ article.images[0].url }}'">
 
-                            {# Badge Nouveau si moins de 7 jours #}
                             {% set daysSinceCreation = 'now'|date('U') - article.createdAt|date('U') %}
                             {% if daysSinceCreation < (7 * 24 * 3600) %}
                                 <div class="absolute top-4 left-4 px-4 py-2 bg-gradient-to-r from-secondary to-primary text-white font-bold rounded-full shadow-lg glow">
@@ -195,9 +218,7 @@
                                 {% endif %}
                                 {% if article.fournisseur.url %}
                                     <a href="{{ article.fournisseur.url }}" target="_blank" rel="noopener"
-                                       class="text-sm text-gray-500 hover:text-primary">
-                                        {{ article.fournisseur.nom }}
-                                    </a>
+                                       class="text-sm text-gray-500 hover:text-primary">{{ article.fournisseur.nom }}</a>
                                 {% else %}
                                     <span class="text-sm text-gray-500">{{ article.fournisseur.nom }}</span>
                                 {% endif %}
@@ -205,52 +226,59 @@
                         {% endif %}
                     </div>
 
-                    {# Prix #}
+                    {# Prix — mis à jour dynamiquement selon la variante sélectionnée #}
                     <div class="flex items-baseline gap-4">
-                        <span class="text-4xl md:text-5xl font-black text-primary" x-text="currentPrice.toFixed(2).replace('.', ',') + ' €'">
+                        <span class="text-4xl md:text-5xl font-black text-primary"
+                              x-text="currentPrice.toFixed(2).replace('.', ',') + ' €'">
                             {{ article.prixBase|number_format(2, ',', ' ') }} €
                         </span>
                     </div>
 
-                    {# Sélection des caractéristiques #}
-                    {% if article.caracteristiques|length > 0 %}
-                        <div class="space-y-5">
-                            {% for carac in article.caracteristiques %}
-                                <div>
-                                    <label class="block text-lg font-bold text-gray-900 mb-2">
-                                        {{ carac.nom }}
-                                    </label>
-                                    {% if carac.valeurs|length > 1 %}
-                                        {# Menu déroulant si plusieurs valeurs #}
-                                        <select x-model="choices['{{ carac.nom|e('js') }}']"
-                                                style="display:block;width:100%;padding:0.75rem 1rem;border:2px solid #e5e7eb;border-radius:0.75rem;font-size:1rem;background:#fff;cursor:pointer;outline:none;"
-                                                @focus="$el.style.borderColor='#6d28d9'"
-                                                @blur="$el.style.borderColor=choices['{{ carac.nom|e('js') }}'] ? '#6d28d9' : '#e5e7eb'">
-                                            <option value="">-- Choisir {{ carac.nom|lower }} --</option>
-                                            {% for v in carac.valeurs %}
-                                                <option value="{{ v.valeur }}">{{ v.valeur }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    {% else %}
-                                        {# Affichage simple si une seule valeur #}
-                                        {% for v in carac.valeurs %}
-                                            <span style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.5rem 1rem;background:#f3f4f6;border-radius:0.5rem;font-weight:600;color:#374151;">
-                                                <svg style="width:1rem;height:1rem;color:#6d28d9;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                                </svg>
-                                                {{ v.valeur }}
-                                            </span>
-                                        {% endfor %}
-                                    {% endif %}
-                                </div>
-                            {% endfor %}
+                    {# Sélection des caractéristiques (dérivées des variantes) #}
+                    <div x-show="caracteristiques.length > 0" class="space-y-5">
+                        <template x-for="carac in caracteristiques" :key="carac.nom">
+                            <div>
+                                <label style="display:block;font-size:1.125rem;font-weight:700;color:#111827;margin-bottom:0.5rem;"
+                                       x-text="carac.nom"></label>
 
-                            {# Message si sélection incomplète #}
-                            <p x-show="!allSelected" style="font-size:0.875rem;color:#dc2626;font-weight:500;">
-                                Veuillez sélectionner toutes les options avant d'ajouter au panier
-                            </p>
-                        </div>
-                    {% endif %}
+                                {# Dropdown si plusieurs valeurs #}
+                                <template x-if="carac.valeurs.length > 1">
+                                    <select x-model="choices[carac.nom]"
+                                            style="display:block;width:100%;padding:0.75rem 1rem;border:2px solid #e5e7eb;border-radius:0.75rem;font-size:1rem;background:#fff;cursor:pointer;"
+                                            @change="$el.style.borderColor = choices[carac.nom] ? '#7c3aed' : '#e5e7eb'">
+                                        <option value="" x-text="'-- Choisir ' + carac.nom.toLowerCase() + ' --'"></option>
+                                        <template x-for="val in carac.valeurs" :key="val">
+                                            <option :value="val" x-text="val"></option>
+                                        </template>
+                                    </select>
+                                </template>
+
+                                {# Affichage statique si une seule valeur #}
+                                <template x-if="carac.valeurs.length === 1">
+                                    <div x-init="choices[carac.nom] = carac.valeurs[0]">
+                                        <span style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.5rem 1rem;background:#f3f4f6;border-radius:0.5rem;font-weight:600;color:#374151;">
+                                            <svg style="width:1rem;height:1rem;color:#7c3aed;flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                            <span x-text="carac.valeurs[0]"></span>
+                                        </span>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+
+                        {# Sélection incomplète #}
+                        <p x-show="!allSelected"
+                           style="font-size:0.875rem;color:#dc2626;font-weight:500;">
+                            Veuillez sélectionner toutes les options
+                        </p>
+
+                        {# Combinaison non disponible #}
+                        <p x-show="variantUnavailable"
+                           style="font-size:0.875rem;color:#d97706;font-weight:500;background:#fef3c7;padding:0.5rem 0.75rem;border-radius:0.5rem;">
+                            Cette combinaison n'est pas disponible
+                        </p>
+                    </div>
 
                     {# Quantité et Ajout Panier #}
                     <div class="space-y-4">
@@ -280,7 +308,7 @@
                             <button type="button"
                                     x-ref="addBtn"
                                     @click="addToCart()"
-                                    :disabled="addingToCart || !allSelected"
+                                    :disabled="addingToCart || !allSelected || variantUnavailable"
                                     class="btn-primary flex-1 py-4 text-xl disabled:opacity-50 disabled:cursor-not-allowed">
                                 <span x-show="!addingToCart" class="flex items-center justify-center gap-3">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -310,7 +338,6 @@
                 <h2 class="font-heading text-4xl font-bold text-center mb-12">
                     Vous pourriez aussi <span class="gradient-text">aimer</span>
                 </h2>
-
                 <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
                     {% for similar in similarArticles %}
                         <div class="section-appear" style="animation-delay: {{ loop.index * 0.1 }}s;">
@@ -334,7 +361,6 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
         </button>
-
         {% if article.images|length > 0 %}
             <img :src="images && images[selectedImage] ? images[selectedImage] : '{{ article.images[0].url }}'"
                  alt="{{ article.images[0].alt ?? article.nom }}"

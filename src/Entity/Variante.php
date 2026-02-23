@@ -26,6 +26,13 @@ class Variante
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2, nullable: true)]
     private ?float $prix = null;
 
+    /**
+     * Valeurs structurées de cette variante.
+     * Exemple : {"Taille": "S", "Couleur": "Rouge"}
+     */
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $valeurs = null;
+
     #[ORM\Column]
     private bool $actif = true;
 
@@ -38,6 +45,8 @@ class Variante
     public function setSku(?string $sku): static { $this->sku = $sku; return $this; }
     public function getPrix(): ?float { return $this->prix !== null ? (float)$this->prix : null; }
     public function setPrix(?float $p): static { $this->prix = $p; return $this; }
+    public function getValeurs(): ?array { return $this->valeurs; }
+    public function setValeurs(?array $v): static { $this->valeurs = $v; return $this; }
     public function isActif(): bool { return $this->actif; }
     public function setActif(bool $a): static { $this->actif = $a; return $this; }
 }

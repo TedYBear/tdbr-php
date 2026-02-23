@@ -69,7 +69,6 @@ class PublicController extends AbstractController
 
         $categories = $this->categoryRepo->findBy(['actif' => true], ['ordre' => 'ASC']);
 
-        // Compter les articles par catégorie via les collections
         foreach ($categories as $category) {
             $collections = $this->collectionRepo->findBy(['actif' => true, 'categorie' => $category]);
             $count = 0;
@@ -99,12 +98,10 @@ class PublicController extends AbstractController
             ['ordre' => 'ASC']
         );
 
-        // Compter les articles par collection
         foreach ($collections as $col) {
             $col->articleCount = $this->articleRepo->count(['actif' => true, 'collection' => $col]);
         }
 
-        // Articles en vedette de cette catégorie
         $articles = [];
         if (!empty($collections)) {
             $qb = $this->articleRepo->createQueryBuilder('a')
@@ -205,6 +202,7 @@ class PublicController extends AbstractController
         $data = json_decode($request->getContent(), true);
         $articleId = $data['articleId'] ?? null;
         $choices = $data['choices'] ?? [];
+        $variantId = $data['variantId'] ?? null;
         $quantity = $data['quantity'] ?? 1;
 
         if (!$articleId) {
@@ -224,6 +222,16 @@ class PublicController extends AbstractController
             'prix' => $article->getPrixBase(),
             'image' => $article->getFirstImageUrl(),
         ];
+
+        // Utiliser le prix de la variante sélectionnée si disponible
+        if ($variantId) {
+            foreach ($article->getVariantes() as $v) {
+                if ($v->getId() == $variantId && $v->getPrix()) {
+                    $articleArray['prix'] = $v->getPrix();
+                    break;
+                }
+            }
+        }
 
         $this->cartService->addItem($articleArray, $quantity, is_array($choices) ? $choices : []);
 
@@ -338,7 +346,6 @@ class PublicController extends AbstractController
     #[Route('/contact', name: 'contact', methods: ['GET', 'POST'])]
     public function contact(Request $request, MailerInterface $mailer): Response
     {
-        // Si non connecté, bloquer la soumission et rediriger vers login
         if (!$this->getUser() && $request->isMethod('POST')) {
             $this->addFlash('error', 'Vous devez être connecté pour envoyer un message.');
             return $this->redirectToRoute('connexion', ['redirect' => '/contact']);
@@ -346,7 +353,6 @@ class PublicController extends AbstractController
 
         $form = $this->createForm(\App\Form\ContactType::class);
 
-        // Pré-remplir nom et email depuis le compte connecté
         if ($user = $this->getUser()) {
             $form->get('nom')->setData(trim(($user->getPrenom() ?? '') . ' ' . ($user->getNom() ?? '')));
             $form->get('email')->setData($user->getEmail());
@@ -406,7 +412,6 @@ class PublicController extends AbstractController
             return $this->redirectToRoute('home');
         }
 
-        // Mémoriser l'URL de redirection post-login si fournie via ?redirect=
         if ($redirect = $request->query->get('redirect')) {
             if (str_starts_with($redirect, '/')) {
                 $request->getSession()->set('_security.main.target_path', $redirect);

@@ -6,7 +6,6 @@ use App\Entity\Article;
 use App\Entity\ArticleImage;
 use App\Entity\Variante;
 use App\Repository\ArticleRepository;
-use App\Repository\CaracteristiqueRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\ProductCollectionRepository;
 use App\Repository\VarianteTemplateRepository;
@@ -28,7 +27,6 @@ class ArticleAdminController extends AbstractController
         private ProductCollectionRepository $collectionRepo,
         private FournisseurRepository $fournisseurRepo,
         private VarianteTemplateRepository $templateRepo,
-        private CaracteristiqueRepository $caracRepo,
         private SlugifyService $slugify,
     ) {
     }
@@ -48,6 +46,27 @@ class ArticleAdminController extends AbstractController
         }, $this->templateRepo->findAll());
     }
 
+    private function saveVariantes(Article $article, array $data): void
+    {
+        foreach ($article->getVariantes()->toArray() as $v) {
+            $article->removeVariante($v);
+        }
+        if (!empty($data['variantes'])) {
+            foreach ($data['variantes'] as $varianteData) {
+                if (!empty($varianteData['nom'])) {
+                    $v = new Variante();
+                    $v->setNom($varianteData['nom']);
+                    $v->setSku($varianteData['sku'] ?? null);
+                    $v->setPrix(!empty($varianteData['prix']) ? (float)$varianteData['prix'] : (float)($data['prix'] ?? 0));
+                    $v->setActif(isset($varianteData['actif']));
+                    $valeurs = !empty($varianteData['valeurs']) ? json_decode($varianteData['valeurs'], true) : null;
+                    $v->setValeurs(is_array($valeurs) ? $valeurs : null);
+                    $article->addVariante($v);
+                }
+            }
+        }
+    }
+
     #[Route('', name: 'admin_articles')]
     public function index(Request $request): Response
     {
@@ -65,33 +84,26 @@ class ArticleAdminController extends AbstractController
             ->setMaxResults($limit);
 
         if ($search) {
-            $qb->andWhere('a.nom LIKE :search')
-               ->setParameter('search', '%' . $search . '%');
+            $qb->andWhere('a.nom LIKE :search')->setParameter('search', '%' . $search . '%');
         }
         if ($collectionId) {
-            $qb->andWhere('a.collection = :collection')
-               ->setParameter('collection', $collectionId);
+            $qb->andWhere('a.collection = :collection')->setParameter('collection', $collectionId);
         }
         if ($fournisseurId) {
-            $qb->andWhere('a.fournisseur = :fournisseur')
-               ->setParameter('fournisseur', $fournisseurId);
+            $qb->andWhere('a.fournisseur = :fournisseur')->setParameter('fournisseur', $fournisseurId);
         }
 
         $articles = $qb->getQuery()->getResult();
 
-        $countQb = $this->articleRepo->createQueryBuilder('a')
-            ->select('COUNT(a.id)');
+        $countQb = $this->articleRepo->createQueryBuilder('a')->select('COUNT(a.id)');
         if ($search) {
-            $countQb->andWhere('a.nom LIKE :search')
-                    ->setParameter('search', '%' . $search . '%');
+            $countQb->andWhere('a.nom LIKE :search')->setParameter('search', '%' . $search . '%');
         }
         if ($collectionId) {
-            $countQb->andWhere('a.collection = :collection')
-                    ->setParameter('collection', $collectionId);
+            $countQb->andWhere('a.collection = :collection')->setParameter('collection', $collectionId);
         }
         if ($fournisseurId) {
-            $countQb->andWhere('a.fournisseur = :fournisseur')
-                    ->setParameter('fournisseur', $fournisseurId);
+            $countQb->andWhere('a.fournisseur = :fournisseur')->setParameter('fournisseur', $fournisseurId);
         }
         $total = (int)$countQb->getQuery()->getSingleScalarResult();
         $totalPages = (int)ceil($total / $limit);
@@ -117,7 +129,6 @@ class ArticleAdminController extends AbstractController
     {
         $collections = $this->collectionRepo->findBy(['actif' => true], ['nom' => 'ASC']);
         $fournisseurs = $this->fournisseurRepo->findBy([], ['nom' => 'ASC']);
-        $allCaracteristiques = $this->caracRepo->findBy([], ['nom' => 'ASC']);
 
         if ($request->isMethod('POST')) {
             $data = $request->request->all();
@@ -154,30 +165,7 @@ class ArticleAdminController extends AbstractController
                 }
             }
 
-            // Variantes
-            if (!empty($data['variantes'])) {
-                foreach ($data['variantes'] as $varianteData) {
-                    if (!empty($varianteData['nom'])) {
-                        $v = new Variante();
-                        $v->setNom($varianteData['nom']);
-                        $v->setSku($varianteData['sku'] ?? null);
-                        $v->setPrix(!empty($varianteData['prix']) ? (float)$varianteData['prix'] : (float)($data['prix'] ?? 0));
-                        $v->setActif(isset($varianteData['actif']));
-                        $article->addVariante($v);
-                    }
-                }
-            }
-
-            // Caractéristiques applicables
-            if (!empty($data['caracteristiques'])) {
-                foreach ($data['caracteristiques'] as $caracId) {
-                    $carac = $this->caracRepo->find((int)$caracId);
-                    if ($carac) {
-                        $article->addCaracteristique($carac);
-                    }
-                }
-            }
-
+            $this->saveVariantes($article, $data);
             $this->em->persist($article);
             $this->em->flush();
 
@@ -190,7 +178,6 @@ class ArticleAdminController extends AbstractController
             'collections' => $collections,
             'fournisseurs' => $fournisseurs,
             'templates' => $this->buildTemplatesData(),
-            'allCaracteristiques' => $allCaracteristiques,
         ]);
     }
 
@@ -205,7 +192,6 @@ class ArticleAdminController extends AbstractController
 
         $collections = $this->collectionRepo->findBy(['actif' => true], ['nom' => 'ASC']);
         $fournisseurs = $this->fournisseurRepo->findBy([], ['nom' => 'ASC']);
-        $allCaracteristiques = $this->caracRepo->findBy([], ['nom' => 'ASC']);
 
         if ($request->isMethod('POST')) {
             $data = $request->request->all();
@@ -242,36 +228,7 @@ class ArticleAdminController extends AbstractController
                 }
             }
 
-            // Variantes : remplacer toutes
-            foreach ($article->getVariantes()->toArray() as $v) {
-                $article->removeVariante($v);
-            }
-            if (!empty($data['variantes'])) {
-                foreach ($data['variantes'] as $varianteData) {
-                    if (!empty($varianteData['nom'])) {
-                        $v = new Variante();
-                        $v->setNom($varianteData['nom']);
-                        $v->setSku($varianteData['sku'] ?? null);
-                        $v->setPrix(!empty($varianteData['prix']) ? (float)$varianteData['prix'] : (float)($data['prix'] ?? 0));
-                        $v->setActif(isset($varianteData['actif']));
-                        $article->addVariante($v);
-                    }
-                }
-            }
-
-            // Caractéristiques applicables : remplacer
-            foreach ($article->getCaracteristiques()->toArray() as $c) {
-                $article->removeCaracteristique($c);
-            }
-            if (!empty($data['caracteristiques'])) {
-                foreach ($data['caracteristiques'] as $caracId) {
-                    $carac = $this->caracRepo->find((int)$caracId);
-                    if ($carac) {
-                        $article->addCaracteristique($carac);
-                    }
-                }
-            }
-
+            $this->saveVariantes($article, $data);
             $this->em->flush();
 
             $this->addFlash('success', 'Article modifié avec succès');
@@ -283,7 +240,6 @@ class ArticleAdminController extends AbstractController
             'collections' => $collections,
             'fournisseurs' => $fournisseurs,
             'templates' => $this->buildTemplatesData(),
-            'allCaracteristiques' => $allCaracteristiques,
         ]);
     }
 
@@ -327,7 +283,6 @@ class ArticleAdminController extends AbstractController
         }
 
         $this->em->flush();
-
         return $this->json(['success' => true, 'value' => $value]);
     }
 
@@ -363,12 +318,9 @@ class ArticleAdminController extends AbstractController
             $newV->setNom($v->getNom());
             $newV->setSku($v->getSku() ? $v->getSku() . '-C' : null);
             $newV->setPrix($v->getPrix());
+            $newV->setValeurs($v->getValeurs());
             $newV->setActif(false);
             $clone->addVariante($newV);
-        }
-
-        foreach ($source->getCaracteristiques() as $c) {
-            $clone->addCaracteristique($c);
         }
 
         $this->em->persist($clone);
