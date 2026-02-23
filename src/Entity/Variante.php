@@ -27,9 +27,6 @@ class Variante
     private ?float $prix = null;
 
     #[ORM\Column]
-    private int $stock = 0;
-
-    #[ORM\Column]
     private bool $actif = true;
 
     public function getId(): ?int { return $this->id; }
@@ -41,8 +38,6 @@ class Variante
     public function setSku(?string $sku): static { $this->sku = $sku; return $this; }
     public function getPrix(): ?float { return $this->prix !== null ? (float)$this->prix : null; }
     public function setPrix(?float $p): static { $this->prix = $p; return $this; }
-    public function getStock(): int { return $this->stock; }
-    public function setStock(int $s): static { $this->stock = $s; return $this; }
     public function isActif(): bool { return $this->actif; }
     public function setActif(bool $a): static { $this->actif = $a; return $this; }
 }

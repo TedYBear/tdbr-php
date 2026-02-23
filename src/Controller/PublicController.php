@@ -204,7 +204,7 @@ class PublicController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
         $articleId = $data['articleId'] ?? null;
-        $variantId = $data['variantId'] ?? null;
+        $choices = $data['choices'] ?? [];
         $quantity = $data['quantity'] ?? 1;
 
         if (!$articleId) {
@@ -217,23 +217,6 @@ class PublicController extends AbstractController
             return $this->json(['error' => 'Article introuvable'], 404);
         }
 
-        // Trouver la variante si nécessaire
-        $variant = null;
-        if ($variantId) {
-            foreach ($article->getVariantes() as $v) {
-                if ($v->getId() == $variantId) {
-                    $variant = [
-                        'id' => $v->getId(),
-                        'nom' => $v->getNom(),
-                        'prix' => $v->getPrix(),
-                        'sku' => $v->getSku(),
-                    ];
-                    break;
-                }
-            }
-        }
-
-        // Convertir l'article en array pour le CartService
         $articleArray = [
             'id' => $article->getId(),
             'nom' => $article->getNom(),
@@ -242,7 +225,7 @@ class PublicController extends AbstractController
             'image' => $article->getFirstImageUrl(),
         ];
 
-        $this->cartService->addItem($articleArray, $quantity, $variant);
+        $this->cartService->addItem($articleArray, $quantity, is_array($choices) ? $choices : []);
 
         return $this->json([
             'success' => true,
@@ -294,12 +277,9 @@ class PublicController extends AbstractController
                 $orderItems[] = [
                     'articleId' => $item['article']['id'],
                     'nom' => $item['article']['nom'],
-                    'prix' => $item['variant']['prix'] ?? $item['article']['prix'],
+                    'prix' => $item['article']['prix'],
                     'quantity' => $item['quantity'],
-                    'variant' => $item['variant'] ? [
-                        'id' => $item['variant']['id'],
-                        'nom' => $item['variant']['nom'] ?? 'Standard'
-                    ] : null,
+                    'choices' => $item['choices'] ?? [],
                     'image' => $item['article']['image'] ?? null
                 ];
             }

@@ -8,44 +8,54 @@
         document.addEventListener('alpine:init', () => {
             Alpine.data('articlePage', () => ({
                 selectedImage: 0,
-                selectedVariant: null,
                 quantity: 1,
                 lightboxOpen: false,
                 addingToCart: false,
                 imagesData: {{ article.images|default([])|json_encode|raw }},
-                variants: {{ article.variantes|default([])|json_encode|raw }},
-                basePrice: {{ article.prix ?? article.prixBase ?? 0 }},
-                baseStock: {{ article.stock ?? 999 }},
+                basePrice: {{ article.prixBase }},
+
+                {% set requiredCaracNames = [] %}
+                {% for carac in article.caracteristiques %}
+                    {% if carac.valeurs|length > 1 %}
+                        {% set requiredCaracNames = requiredCaracNames|merge([carac.nom]) %}
+                    {% endif %}
+                {% endfor %}
+                requiredCaracNames: {{ requiredCaracNames|json_encode|raw }},
+
+                choices: (() => {
+                    const c = {};
+                    {% for carac in article.caracteristiques %}
+                        {% if carac.valeurs|length == 1 %}
+                            {% for v in carac.valeurs %}
+                    c['{{ carac.nom|e('js') }}'] = '{{ v.valeur|e('js') }}';
+                            {% endfor %}
+                        {% endif %}
+                    {% endfor %}
+                    return c;
+                })(),
 
                 get images() {
                     return this.imagesData.map(img => img.url || img);
                 },
 
                 get currentPrice() {
-                    if (this.selectedVariant !== null && this.variants[this.selectedVariant]) {
-                        return this.variants[this.selectedVariant].prix || this.variants[this.selectedVariant].prixBase || this.basePrice;
-                    }
                     return this.basePrice;
                 },
 
-                get currentStock() {
-                    if (this.selectedVariant !== null && this.variants[this.selectedVariant]) {
-                        return this.variants[this.selectedVariant].stock || 999;
-                    }
-                    return this.baseStock;
+                get allSelected() {
+                    return this.requiredCaracNames.every(
+                        name => this.choices[name] && this.choices[name] !== ''
+                    );
                 },
 
                 async addToCart() {
                     this.addingToCart = true;
 
                     const data = {
-                        articleId: '{{ article._id }}',
-                        quantity: this.quantity
+                        articleId: {{ article.id }},
+                        quantity: this.quantity,
+                        choices: this.choices
                     };
-
-                    if (this.selectedVariant !== null && this.variants[this.selectedVariant]) {
-                        data.variantId = this.variants[this.selectedVariant].id;
-                    }
 
                     try {
                         const response = await fetch('{{ path('panier_add') }}', {
@@ -74,7 +84,7 @@
                             }
 
                             // Message de succès
-                            alert('✓ Article ajouté au panier !');
+                            alert('Article ajouté au panier !');
                         }
                     } catch (error) {
                         alert('Erreur lors de l\'ajout au panier');
@@ -119,7 +129,7 @@
                                  alt="{{ article.images[0].alt ?? article.nom }}"
                                  class="w-full h-full object-contain cursor-zoom-in transition-transform duration-500 group-hover:scale-105"
                                  @click="lightboxOpen = true"
-                                 onerror="this.src='{{ article.images[0].url }}'"
+                                 onerror="this.src='{{ article.images[0].url }}'">
 
                             {# Badge Nouveau si moins de 7 jours #}
                             {% set daysSinceCreation = 'now'|date('U') - article.createdAt|date('U') %}
@@ -198,30 +208,47 @@
                     {# Prix #}
                     <div class="flex items-baseline gap-4">
                         <span class="text-4xl md:text-5xl font-black text-primary" x-text="currentPrice.toFixed(2).replace('.', ',') + ' €'">
-                            {{ (article.prix ?? article.prixBase ?? 0)|number_format(2, ',', ' ') }} €
+                            {{ article.prixBase|number_format(2, ',', ' ') }} €
                         </span>
-                        {% if article.prixBarre is defined and article.prixBarre %}
-                            <span class="text-2xl text-gray-400 line-through">
-                                {{ article.prixBarre|number_format(2, ',', ' ') }} €
-                            </span>
-                        {% endif %}
                     </div>
 
-                    {# Variantes #}
-                    {% if article.variantes|length > 0 %}
-                        <div class="space-y-3">
-                            <label class="block text-lg font-bold text-gray-900">Choisissez une variante</label>
-                            <div class="grid grid-cols-2 gap-3">
-                                {% for index, variant in article.variantes %}
-                                    <button type="button"
-                                            @click="selectedVariant = {{ index }}"
-                                            :class="selectedVariant === {{ index }} ? 'ring-4 ring-primary bg-primary text-white' : 'bg-gray-100 text-gray-900 hover:bg-gray-200'"
-                                            class="px-6 py-4 rounded-xl font-semibold transition-all duration-300">
-                                        <div class="text-sm mb-1">{{ variant.nom ?? 'Variante ' ~ (index + 1) }}</div>
-                                        <div class="text-lg font-bold">{{ variant.prix|number_format(2, ',', ' ') }} €</div>
-                                    </button>
-                                {% endfor %}
-                            </div>
+                    {# Sélection des caractéristiques #}
+                    {% if article.caracteristiques|length > 0 %}
+                        <div class="space-y-5">
+                            {% for carac in article.caracteristiques %}
+                                <div>
+                                    <label class="block text-lg font-bold text-gray-900 mb-2">
+                                        {{ carac.nom }}
+                                    </label>
+                                    {% if carac.valeurs|length > 1 %}
+                                        {# Menu déroulant si plusieurs valeurs #}
+                                        <select x-model="choices['{{ carac.nom|e('js') }}']"
+                                                style="display:block;width:100%;padding:0.75rem 1rem;border:2px solid #e5e7eb;border-radius:0.75rem;font-size:1rem;background:#fff;cursor:pointer;outline:none;"
+                                                @focus="$el.style.borderColor='#6d28d9'"
+                                                @blur="$el.style.borderColor=choices['{{ carac.nom|e('js') }}'] ? '#6d28d9' : '#e5e7eb'">
+                                            <option value="">-- Choisir {{ carac.nom|lower }} --</option>
+                                            {% for v in carac.valeurs %}
+                                                <option value="{{ v.valeur }}">{{ v.valeur }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    {% else %}
+                                        {# Affichage simple si une seule valeur #}
+                                        {% for v in carac.valeurs %}
+                                            <span style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.5rem 1rem;background:#f3f4f6;border-radius:0.5rem;font-weight:600;color:#374151;">
+                                                <svg style="width:1rem;height:1rem;color:#6d28d9;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                </svg>
+                                                {{ v.valeur }}
+                                            </span>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+
+                            {# Message si sélection incomplète #}
+                            <p x-show="!allSelected" style="font-size:0.875rem;color:#dc2626;font-weight:500;">
+                                Veuillez sélectionner toutes les options avant d'ajouter au panier
+                            </p>
                         </div>
                     {% endif %}
 
@@ -240,10 +267,9 @@
                                 <input type="number"
                                        x-model.number="quantity"
                                        min="1"
-                                       :max="currentStock"
                                        class="w-20 px-4 py-4 text-center text-xl font-bold border-0 focus:outline-none">
                                 <button type="button"
-                                        @click="quantity = Math.min(currentStock, quantity + 1)"
+                                        @click="quantity = quantity + 1"
                                         class="px-6 py-4 bg-gray-100 hover:bg-gray-200 transition">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
@@ -254,7 +280,7 @@
                             <button type="button"
                                     x-ref="addBtn"
                                     @click="addToCart()"
-                                    :disabled="addingToCart || ({{ article.variantes|length }} > 0 && selectedVariant === null)"
+                                    :disabled="addingToCart || !allSelected"
                                     class="btn-primary flex-1 py-4 text-xl disabled:opacity-50 disabled:cursor-not-allowed">
                                 <span x-show="!addingToCart" class="flex items-center justify-center gap-3">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -270,33 +296,7 @@
                                 </span>
                             </button>
                         </div>
-
-                        {% if article.variantes|length > 0 %}
-                            <p x-show="selectedVariant === null" class="text-sm text-red-600 font-medium">
-                                ⚠ Veuillez sélectionner une variante
-                            </p>
-                        {% endif %}
                     </div>
-
-                    {# Caractéristiques #}
-                    {% if article.caracteristiques %}
-                        <div class="border-t pt-8">
-                            <h3 class="text-2xl font-heading font-bold mb-6">Caractéristiques</h3>
-                            <div class="space-y-3">
-                                {% for key, value in article.caracteristiques %}
-                                    <div class="flex items-start gap-3">
-                                        <svg class="w-5 h-5 text-primary flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                        </svg>
-                                        <div>
-                                            <span class="font-semibold text-gray-900">{{ key }} :</span>
-                                            <span class="text-gray-700">{{ value }}</span>
-                                        </div>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    {% endif %}
 
                 </div>
             </div>

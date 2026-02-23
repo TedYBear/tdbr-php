@@ -6,6 +6,7 @@ use App\Entity\Article;
 use App\Entity\ArticleImage;
 use App\Entity\Variante;
 use App\Repository\ArticleRepository;
+use App\Repository\CaracteristiqueRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\ProductCollectionRepository;
 use App\Repository\VarianteTemplateRepository;
@@ -27,6 +28,7 @@ class ArticleAdminController extends AbstractController
         private ProductCollectionRepository $collectionRepo,
         private FournisseurRepository $fournisseurRepo,
         private VarianteTemplateRepository $templateRepo,
+        private CaracteristiqueRepository $caracRepo,
         private SlugifyService $slugify,
     ) {
     }
@@ -115,6 +117,7 @@ class ArticleAdminController extends AbstractController
     {
         $collections = $this->collectionRepo->findBy(['actif' => true], ['nom' => 'ASC']);
         $fournisseurs = $this->fournisseurRepo->findBy([], ['nom' => 'ASC']);
+        $allCaracteristiques = $this->caracRepo->findBy([], ['nom' => 'ASC']);
 
         if ($request->isMethod('POST')) {
             $data = $request->request->all();
@@ -159,9 +162,18 @@ class ArticleAdminController extends AbstractController
                         $v->setNom($varianteData['nom']);
                         $v->setSku($varianteData['sku'] ?? null);
                         $v->setPrix(!empty($varianteData['prix']) ? (float)$varianteData['prix'] : (float)($data['prix'] ?? 0));
-                        $v->setStock((int)($varianteData['stock'] ?? 0));
                         $v->setActif(isset($varianteData['actif']));
                         $article->addVariante($v);
+                    }
+                }
+            }
+
+            // Caractéristiques applicables
+            if (!empty($data['caracteristiques'])) {
+                foreach ($data['caracteristiques'] as $caracId) {
+                    $carac = $this->caracRepo->find((int)$caracId);
+                    if ($carac) {
+                        $article->addCaracteristique($carac);
                     }
                 }
             }
@@ -178,6 +190,7 @@ class ArticleAdminController extends AbstractController
             'collections' => $collections,
             'fournisseurs' => $fournisseurs,
             'templates' => $this->buildTemplatesData(),
+            'allCaracteristiques' => $allCaracteristiques,
         ]);
     }
 
@@ -192,6 +205,7 @@ class ArticleAdminController extends AbstractController
 
         $collections = $this->collectionRepo->findBy(['actif' => true], ['nom' => 'ASC']);
         $fournisseurs = $this->fournisseurRepo->findBy([], ['nom' => 'ASC']);
+        $allCaracteristiques = $this->caracRepo->findBy([], ['nom' => 'ASC']);
 
         if ($request->isMethod('POST')) {
             $data = $request->request->all();
@@ -239,9 +253,21 @@ class ArticleAdminController extends AbstractController
                         $v->setNom($varianteData['nom']);
                         $v->setSku($varianteData['sku'] ?? null);
                         $v->setPrix(!empty($varianteData['prix']) ? (float)$varianteData['prix'] : (float)($data['prix'] ?? 0));
-                        $v->setStock((int)($varianteData['stock'] ?? 0));
                         $v->setActif(isset($varianteData['actif']));
                         $article->addVariante($v);
+                    }
+                }
+            }
+
+            // Caractéristiques applicables : remplacer
+            foreach ($article->getCaracteristiques()->toArray() as $c) {
+                $article->removeCaracteristique($c);
+            }
+            if (!empty($data['caracteristiques'])) {
+                foreach ($data['caracteristiques'] as $caracId) {
+                    $carac = $this->caracRepo->find((int)$caracId);
+                    if ($carac) {
+                        $article->addCaracteristique($carac);
                     }
                 }
             }
@@ -257,6 +283,7 @@ class ArticleAdminController extends AbstractController
             'collections' => $collections,
             'fournisseurs' => $fournisseurs,
             'templates' => $this->buildTemplatesData(),
+            'allCaracteristiques' => $allCaracteristiques,
         ]);
     }
 
@@ -336,9 +363,12 @@ class ArticleAdminController extends AbstractController
             $newV->setNom($v->getNom());
             $newV->setSku($v->getSku() ? $v->getSku() . '-C' : null);
             $newV->setPrix($v->getPrix());
-            $newV->setStock(0);
             $newV->setActif(false);
             $clone->addVariante($newV);
+        }
+
+        foreach ($source->getCaracteristiques() as $c) {
+            $clone->addCaracteristique($c);
         }
 
         $this->em->persist($clone);

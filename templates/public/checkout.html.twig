@@ -179,18 +179,22 @@
                             {% for itemId, item in cartItems %}
                                 <div class="flex gap-4">
                                     <div class="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                                        {% if item.article.images|length > 0 %}
-                                            <img src="{{ item.article.images[0]|to_string }}" alt="{{ item.article.nom }}" class="w-full h-full object-contain">
+                                        {% if item.article.image %}
+                                            <img src="{{ item.article.image }}" alt="{{ item.article.nom }}" class="w-full h-full object-contain">
                                         {% endif %}
                                     </div>
                                     <div class="flex-1 min-w-0">
                                         <h4 class="font-semibold text-sm truncate">{{ item.article.nom }}</h4>
-                                        {% if item.variant %}
-                                            <p class="text-xs text-gray-600">{{ item.variant.nom ?? 'Standard' }}</p>
+                                        {% if item.choices is defined and item.choices|length > 0 %}
+                                            <div class="flex flex-wrap gap-1 mt-1">
+                                                {% for key, val in item.choices %}
+                                                    <span class="text-xs text-gray-600">{{ key }}: {{ val }}</span>
+                                                {% endfor %}
+                                            </div>
                                         {% endif %}
                                         <p class="text-sm text-gray-900 mt-1">
                                             <span class="font-bold">{{ item.quantity }}x</span>
-                                            <span class="ml-2">{{ (item.variant.prix ?? item.variant.prixBase ?? item.article.prix ?? item.article.prixBase ?? 0)|number_format(2, ',', ' ') }} €</span>
+                                            <span class="ml-2">{{ (item.article.prix ?? item.article.prixBase ?? 0)|number_format(2, ',', ' ') }} €</span>
                                         </p>
                                     </div>
                                 </div>
