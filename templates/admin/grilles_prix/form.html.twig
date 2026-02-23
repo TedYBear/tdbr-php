@@ -4,7 +4,7 @@
 {% block page_title %}{{ grille.id ? 'Modifier' : 'Nouvelle' }} grille de prix{% endblock %}
 
 {% block body %}
-<form method="post" class="space-y-6 max-w-3xl">
+<form method="post" class="space-y-6 max-w-5xl">
 
     {# Informations #}
     <div class="card p-6 space-y-4">
@@ -35,10 +35,12 @@
             <table class="w-full">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700 w-24">Quantité</th>
-                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Prix fournisseur (€)</th>
-                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Prix de vente (€)</th>
-                        <th class="px-4 py-3 text-right text-sm font-semibold text-gray-700 w-28">Marge</th>
+                        <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700 w-16">Qté</th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Prix fourn. (€)</th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Prix vente (€)</th>
+                        <th class="px-4 py-3 text-right text-sm font-semibold text-gray-700 w-32">Marge brute</th>
+                        <th class="px-4 py-3 text-right text-sm font-semibold text-orange-600 w-32">Taxes 15%</th>
+                        <th class="px-4 py-3 text-right text-sm font-semibold text-gray-700 w-36">Marge nette</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y" x-data="grilleForm()">
@@ -55,6 +57,18 @@
                                 get margeEuros() {
                                     if (!this.pf || !this.pv) return null;
                                     return (this.pv - this.pf).toFixed(2);
+                                },
+                                get taxes() {
+                                    if (!this.pv) return null;
+                                    return (this.pv * 0.15).toFixed(2);
+                                },
+                                get margeNettePct() {
+                                    if (!this.pf || !this.pv || this.pv <= 0) return null;
+                                    return ((this.pv - this.pf - this.pv * 0.15) / this.pv * 100).toFixed(1);
+                                },
+                                get margeNetteEuros() {
+                                    if (!this.pf || !this.pv) return null;
+                                    return (this.pv - this.pf - this.pv * 0.15).toFixed(2);
                                 }
                             }">
                             <td class="px-4 py-3 text-center">
@@ -76,6 +90,7 @@
                                        x-model.number="pv"
                                        class="form-input w-36" placeholder="—">
                             </td>
+                            {# Marge brute #}
                             <td class="px-4 py-3 text-right text-sm">
                                 <template x-if="marge !== null">
                                     <div>
@@ -86,6 +101,31 @@
                                     </div>
                                 </template>
                                 <template x-if="marge === null">
+                                    <span class="text-gray-300">—</span>
+                                </template>
+                            </td>
+
+                            {# Taxes 15% #}
+                            <td class="px-4 py-3 text-right text-sm">
+                                <template x-if="taxes !== null">
+                                    <span class="text-orange-500 font-medium" x-text="taxes + ' €'"></span>
+                                </template>
+                                <template x-if="taxes === null">
+                                    <span class="text-gray-300">—</span>
+                                </template>
+                            </td>
+
+                            {# Marge nette #}
+                            <td class="px-4 py-3 text-right text-sm">
+                                <template x-if="margeNettePct !== null">
+                                    <div>
+                                        <span :style="margeNettePct >= 0 ? 'color:#059669;font-weight:700;' : 'color:#dc2626;font-weight:700;'"
+                                              x-text="margeNettePct + ' %'"></span>
+                                        <span class="text-gray-400 ml-1"
+                                              x-text="'(' + margeNetteEuros + ' €)'"></span>
+                                    </div>
+                                </template>
+                                <template x-if="margeNettePct === null">
                                     <span class="text-gray-300">—</span>
                                 </template>
                             </td>
