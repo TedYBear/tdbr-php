@@ -38,3 +38,9 @@ services:
     App\Service\UploadService:
         arguments:
             $uploadsDirectory: '%kernel.project_dir%/public/uploads'
+
+    # Stripe Service
+    App\Service\StripeService:
+        arguments:
+            $secretKey:     '%env(STRIPE_SECRET_KEY)%'
+            $webhookSecret: '%env(STRIPE_WEBHOOK_SECRET)%'

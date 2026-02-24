@@ -114,21 +114,7 @@ class CheckoutType extends AbstractType
                 ]
             ])
 
-            // Mode de paiement
-            ->add('modePaiement', ChoiceType::class, [
-                'label' => 'Mode de paiement',
-                'choices' => [
-                    'Carte bancaire' => 'carte',
-                    'Virement bancaire' => 'virement',
-                    'PayPal' => 'paypal'
-                ],
-                'data' => 'carte',
-                'expanded' => true,
-                'attr' => ['class' => 'form-radio-group'],
-                'constraints' => [
-                    new Assert\NotBlank(['message' => 'Veuillez choisir un mode de paiement'])
-                ]
-            ]);
+        ;
     }
 
     public function configureOptions(OptionsResolver $resolver): void
