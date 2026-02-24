@@ -76,6 +76,27 @@ class GrillePrixAdminController extends AbstractController
         return $this->render('admin/grilles_prix/form.html.twig', ['grille' => $grille]);
     }
 
+    #[Route('/{id}/clone', name: 'admin_grilles_prix_clone', methods: ['POST'])]
+    public function clone(int $id): Response
+    {
+        $source = $this->repo->find($id);
+        if (!$source) {
+            throw $this->createNotFoundException('Grille introuvable');
+        }
+
+        $clone = new GrillePrix();
+        $clone->setNom($source->getNom() . ' (copie)');
+        $clone->setDescription($source->getDescription());
+        $clone->setPaliers($source->getPaliers());
+        $clone->setLignes($source->getLignes());
+
+        $this->em->persist($clone);
+        $this->em->flush();
+
+        $this->addFlash('success', 'Grille clonée avec succès');
+        return $this->redirectToRoute('admin_grilles_prix_edit', ['id' => $clone->getId()]);
+    }
+
     #[Route('/{id}/delete', name: 'admin_grilles_prix_delete', methods: ['POST'])]
     public function delete(int $id): Response
     {
