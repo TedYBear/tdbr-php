@@ -40,6 +40,9 @@
                             <td class="px-6 py-4">
                                 <div class="flex gap-3">
                                     <a href="{{ path('admin_grilles_prix_edit', {id: grille.id}) }}" class="text-primary hover:text-secondary">Modifier</a>
+                                    <form method="post" action="{{ path('admin_grilles_prix_clone', {id: grille.id}) }}">
+                                        <button type="submit" class="text-blue-600 hover:text-blue-700">Cloner</button>
+                                    </form>
                                     <form method="post" action="{{ path('admin_grilles_prix_delete', {id: grille.id}) }}" onsubmit="return confirm('Supprimer cette grille ?');">
                                         <button type="submit" class="text-red-600 hover:text-red-700">Supprimer</button>
                                     </form>
