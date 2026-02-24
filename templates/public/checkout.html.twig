@@ -139,35 +139,80 @@
                         </div>
                     </div>
 
-                    {# Paiement #}
+                    {# Paiement Stripe #}
                     <div class="card p-5 md:p-8">
                         <h2 class="font-heading text-3xl font-bold mb-6 flex items-center gap-3">
                             <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
                             </svg>
-                            Mode de Paiement
+                            Paiement sécurisé
                         </h2>
 
-                        <div class="space-y-4">
-                            {% for choice in form.modePaiement %}
-                                <label class="flex items-center gap-4 p-4 border-2 rounded-xl cursor-pointer transition-all hover:border-primary hover:bg-accent/20">
-                                    {{ form_widget(choice) }}
-                                    <div class="flex-1">
-                                        <div class="font-semibold text-lg">{{ choice.vars.label }}</div>
-                                        {% if choice.vars.value == 'carte' %}
-                                            <div class="text-sm text-gray-600">Paiement sécurisé par carte bancaire</div>
-                                        {% elseif choice.vars.value == 'virement' %}
-                                            <div class="text-sm text-gray-600">Virement bancaire (délai de traitement 2-3 jours)</div>
-                                        {% elseif choice.vars.value == 'paypal' %}
-                                            <div class="text-sm text-gray-600">Paiement rapide et sécurisé via PayPal</div>
-                                        {% endif %}
-                                    </div>
-                                </label>
-                            {% endfor %}
-                            {{ form_errors(form.modePaiement) }}
+                        {% if clientSecret %}
+                            <div id="payment-element" class="mb-4 min-h-[120px]"></div>
+                            <div id="payment-message" class="text-red-600 text-sm mt-2 hidden"></div>
+                        {% else %}
+                            <p class="text-red-600">Le service de paiement est temporairement indisponible. Veuillez réessayer.</p>
+                        {% endif %}
+
+                        <div class="flex items-center gap-2 mt-4 text-xs text-gray-500">
+                            <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                            </svg>
+                            Paiement chiffré SSL — Propulsé par <strong class="ml-1">Stripe</strong>
                         </div>
                     </div>
                 </div>
+
+                {# Script Alpine pour le paiement Stripe — défini ici avant Alpine.start() #}
+                <script>
+                    function stripePayment() {
+                        return {
+                            loading: false,
+                            async pay() {
+                                const form = document.querySelector('form[name="checkout"]');
+                                if (!form) return;
+
+                                // Valider les champs du formulaire Symfony (HTML5)
+                                if (!form.checkValidity()) {
+                                    form.reportValidity();
+                                    return;
+                                }
+
+                                this.loading = true;
+                                const msgEl = document.getElementById('payment-message');
+                                if (msgEl) { msgEl.classList.add('hidden'); msgEl.textContent = ''; }
+
+                                if (!window._stripeInstance || !window._stripeElements) {
+                                    if (msgEl) { msgEl.textContent = 'Service de paiement non initialisé.'; msgEl.classList.remove('hidden'); }
+                                    this.loading = false;
+                                    return;
+                                }
+
+                                const { error, paymentIntent } = await window._stripeInstance.confirmPayment({
+                                    elements: window._stripeElements,
+                                    confirmParams: {},
+                                    redirect: 'if_required',
+                                });
+
+                                if (error) {
+                                    if (msgEl) { msgEl.textContent = error.message; msgEl.classList.remove('hidden'); }
+                                    this.loading = false;
+                                    return;
+                                }
+
+                                if (paymentIntent && paymentIntent.status === 'succeeded') {
+                                    const hiddenInput = document.getElementById('stripePaymentIntentId');
+                                    if (hiddenInput) hiddenInput.value = paymentIntent.id;
+                                    form.submit();
+                                } else {
+                                    if (msgEl) { msgEl.textContent = 'Le paiement n\'a pas abouti. Veuillez réessayer.'; msgEl.classList.remove('hidden'); }
+                                    this.loading = false;
+                                }
+                            }
+                        };
+                    }
+                </script>
 
                 {# Récapitulatif Commande #}
                 <div class="lg:col-span-1">
@@ -218,17 +263,21 @@
                             <span class="text-primary text-3xl">{{ total|number_format(2, ',', ' ') }} €</span>
                         </div>
 
-                        <button type="button" disabled
-                                class="w-full text-lg py-4 bg-gray-200 text-gray-400 rounded-xl cursor-not-allowed font-semibold">
-                            Commande temporairement indisponible
-                        </button>
-
-                        <p class="text-sm text-amber-700 mt-4 text-center bg-amber-50 border border-amber-200 rounded-xl p-3">
-                            La commande en ligne n'est pas encore disponible.<br>
-                            <a href="{{ path('devis') }}" class="font-semibold underline hover:text-amber-900">Faire un devis</a>
-                            &nbsp;·&nbsp;
-                            <a href="{{ path('contact') }}" class="font-semibold underline hover:text-amber-900">Nous contacter</a>
-                        </p>
+                        {% if clientSecret %}
+                            <button type="button"
+                                    x-data="stripePayment()"
+                                    x-on:click="pay()"
+                                    :disabled="loading"
+                                    class="w-full text-lg py-4 btn-primary rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition">
+                                <span x-show="!loading">Payer {{ total|number_format(2, ',', ' ') }} €</span>
+                                <span x-show="loading" style="display:none;">Paiement en cours…</span>
+                            </button>
+                        {% else %}
+                            <button type="button" disabled
+                                    class="w-full text-lg py-4 bg-gray-200 text-gray-400 rounded-xl cursor-not-allowed font-semibold">
+                                Service indisponible
+                            </button>
+                        {% endif %}
 
                         {# Sécurité #}
                         <div class="mt-8 pt-8 border-t space-y-3">
@@ -248,7 +297,30 @@
                     </div>
                 </div>
 
+                <input type="hidden" name="stripePaymentIntentId" id="stripePaymentIntentId" value="">
             {{ form_end(form) }}
         </div>
     </section>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {% if clientSecret %}
+        <script src="https://js.stripe.com/v3/"></script>
+        <script>
+        (function() {
+            const pk = {{ stripePublicKey|json_encode|raw }};
+            const cs = {{ clientSecret|json_encode|raw }};
+            if (!pk || !cs) return;
+
+            window._stripeInstance = Stripe(pk);
+            window._stripeElements = window._stripeInstance.elements({ clientSecret: cs });
+
+            const paymentElement = window._stripeElements.create('payment', {
+                layout: 'tabs'
+            });
+            paymentElement.mount('#payment-element');
+        })();
+        </script>
+    {% endif %}
 {% endblock %}

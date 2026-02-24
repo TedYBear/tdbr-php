@@ -11,6 +11,7 @@ use App\Repository\CommandeRepository;
 use App\Repository\ProductCollectionRepository;
 use App\Repository\UserRepository;
 use App\Service\CartService;
+use App\Service\StripeService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -31,6 +32,7 @@ class PublicController extends AbstractController
         private CommandeRepository $commandeRepo,
         private UserRepository $userRepo,
         private CartService $cartService,
+        private StripeService $stripeService,
     ) {
     }
 
@@ -280,41 +282,72 @@ class PublicController extends AbstractController
         $form = $this->createForm(\App\Form\CheckoutType::class);
         $form->handleRequest($request);
 
+        // POST : vérifier le paiement Stripe et créer la commande
         if ($form->isSubmitted() && $form->isValid()) {
+            $paymentIntentId = $request->request->get('stripePaymentIntentId');
+
+            if (!$paymentIntentId) {
+                $this->addFlash('error', 'Paiement introuvable. Veuillez recommencer.');
+                return $this->redirectToRoute('checkout');
+            }
+
+            try {
+                $paymentIntent = $this->stripeService->retrievePaymentIntent($paymentIntentId);
+            } catch (\Exception $e) {
+                $this->addFlash('error', 'Erreur lors de la vérification du paiement.');
+                return $this->redirectToRoute('checkout');
+            }
+
+            // Vérification du montant côté serveur (anti-manipulation)
+            $expectedAmount = (int) round($this->cartService->getTotal() * 100);
+            if ($paymentIntent->status !== 'succeeded'
+                || $paymentIntent->amount !== $expectedAmount
+                || $paymentIntent->currency !== 'eur') {
+                $this->addFlash('error', 'Le paiement n\'a pas pu être validé. Veuillez réessayer.');
+                return $this->redirectToRoute('checkout');
+            }
+
+            // Protection doublon : une commande par PaymentIntent
+            $existing = $this->commandeRepo->findOneBy(['stripePaymentIntentId' => $paymentIntentId]);
+            if ($existing) {
+                return $this->redirectToRoute('confirmation', ['id' => $existing->getId()]);
+            }
+
             $data = $form->getData();
 
             $orderItems = [];
             foreach ($this->cartService->getCart() as $itemId => $item) {
                 $orderItems[] = [
                     'articleId' => $item['article']['id'],
-                    'nom' => $item['article']['nom'],
-                    'prix' => $item['article']['prix'],
-                    'quantity' => $item['quantity'],
-                    'choices' => $item['choices'] ?? [],
-                    'image' => $item['article']['image'] ?? null
+                    'nom'       => $item['article']['nom'],
+                    'prix'      => $item['article']['prix'],
+                    'quantity'  => $item['quantity'],
+                    'choices'   => $item['choices'] ?? [],
+                    'image'     => $item['article']['image'] ?? null,
                 ];
             }
 
             $commande = new Commande();
             $commande->setNumero('CMD-' . strtoupper(uniqid()));
             $commande->setClient([
-                'prenom' => $data['prenom'],
-                'nom' => $data['nom'],
-                'email' => $data['email'],
+                'prenom'    => $data['prenom'],
+                'nom'       => $data['nom'],
+                'email'     => $data['email'],
                 'telephone' => $data['telephone'],
             ]);
             $commande->setAdresseLivraison([
-                'adresse' => $data['adresse'],
+                'adresse'           => $data['adresse'],
                 'complementAdresse' => $data['complementAdresse'] ?? '',
-                'codePostal' => $data['codePostal'],
-                'ville' => $data['ville'],
-                'pays' => $data['pays'],
+                'codePostal'        => $data['codePostal'],
+                'ville'             => $data['ville'],
+                'pays'              => $data['pays'],
             ]);
             $commande->setArticles($orderItems);
             $commande->setTotal($this->cartService->getTotal());
-            $commande->setModePaiement($data['modePaiement']);
+            $commande->setModePaiement('stripe');
             $commande->setNotes($data['notes'] ?? null);
-            $commande->setStatut('en_attente');
+            $commande->setStatut('payee');
+            $commande->setStripePaymentIntentId($paymentIntentId);
 
             $this->em->persist($commande);
             $this->em->flush();
@@ -324,11 +357,24 @@ class PublicController extends AbstractController
             return $this->redirectToRoute('confirmation', ['id' => $commande->getId()]);
         }
 
+        // GET : créer un PaymentIntent et passer le client_secret au template
+        $total = $this->cartService->getTotal();
+        $clientSecret = null;
+
+        try {
+            $paymentIntent = $this->stripeService->createPaymentIntent($total, 'ref-' . uniqid());
+            $clientSecret = $paymentIntent->client_secret;
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Le service de paiement est temporairement indisponible.');
+        }
+
         return $this->render('public/checkout.html.twig', [
-            'form' => $form->createView(),
-            'cartItems' => $this->cartService->getCart(),
-            'total' => $this->cartService->getTotal(),
-            'quantity' => $this->cartService->getTotalQuantity()
+            'form'            => $form->createView(),
+            'cartItems'       => $this->cartService->getCart(),
+            'total'           => $total,
+            'quantity'        => $this->cartService->getTotalQuantity(),
+            'stripePublicKey' => $_ENV['STRIPE_PUBLIC_KEY'] ?? '',
+            'clientSecret'    => $clientSecret,
         ]);
     }
 

@@ -37,6 +37,9 @@ class Commande
     #[ORM\Column(length: 50)]
     private string $statut = 'en_attente';
 
+    #[ORM\Column(length: 255, nullable: true, unique: true)]
+    private ?string $stripePaymentIntentId = null;
+
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
@@ -65,6 +68,8 @@ class Commande
     public function setNotes(?string $n): static { $this->notes = $n; return $this; }
     public function getStatut(): string { return $this->statut; }
     public function setStatut(string $s): static { $this->statut = $s; return $this; }
+    public function getStripePaymentIntentId(): ?string { return $this->stripePaymentIntentId; }
+    public function setStripePaymentIntentId(?string $id): static { $this->stripePaymentIntentId = $id; return $this; }
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
     public function setCreatedAt(\DateTimeImmutable $c): static { $this->createdAt = $c; return $this; }
     public function getUpdatedAt(): ?\DateTimeImmutable { return $this->updatedAt; }
