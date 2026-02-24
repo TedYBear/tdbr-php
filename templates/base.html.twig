@@ -13,6 +13,21 @@
 <body class="bg-white text-dark font-sans antialiased">
     {% include 'layout/navbar.html.twig' %}
 
+    {# Bandeau site en construction #}
+    <div style="background-color:#f59e0b;color:#fff;font-family:inherit;">
+        <div style="max-width:1280px;margin:0 auto;padding:10px 16px;">
+            <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 24px;font-size:0.875rem;">
+                <span style="font-weight:700;text-transform:uppercase;letter-spacing:0.05em;font-size:0.75rem;white-space:nowrap;">Site en construction</span>
+                <span style="opacity:0.95;flex:1;min-width:200px;">
+                    Les articles et prix sont réels &mdash; la commande en ligne n'est pas encore disponible.
+                </span>
+                <div style="display:flex;flex-wrap:wrap;gap:16px;white-space:nowrap;">
+                    <a href="{{ path('contact') }}" style="color:#fff;font-weight:600;text-decoration:underline;">Nous contacter</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     {% include 'layout/flash_messages.html.twig' %}
 
     <main class="min-h-screen">
