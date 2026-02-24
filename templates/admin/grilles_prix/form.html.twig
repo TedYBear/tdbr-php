@@ -141,6 +141,7 @@
                         <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Prix vente total (€)</th>
                         <th class="px-4 py-3 text-right text-sm font-semibold text-gray-700 w-32">Marge brute</th>
                         <th class="px-4 py-3 text-right text-sm font-semibold text-orange-600 w-32">Taxes 15%</th>
+                        <th class="px-4 py-3 text-right text-sm font-semibold text-blue-600 w-36">Frais Stripe</th>
                         <th class="px-4 py-3 text-right text-sm font-semibold text-gray-700 w-36">Marge nette</th>
                     </tr>
                 </thead>
@@ -185,6 +186,16 @@
                                     <span class="text-orange-500 font-medium" x-text="taxes(i) + ' €'"></span>
                                 </template>
                                 <template x-if="taxes(i) === null">
+                                    <span class="text-gray-300">—</span>
+                                </template>
+                            </td>
+
+                            {# Frais Stripe #}
+                            <td class="px-4 py-3 text-right text-sm">
+                                <template x-if="stripe(i) !== null">
+                                    <span class="text-blue-500 font-medium" x-text="stripe(i) + ' €'"></span>
+                                </template>
+                                <template x-if="stripe(i) === null">
                                     <span class="text-gray-300">—</span>
                                 </template>
                             </td>
@@ -271,15 +282,22 @@
                 if (!pv) return null;
                 return (pv * 0.15).toFixed(2);
             },
+            stripe(i) {
+                const pv = this.lignes[i].pv;
+                if (!pv) return null;
+                return (pv * 0.015 + 0.25).toFixed(2);
+            },
             margeNettePct(i) {
                 const pf = this.lignes[i].pf, pv = this.lignes[i].pv;
                 if (!pf || !pv || pv <= 0) return null;
-                return ((pv - pf - pv * 0.15) / pv * 100).toFixed(1);
+                const deductions = pv * 0.15 + pv * 0.015 + 0.25;
+                return ((pv - pf - deductions) / pv * 100).toFixed(1);
             },
             margeNetteEuros(i) {
                 const pf = this.lignes[i].pf, pv = this.lignes[i].pv;
                 if (!pf || !pv) return null;
-                return (pv - pf - pv * 0.15).toFixed(2);
+                const deductions = pv * 0.15 + pv * 0.015 + 0.25;
+                return (pv - pf - deductions).toFixed(2);
             }
         };
     }
