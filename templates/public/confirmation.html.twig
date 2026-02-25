@@ -95,25 +95,36 @@
                     </div>
                 </div>
 
-                {# Adresse de Livraison #}
+                {# Livraison #}
+                {% set livraison = commande.modeLivraison %}
                 <div class="card p-8">
                     <h2 class="font-heading text-3xl font-bold mb-6 flex items-center gap-3">
                         <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                         </svg>
-                        Adresse de Livraison
+                        Livraison
                     </h2>
 
                     <div class="bg-gradient-to-br from-accent/20 to-white p-6 rounded-xl">
-                        <div class="space-y-2 text-gray-700">
-                            <div class="font-semibold text-lg">{{ commande.adresseLivraison.adresse }}</div>
-                            {% if commande.adresseLivraison.complementAdresse %}
-                                <div>{{ commande.adresseLivraison.complementAdresse }}</div>
-                            {% endif %}
-                            <div>{{ commande.adresseLivraison.codePostal }} {{ commande.adresseLivraison.ville }}</div>
-                            <div class="font-semibold">{{ commande.adresseLivraison.pays }}</div>
-                        </div>
+                        {% if livraison %}
+                            <div class="font-semibold text-primary mb-3">{{ livraison.label }}</div>
+                        {% endif %}
+
+                        {% if livraison and livraison.type == 'relais' %}
+                            <div class="space-y-1 text-gray-700">
+                                <div class="font-semibold text-lg">{{ livraison.pointRelaisNom ?? '' }}</div>
+                                <div>{{ livraison.pointRelaisAdresse ?? '' }}</div>
+                            </div>
+                        {% else %}
+                            <div class="space-y-2 text-gray-700">
+                                <div class="font-semibold text-lg">{{ commande.adresseLivraison.adresse }}</div>
+                                {% if commande.adresseLivraison.complementAdresse %}
+                                    <div>{{ commande.adresseLivraison.complementAdresse }}</div>
+                                {% endif %}
+                                <div>{{ commande.adresseLivraison.codePostal }} {{ commande.adresseLivraison.ville }}</div>
+                                <div class="font-semibold">{{ commande.adresseLivraison.pays }}</div>
+                            </div>
+                        {% endif %}
                     </div>
 
                     <div class="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
@@ -122,7 +133,13 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                             <div class="text-sm text-blue-800">
-                                <strong>Livraison estimée :</strong> 5 à 7 jours ouvrés
+                                {% if livraison and livraison.type == 'relais' %}
+                                    <strong>Point relais :</strong> Vous serez prévenu(e) par email dès que votre commande est disponible au retrait.
+                                {% elseif livraison and livraison.type == 'toulouse' %}
+                                    <strong>Récupération Toulouse :</strong> Remise en main propre 1 fois par mois — nous vous contacterons pour convenir des modalités.
+                                {% else %}
+                                    <strong>Livraison estimée :</strong> Environ 1 semaine. Les articles étant expédiés directement par les fournisseurs, plusieurs livraisons peuvent arriver séparément.
+                                {% endif %}
                             </div>
                         </div>
                     </div>

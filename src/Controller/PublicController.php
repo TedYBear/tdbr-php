@@ -14,6 +14,7 @@ use App\Service\CartService;
 use App\Service\StripeService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Mailer\MailerInterface;
@@ -24,6 +25,34 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class PublicController extends AbstractController
 {
+    private const LIVRAISON_OPTIONS = [
+        'domicile' => [
+            'label'       => 'Livraison à domicile',
+            'description' => 'Livraison directe chez vous. Délai estimé : environ 1 semaine. Les colis provenant directement des fournisseurs, plusieurs livraisons peuvent arriver séparément.',
+            'prix'        => 0.00,
+        ],
+        'relais' => [
+            'label'       => 'Point relais partenaire',
+            'description' => 'Récupérez votre commande chez l\'un de nos partenaires.',
+            'prix'        => 0.00,
+        ],
+        'toulouse' => [
+            'label'       => 'Récupération en région Toulousaine',
+            'description' => 'Remise en main propre 1 fois par mois. Nous vous contacterons pour convenir des modalités.',
+            'prix'        => 0.00,
+        ],
+    ];
+
+    private const POINTS_RELAIS = [
+        'du_fromage_au_dessert' => [
+            'nom'        => 'Du fromage au dessert',
+            'adresse'    => 'TODO adresse — à compléter',
+            'ville'      => 'Orthez',
+            'codePostal' => '64300',
+            'pays'       => 'FR',
+        ],
+    ];
+
     public function __construct(
         private EntityManagerInterface $em,
         private ArticleRepository $articleRepo,
@@ -271,6 +300,35 @@ class PublicController extends AbstractController
         return $this->redirectToRoute('panier');
     }
 
+    #[Route('/checkout/update-livraison', name: 'checkout_update_livraison', methods: ['POST'])]
+    public function updateLivraison(Request $request): JsonResponse
+    {
+        if ($this->cartService->getTotalQuantity() === 0) {
+            return $this->json(['error' => 'Panier vide'], 400);
+        }
+
+        $data = json_decode($request->getContent(), true) ?? [];
+        $mode = $data['modeLivraison'] ?? 'domicile';
+        $livraisonOption = self::LIVRAISON_OPTIONS[$mode] ?? self::LIVRAISON_OPTIONS['domicile'];
+        $fraisLivraison = $livraisonOption['prix'];
+        $cartTotal = $this->cartService->getTotal();
+        $total = $cartTotal + $fraisLivraison;
+
+        $paymentIntentId = $data['paymentIntentId'] ?? null;
+        if ($paymentIntentId) {
+            try {
+                $this->stripeService->updatePaymentIntentAmount($paymentIntentId, $total);
+            } catch (\Exception $e) {
+                // Non-fatal : le montant sera re-validé côté serveur au POST
+            }
+        }
+
+        return $this->json([
+            'fraisLivraison' => $fraisLivraison,
+            'total'          => $total,
+        ]);
+    }
+
     #[Route('/checkout', name: 'checkout', methods: ['GET', 'POST'])]
     public function checkout(Request $request): Response
     {
@@ -291,6 +349,10 @@ class PublicController extends AbstractController
                 return $this->redirectToRoute('checkout');
             }
 
+            $modeLivraison = $request->request->get('modeLivraison', 'domicile');
+            $livraisonOption = self::LIVRAISON_OPTIONS[$modeLivraison] ?? self::LIVRAISON_OPTIONS['domicile'];
+            $fraisLivraison = $livraisonOption['prix'];
+
             try {
                 $paymentIntent = $this->stripeService->retrievePaymentIntent($paymentIntentId);
             } catch (\Exception $e) {
@@ -298,8 +360,8 @@ class PublicController extends AbstractController
                 return $this->redirectToRoute('checkout');
             }
 
-            // Vérification du montant côté serveur (anti-manipulation)
-            $expectedAmount = (int) round($this->cartService->getTotal() * 100);
+            // Vérification du montant côté serveur (inclut les frais de livraison)
+            $expectedAmount = (int) round(($this->cartService->getTotal() + $fraisLivraison) * 100);
             if ($paymentIntent->status !== 'succeeded'
                 || $paymentIntent->amount !== $expectedAmount
                 || $paymentIntent->currency !== 'eur') {
@@ -314,6 +376,39 @@ class PublicController extends AbstractController
             }
 
             $data = $form->getData();
+
+            // Construire l'adresse de livraison selon le mode
+            $pointRelaisId = $request->request->get('pointRelaisId', array_key_first(self::POINTS_RELAIS));
+            if ($modeLivraison === 'relais') {
+                $relaisData = self::POINTS_RELAIS[$pointRelaisId] ?? array_values(self::POINTS_RELAIS)[0];
+                $adresseLivraison = [
+                    'adresse'           => $relaisData['adresse'],
+                    'complementAdresse' => '',
+                    'codePostal'        => $relaisData['codePostal'],
+                    'ville'             => $relaisData['ville'],
+                    'pays'              => $relaisData['pays'],
+                ];
+            } else {
+                $adresseLivraison = [
+                    'adresse'           => $request->request->get('adresse', ''),
+                    'complementAdresse' => $request->request->get('complementAdresse', ''),
+                    'codePostal'        => $request->request->get('codePostal', ''),
+                    'ville'             => $request->request->get('ville', ''),
+                    'pays'              => $request->request->get('pays', 'FR'),
+                ];
+            }
+
+            // Données du mode de livraison
+            $modeLivraisonData = [
+                'type'  => $modeLivraison,
+                'label' => $livraisonOption['label'],
+                'prix'  => $fraisLivraison,
+            ];
+            if ($modeLivraison === 'relais') {
+                $relaisData = self::POINTS_RELAIS[$pointRelaisId] ?? array_values(self::POINTS_RELAIS)[0];
+                $modeLivraisonData['pointRelaisNom']     = $relaisData['nom'];
+                $modeLivraisonData['pointRelaisAdresse'] = $relaisData['adresse'] . ', ' . $relaisData['codePostal'] . ' ' . $relaisData['ville'];
+            }
 
             $orderItems = [];
             foreach ($this->cartService->getCart() as $itemId => $item) {
@@ -335,15 +430,10 @@ class PublicController extends AbstractController
                 'email'     => $data['email'],
                 'telephone' => $data['telephone'],
             ]);
-            $commande->setAdresseLivraison([
-                'adresse'           => $data['adresse'],
-                'complementAdresse' => $data['complementAdresse'] ?? '',
-                'codePostal'        => $data['codePostal'],
-                'ville'             => $data['ville'],
-                'pays'              => $data['pays'],
-            ]);
+            $commande->setAdresseLivraison($adresseLivraison);
+            $commande->setModeLivraison($modeLivraisonData);
             $commande->setArticles($orderItems);
-            $commande->setTotal($this->cartService->getTotal());
+            $commande->setTotal($this->cartService->getTotal() + $fraisLivraison);
             $commande->setModePaiement('stripe');
             $commande->setNotes($data['notes'] ?? null);
             $commande->setStatut('payee');
@@ -357,24 +447,31 @@ class PublicController extends AbstractController
             return $this->redirectToRoute('confirmation', ['id' => $commande->getId()]);
         }
 
-        // GET : créer un PaymentIntent et passer le client_secret au template
+        // GET : créer un PaymentIntent avec livraison domicile par défaut
         $total = $this->cartService->getTotal();
+        $livraisonInitiale = self::LIVRAISON_OPTIONS['domicile'];
+        $totalAvecLivraison = $total + $livraisonInitiale['prix'];
         $clientSecret = null;
+        $paymentIntentId = null;
 
         try {
-            $paymentIntent = $this->stripeService->createPaymentIntent($total, 'ref-' . uniqid());
+            $paymentIntent = $this->stripeService->createPaymentIntent($totalAvecLivraison, 'ref-' . uniqid());
             $clientSecret = $paymentIntent->client_secret;
+            $paymentIntentId = $paymentIntent->id;
         } catch (\Exception $e) {
             $this->addFlash('error', 'Le service de paiement est temporairement indisponible.');
         }
 
         return $this->render('public/checkout.html.twig', [
-            'form'            => $form->createView(),
-            'cartItems'       => $this->cartService->getCart(),
-            'total'           => $total,
-            'quantity'        => $this->cartService->getTotalQuantity(),
-            'stripePublicKey' => $_ENV['STRIPE_PUBLIC_KEY'] ?? '',
-            'clientSecret'    => $clientSecret,
+            'form'             => $form->createView(),
+            'cartItems'        => $this->cartService->getCart(),
+            'total'            => $total,
+            'quantity'         => $this->cartService->getTotalQuantity(),
+            'stripePublicKey'  => $_ENV['STRIPE_PUBLIC_KEY'] ?? '',
+            'clientSecret'     => $clientSecret,
+            'paymentIntentId'  => $paymentIntentId,
+            'livraisonOptions' => self::LIVRAISON_OPTIONS,
+            'pointsRelais'     => self::POINTS_RELAIS,
         ]);
     }
 
