@@ -220,11 +220,16 @@ class PublicController extends AbstractController
     #[Route('/panier', name: 'panier')]
     public function panier(): Response
     {
+        $fraisVistaprintDomicile = $this->getFraisVistaprintDomicile();
+        $total = $this->cartService->getTotal();
+
         return $this->render('public/panier.html.twig', [
-            'items' => $this->cartService->getCart(),
-            'total' => $this->cartService->getTotal(),
-            'quantity' => $this->cartService->getTotalQuantity(),
-            'grilleTotals' => $this->cartService->getGrilleTotals(),
+            'items'                   => $this->cartService->getCart(),
+            'total'                   => $total,
+            'quantity'                => $this->cartService->getTotalQuantity(),
+            'grilleTotals'            => $this->cartService->getGrilleTotals(),
+            'fraisVistaprintDomicile' => $fraisVistaprintDomicile,
+            'totalEstime'             => $total + $fraisVistaprintDomicile,
         ]);
     }
 
