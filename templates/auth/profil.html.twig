@@ -213,7 +213,7 @@
                                                     {{ commande.total|number_format(2, ',', ' ') }} €
                                                 </span>
                                             </div>
-                                            <a href="{{ path('confirmation', {id: commande._id}) }}"
+                                            <a href="{{ path('confirmation', {id: commande.id}) }}"
                                                class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-primary hover:text-white rounded-lg transition font-medium text-sm">
                                                 Voir détails
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
