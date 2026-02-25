@@ -1,0 +1,106 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mentions Légales - TDBR{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-gradient-to-b from-gray-50 to-white py-12 md:py-20">
+    <div class="container mx-auto px-4 max-w-3xl">
+
+        <div class="text-center mb-12">
+            <h1 class="font-heading text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+                Mentions Légales
+            </h1>
+            <p class="text-gray-500 text-sm">TDBR — tdbr.fr</p>
+        </div>
+
+        <div class="space-y-6">
+
+            {# Éditeur du site #}
+            <div class="card p-8">
+                <h2 class="font-heading text-xl font-bold text-gray-900 mb-4 pb-3 border-b">Éditeur du site</h2>
+                <p class="text-gray-700 leading-relaxed">
+                    Le site internet TDBR (<strong>www.tdbr.fr</strong>) est édité par <strong>Emmanuel CHAUVEAU</strong>,
+                    micro-entrepreneur (entreprise individuelle) immatriculé sous le SIREN 538 044 231.<br>
+                    Siège social : 39 Boulevard Victor Hugo, 31770 Colomiers.<br>
+                    Directeur de la publication : Emmanuel CHAUVEAU.<br>
+                    Activité : Vente en ligne de biens et produits personnalisés.
+                </p>
+            </div>
+
+            {# Contact #}
+            <div class="card p-8">
+                <h2 class="font-heading text-xl font-bold text-gray-900 mb-4 pb-3 border-b">Contact</h2>
+                <p class="text-gray-700 leading-relaxed">
+                    Adresse électronique : <a href="mailto:contact@tdbr.fr" class="text-primary hover:underline">contact@tdbr.fr</a><br>
+                    Téléphone : <a href="tel:+33561876654" class="text-primary hover:underline">+33 5 61 87 66 54</a>
+                </p>
+            </div>
+
+            {# Hébergeur #}
+            <div class="card p-8">
+                <h2 class="font-heading text-xl font-bold text-gray-900 mb-4 pb-3 border-b">Hébergeur</h2>
+                <p class="text-gray-700 leading-relaxed">
+                    Le site est hébergé par <strong>Hostinger International Ltd</strong>,<br>
+                    61 Lordou Vironos Street, 6023 Larnaca, Chypre.<br>
+                    Téléphone : +370 5 233 0600.
+                </p>
+            </div>
+
+            {# Propriété intellectuelle #}
+            <div class="card p-8">
+                <h2 class="font-heading text-xl font-bold text-gray-900 mb-4 pb-3 border-b">Propriété Intellectuelle</h2>
+                <p class="text-gray-700 leading-relaxed">
+                    Tous les contenus présents sur le site (textes, images, logos, graphismes, vidéos, etc.) sont protégés par le droit d'auteur et le droit de la propriété intellectuelle.
+                    Ils sont la propriété exclusive de TDBR ou de ses partenaires.
+                    <strong>Toute reproduction partielle ou totale est strictement interdite sans autorisation préalable.</strong>
+                </p>
+            </div>
+
+            {# Données personnelles #}
+            <div class="card p-8">
+                <h2 class="font-heading text-xl font-bold text-gray-900 mb-4 pb-3 border-b">Données Personnelles / RGPD</h2>
+                <p class="text-gray-700 leading-relaxed mb-3">
+                    Les données collectées sur le site (informations de compte, coordonnées, commandes, etc.) sont nécessaires au traitement des commandes et à la relation commerciale.
+                    Elles sont traitées par TDBR en tant que responsable de traitement.
+                </p>
+                <p class="text-gray-700 leading-relaxed mb-3">
+                    Conformément au RGPD, l'utilisateur dispose d'un droit d'<strong>accès, de rectification, d'effacement et de limitation</strong> du traitement de ses données.
+                    Pour exercer ces droits ou pour toute question relative à la protection des données, le client peut contacter Emmanuel CHAUVEAU par email à
+                    <a href="mailto:contact@tdbr.fr" class="text-primary hover:underline">contact@tdbr.fr</a>
+                    ou par courrier (39 Boulevard Victor Hugo, 31770 Colomiers).
+                </p>
+                <p class="text-gray-700 leading-relaxed">
+                    Aucune information personnelle n'est cédée à des tiers sans consentement.
+                </p>
+            </div>
+
+            {# Cookies #}
+            <div class="card p-8">
+                <h2 class="font-heading text-xl font-bold text-gray-900 mb-4 pb-3 border-b">Cookies</h2>
+                <p class="text-gray-700 leading-relaxed mb-3">
+                    TDBR utilise des cookies pour améliorer la navigation et analyser le trafic (cookies de session, cookies analytiques, etc.).
+                    L'utilisateur est informé de l'utilisation de ces traceurs et peut les désactiver via les paramètres de son navigateur.
+                </p>
+                <p class="text-gray-700 leading-relaxed">
+                    Le consentement explicite de l'internaute est requis avant le dépôt de cookies non essentiels (publicité, partage sur les réseaux sociaux, etc.).
+                </p>
+            </div>
+
+            {# Loi applicable #}
+            <div class="card p-8">
+                <h2 class="font-heading text-xl font-bold text-gray-900 mb-4 pb-3 border-b">Loi Applicable</h2>
+                <p class="text-gray-700 leading-relaxed">
+                    Le présent site et ses mentions légales sont soumis au <strong>droit français</strong>.
+                    En cas de litige, le tribunal compétent est celui du lieu du siège du vendeur (Colomiers, France).
+                </p>
+            </div>
+
+        </div>
+
+        <div class="mt-10 text-center text-sm text-gray-400">
+            <p>Voir aussi : <a href="{{ path('cgv') }}" class="text-primary hover:underline">Conditions Générales de Vente</a></p>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,155 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Conditions Générales de Vente - TDBR{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-gradient-to-b from-gray-50 to-white py-12 md:py-20">
+    <div class="container mx-auto px-4 max-w-3xl">
+
+        <div class="text-center mb-12">
+            <h1 class="font-heading text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+                Conditions Générales de Vente
+            </h1>
+            <p class="text-gray-500 text-sm">TDBR — Emmanuel CHAUVEAU</p>
+        </div>
+
+        <div class="space-y-6">
+
+            {# Éditeur #}
+            <div class="card p-8">
+                <h2 class="font-heading text-xl font-bold text-gray-900 mb-4 pb-3 border-b">Éditeur / Vendeur</h2>
+                <p class="text-gray-700 leading-relaxed">
+                    TDBR est une boutique en ligne dirigée par <strong>Emmanuel CHAUVEAU</strong>, entrepreneur individuel (micro-entrepreneur).<br>
+                    Siège social : 39 Boulevard Victor Hugo, 31770 Colomiers.<br>
+                    SIRET : 538 044 231 00016 — Numéro RCS (Toulouse) : 538 044 231.<br>
+                    TVA non applicable (art. 293 B du CGI).<br>
+                    Contact : <a href="mailto:contact@tdbr.fr" class="text-primary hover:underline">contact@tdbr.fr</a>
+                </p>
+            </div>
+
+            {# Produits #}
+            <div class="card p-8">
+                <h2 class="font-heading text-xl font-bold text-gray-900 mb-4 pb-3 border-b">Produits</h2>
+                <p class="text-gray-700 leading-relaxed">
+                    TDBR propose la vente de <strong>biens personnalisés</strong> (ex. vêtements imprimés à la demande).
+                    Chaque produit est fabriqué selon les spécifications du client.
+                    Les caractéristiques essentielles des produits sont décrites sur le site.
+                </p>
+            </div>
+
+            {# Prix #}
+            <div class="card p-8">
+                <h2 class="font-heading text-xl font-bold text-gray-900 mb-4 pb-3 border-b">Prix</h2>
+                <p class="text-gray-700 leading-relaxed">
+                    Les prix affichés sont en euros <strong>toutes taxes comprises (TTC)</strong>.
+                    Les frais de livraison éventuels sont précisés en sus au moment de la commande.
+                    La micro-entreprise n'est pas assujettie à la TVA (dispense légale, art. 293 B du CGI).
+                </p>
+            </div>
+
+            {# Commande et paiement #}
+            <div class="card p-8">
+                <h2 class="font-heading text-xl font-bold text-gray-900 mb-4 pb-3 border-b">Commande et Paiement</h2>
+                <p class="text-gray-700 leading-relaxed mb-3">
+                    La commande du client est enregistrée et validée après <strong>réception du paiement intégral</strong>.
+                    Les modes de paiement acceptés sont : carte bancaire (Visa, MasterCard, etc.), PayPal et virement bancaire.
+                    Les paiements sont sécurisés (protocoles HTTPS, 3D Secure, etc.).
+                </p>
+                <p class="text-gray-700 leading-relaxed">
+                    En l'absence de moyen de paiement, la commande ne sera pas considérée comme ferme.
+                    Le vendeur se réserve, le cas échéant, la possibilité de demander un acompte pour certaines commandes personnalisées.
+                </p>
+            </div>
+
+            {# Livraison #}
+            <div class="card p-8">
+                <h2 class="font-heading text-xl font-bold text-gray-900 mb-4 pb-3 border-b">Livraison</h2>
+                <p class="text-gray-700 leading-relaxed mb-3">
+                    Les produits sont livrés à l'adresse indiquée par le client lors de la commande.
+                    Le vendeur communique au client la date ou le délai de livraison prévisionnel avant ou lors de la confirmation de commande.
+                    En cas de livraison par transporteur, le transfert de propriété et des risques au profit du client intervient au moment de la remise du bien au transporteur.
+                </p>
+                <p class="text-gray-700 leading-relaxed mb-3">
+                    Conformément à la réglementation (art. L216-1 du Code de la consommation), si le vendeur n'effectue pas la livraison dans le délai convenu, le client peut exiger l'exécution forcée, ou après un délai convenable de 15 jours, demander la résolution du contrat et le remboursement.
+                    À défaut de date spécifiée, le vendeur doit livrer au plus tard dans les <strong>30 jours suivant la commande</strong>.
+                </p>
+                <p class="text-gray-700 leading-relaxed">
+                    Les frais de port facturés au client ont été indiqués lors de la commande et ne peuvent être modifiés a posteriori.
+                </p>
+            </div>
+
+            {# Droit de rétractation #}
+            <div class="card p-8">
+                <h2 class="font-heading text-xl font-bold text-gray-900 mb-4 pb-3 border-b">Droit de Rétractation</h2>
+                <p class="text-gray-700 leading-relaxed mb-4">
+                    En application des articles L.221-18 et suivants du Code de la consommation, le client dispose d'un droit de rétractation de <strong>14 jours à compter de la réception du produit</strong>.
+                    Le client peut annuler sa commande sans motif, par courrier, email ou via le formulaire de rétractation type prévu par la loi.
+                    Le produit doit être retourné dans son état d'origine et complet, <strong>aux frais du client</strong>.
+                </p>
+                <div class="p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                    <p class="text-amber-900 leading-relaxed text-sm">
+                        <strong>Exception :</strong> conformément à l'article L221-28 du Code de la consommation,
+                        le droit de rétractation <strong>ne s'applique pas</strong> aux contrats portant sur des biens
+                        fabriqués sur mesure ou nettement personnalisés. Dans ce cas, la commande ne peut pas être annulée pour motif de rétractation.
+                    </p>
+                </div>
+            </div>
+
+            {# Garanties #}
+            <div class="card p-8">
+                <h2 class="font-heading text-xl font-bold text-gray-900 mb-4 pb-3 border-b">Garanties</h2>
+                <p class="text-gray-700 leading-relaxed">
+                    Les produits vendus bénéficient de la <strong>garantie légale de conformité (2 ans)</strong> et de la <strong>garantie légale contre les vices cachés</strong>,
+                    selon les articles L.217-4 et suivants du Code de la consommation et les articles 1641 et suivants du Code civil.
+                    En cas de défaut ou non-conformité, le client peut obtenir la réparation ou le remplacement du produit,
+                    ou le remboursement si cela n'est pas possible.
+                    Les éventuelles garanties commerciales supplémentaires sont précisées sur le site ou la facture.
+                </p>
+            </div>
+
+            {# Responsabilité #}
+            <div class="card p-8">
+                <h2 class="font-heading text-xl font-bold text-gray-900 mb-4 pb-3 border-b">Responsabilité</h2>
+                <p class="text-gray-700 leading-relaxed mb-3">
+                    La responsabilité de TDBR est engagée en cas de faute dans le traitement de la commande.
+                    Toutefois, le vendeur ne peut être tenu pour responsable des dommages résultant d'une erreur du client dans le choix de la personnalisation (design, couleur, texte saisi, etc.).
+                </p>
+                <p class="text-gray-700 leading-relaxed mb-3">
+                    Les photographies et illustrations des produits sont non contractuelles et n'engagent pas la responsabilité du vendeur si le rendu final diffère légèrement.
+                </p>
+                <p class="text-gray-700 leading-relaxed">
+                    En cas de force majeure (grève, incendie, intempéries, etc.), le vendeur ne peut être tenu pour responsable de la non-exécution ou du retard d'exécution de ses obligations.
+                    En tout état de cause, la responsabilité civile du vendeur est limitée au montant de la commande, hors cas de dommage corporel.
+                </p>
+            </div>
+
+            {# Médiation et litiges #}
+            <div class="card p-8">
+                <h2 class="font-heading text-xl font-bold text-gray-900 mb-4 pb-3 border-b">Médiation et Litiges</h2>
+                <p class="text-gray-700 leading-relaxed mb-3">
+                    Le client est invité à contacter le service client de TDBR pour toute réclamation :
+                    <a href="mailto:contact@tdbr.fr" class="text-primary hover:underline">contact@tdbr.fr</a>.
+                </p>
+                <p class="text-gray-700 leading-relaxed mb-3">
+                    Conformément aux articles L.616-1 et R.616-1 du Code de la consommation, le client dispose également du droit de recourir gratuitement à un médiateur de la consommation en cas de litige non résolu par le service client.
+                    TDBR a désigné pour médiateur la <strong>Médiation de la consommation de la FEVAD</strong>, accessible sur
+                    <a href="https://www.mediateurfevad.fr" target="_blank" rel="noopener" class="text-primary hover:underline">mediateurfevad.fr</a>.
+                </p>
+                <p class="text-gray-700 leading-relaxed mb-3">
+                    Le site de règlement en ligne des litiges de la Commission européenne (plateforme RLL) est disponible à l'adresse :
+                    <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener" class="text-primary hover:underline">ec.europa.eu/consumers/odr</a>.
+                </p>
+                <p class="text-gray-700 leading-relaxed">
+                    En cas de litige, les <strong>tribunaux français</strong> sont compétents (tribunal du lieu du siège du vendeur), sauf disposition impérative contraire.
+                </p>
+            </div>
+
+        </div>
+
+        <div class="mt-10 text-center text-sm text-gray-400">
+            <p>Voir aussi : <a href="{{ path('mentions_legales') }}" class="text-primary hover:underline">Mentions légales</a></p>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
