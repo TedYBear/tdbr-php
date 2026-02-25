@@ -248,13 +248,14 @@ class PublicController extends AbstractController
         }
 
         $articleArray = [
-            'id' => $article->getId(),
-            'nom' => $article->getNom(),
-            'slug' => $article->getSlug(),
-            'prix' => $article->getPrixBase(),
-            'image' => $article->getFirstImageUrl(),
-            'paliers' => $article->getGrillePrix() ? $article->getGrillePrix()->getPaliers() : [],
-            'grilleId' => $article->getGrillePrix() ? $article->getGrillePrix()->getId() : null,
+            'id'            => $article->getId(),
+            'nom'           => $article->getNom(),
+            'slug'          => $article->getSlug(),
+            'prix'          => $article->getPrixBase(),
+            'image'         => $article->getFirstImageUrl(),
+            'paliers'       => $article->getGrillePrix() ? $article->getGrillePrix()->getPaliers() : [],
+            'grilleId'      => $article->getGrillePrix() ? $article->getGrillePrix()->getId() : null,
+            'fournisseurNom' => $article->getFournisseur()?->getNom(),
         ];
 
         // Utiliser le prix de la variante sélectionnée si disponible
@@ -310,7 +311,8 @@ class PublicController extends AbstractController
         $data = json_decode($request->getContent(), true) ?? [];
         $mode = $data['modeLivraison'] ?? 'domicile';
         $livraisonOption = self::LIVRAISON_OPTIONS[$mode] ?? self::LIVRAISON_OPTIONS['domicile'];
-        $fraisLivraison = $livraisonOption['prix'];
+        $fraisVistaprint = $mode === 'domicile' ? $this->getFraisVistaprintDomicile() : 0.0;
+        $fraisLivraison = $livraisonOption['prix'] + $fraisVistaprint;
         $cartTotal = $this->cartService->getTotal();
         $total = $cartTotal + $fraisLivraison;
 
@@ -351,7 +353,8 @@ class PublicController extends AbstractController
 
             $modeLivraison = $request->request->get('modeLivraison', 'domicile');
             $livraisonOption = self::LIVRAISON_OPTIONS[$modeLivraison] ?? self::LIVRAISON_OPTIONS['domicile'];
-            $fraisLivraison = $livraisonOption['prix'];
+            $fraisVistaprint = $modeLivraison === 'domicile' ? $this->getFraisVistaprintDomicile() : 0.0;
+            $fraisLivraison = $livraisonOption['prix'] + $fraisVistaprint;
 
             try {
                 $paymentIntent = $this->stripeService->retrievePaymentIntent($paymentIntentId);
@@ -449,8 +452,13 @@ class PublicController extends AbstractController
 
         // GET : créer un PaymentIntent avec livraison domicile par défaut
         $total = $this->cartService->getTotal();
-        $livraisonInitiale = self::LIVRAISON_OPTIONS['domicile'];
-        $totalAvecLivraison = $total + $livraisonInitiale['prix'];
+        $fraisVistaprint = $this->getFraisVistaprintDomicile();
+        $fraisParMode = [
+            'domicile' => self::LIVRAISON_OPTIONS['domicile']['prix'] + $fraisVistaprint,
+            'relais'   => self::LIVRAISON_OPTIONS['relais']['prix'],
+            'toulouse' => self::LIVRAISON_OPTIONS['toulouse']['prix'],
+        ];
+        $totalAvecLivraison = $total + $fraisParMode['domicile'];
         $clientSecret = null;
         $paymentIntentId = null;
 
@@ -472,6 +480,7 @@ class PublicController extends AbstractController
             'paymentIntentId'  => $paymentIntentId,
             'livraisonOptions' => self::LIVRAISON_OPTIONS,
             'pointsRelais'     => self::POINTS_RELAIS,
+            'fraisParMode'     => $fraisParMode,
         ]);
     }
 
@@ -665,5 +674,45 @@ class PublicController extends AbstractController
     public function logout(): void
     {
         throw new \LogicException('This method can be blank - it will be intercepted by the logout key on your firewall.');
+    }
+
+    /**
+     * Frais de livraison Vistaprint pour le mode domicile.
+     * Règle : 5 € si la somme des prix fournisseurs Vistaprint < 50 €, sinon gratuit.
+     */
+    private function getFraisVistaprintDomicile(): float
+    {
+        $totalFournisseur = 0.0;
+        $hasVistaprint = false;
+
+        foreach ($this->cartService->getCart() as $item) {
+            $fournisseurNom = $item['article']['fournisseurNom'] ?? null;
+            if ($fournisseurNom && stripos($fournisseurNom, 'vistaprint') !== false) {
+                $hasVistaprint = true;
+                $qty = (int)($item['quantity'] ?? 1);
+                $prixU = $this->getPrixFournisseurPalier($item['article']['paliers'] ?? [], $qty);
+                $totalFournisseur += $prixU * $qty;
+            }
+        }
+
+        if (!$hasVistaprint) {
+            return 0.0;
+        }
+
+        return $totalFournisseur >= 50.0 ? 0.0 : 5.0;
+    }
+
+    /**
+     * Résout le prix fournisseur unitaire depuis les paliers pour une quantité donnée.
+     */
+    private function getPrixFournisseurPalier(array $paliers, int $qty): float
+    {
+        foreach ($paliers as $palier) {
+            if ($qty >= (int)$palier['min']
+                && ($palier['max'] === null || $qty <= (int)$palier['max'])) {
+                return (float)($palier['prixFournisseur'] ?? 0);
+            }
+        }
+        return 0.0;
     }
 }
