@@ -1,0 +1,167 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}La livraison - TDBR{% endblock %}
+
+{% block body %}
+    {% include 'public/_presentation_subnav.html.twig' %}
+
+    <div class="min-h-screen bg-gradient-to-b from-gray-50 to-white py-12 md:py-20">
+        <div class="container mx-auto px-4 max-w-4xl">
+
+            {# Header #}
+            <div class="text-center mb-12 md:mb-16">
+                <h1 class="font-heading text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+                    La livraison
+                </h1>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                    Trois façons de récupérer votre commande, selon ce qui vous convient le mieux.
+                </p>
+            </div>
+
+            <div class="space-y-8">
+
+                {# Option 1 : Remise en main propre #}
+                <div class="card p-8 md:p-10">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center flex-shrink-0">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="font-heading text-2xl md:text-3xl font-bold text-gray-900">
+                                Remise en main propre
+                            </h2>
+                            <span class="text-sm text-primary font-medium">Région toulousaine</span>
+                        </div>
+                    </div>
+
+                    <p class="text-gray-700 leading-relaxed mb-4">
+                        Une distribution mensuelle ou tous les quinze jours, directement de la main à la main.
+                        L'occasion de <strong>mutualiser les commandes</strong>, de réduire les emballages,
+                        et surtout de se retrouver autour d'un café ou d'un verre.
+                    </p>
+                    <p class="text-gray-700 leading-relaxed">
+                        C'est aussi et surtout un <strong>moment d'échange</strong> — parler des créations, partager vos retours,
+                        peut-être vous présenter d'autres passionnés. Le genre de lien qu'une boîte expédiée
+                        par un transporteur ne peut pas créer.
+                    </p>
+
+                    <div class="mt-6 p-4 bg-primary/5 border border-primary/15 rounded-xl">
+                        <p class="text-sm text-gray-700">
+                            <strong class="text-gray-900">Comment ça marche ?</strong>
+                            Au moment de la commande, choisissez le mode "Récupération en région toulousaine".
+                            Je vous contacterai ensuite pour convenir d'un lieu et d'un horaire.
+                        </p>
+                    </div>
+                </div>
+
+                {# Option 2 : Boutique partenaire #}
+                <div class="card p-8 md:p-10">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center flex-shrink-0">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="font-heading text-2xl md:text-3xl font-bold text-gray-900">
+                                Boutique partenaire
+                            </h2>
+                            <span class="text-sm text-primary font-medium">Point relais TDBR</span>
+                        </div>
+                    </div>
+
+                    <p class="text-gray-700 leading-relaxed mb-4">
+                        Récupérez votre commande chez l'un de nos partenaires, <strong>plus près de chez vous</strong>.
+                        Ces boutiques sont avant tout des lieux de vie qui valent le détour —
+                        une bonne excuse pour aller les découvrir ou y retourner.
+                    </p>
+                    <p class="text-gray-700 leading-relaxed">
+                        Je les approvisionne à intervalles plus ou moins réguliers selon le volume des commandes.
+                        Une fois votre colis arrivé, vous serez prévenus pour venir le récupérer.
+                    </p>
+
+                    <div class="mt-6 p-4 bg-primary/5 border border-primary/15 rounded-xl">
+                        <p class="text-sm text-gray-700">
+                            <strong class="text-gray-900">Actuellement :</strong>
+                            la boutique <strong>Du fromage au dessert</strong> à Orthez (fromagerie et pâtisserie, 19 rue des Jacobins).
+                            D'autres points de relais pourraient rejoindre l'aventure prochainement.
+                        </p>
+                    </div>
+                </div>
+
+                {# Option 3 : Livraison à domicile #}
+                <div class="card p-8 md:p-10">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center flex-shrink-0">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 22V12h6v10"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="font-heading text-2xl md:text-3xl font-bold text-gray-900">
+                                Livraison à domicile
+                            </h2>
+                            <span class="text-sm text-primary font-medium">Livraison classique</span>
+                        </div>
+                    </div>
+
+                    <p class="text-gray-700 leading-relaxed mb-4">
+                        Votre commande est expédiée directement chez vous par mes producteurs.
+                        Délai estimé : <strong>environ une semaine</strong> selon les articles commandés.
+                    </p>
+                    <p class="text-gray-700 leading-relaxed mb-4">
+                        Comme chaque article est fabriqué et expédié par un producteur différent
+                        (Printful pour les vêtements, Vistaprint pour les mugs et accessoires),
+                        <strong>plusieurs colis peuvent arriver séparément</strong> si vous commandez des articles de types différents.
+                    </p>
+
+                    <div class="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                        <p class="text-sm text-amber-800 leading-relaxed">
+                            <strong>À noter sur les frais de port :</strong>
+                            certaines commandes, en fonction des articles et des quantités,
+                            peuvent entraîner des <strong>frais de livraison supplémentaires</strong> calculés automatiquement.
+                            Ces frais vous sont indiqués clairement avant validation de votre paiement.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+            {# CTA #}
+            <div class="mt-12 text-center p-8 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-2xl border border-primary/10">
+                <h3 class="font-heading text-2xl font-bold text-gray-900 mb-3">
+                    Prêt à commander ?
+                </h3>
+                <p class="text-gray-600 mb-6">
+                    Le mode de livraison est à choisir au moment du paiement.
+                </p>
+                <a href="{{ path('catalogue') }}" class="btn-primary inline-flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                    </svg>
+                    Voir le catalogue
+                </a>
+            </div>
+
+            {# Navigation #}
+            <div class="mt-10 flex flex-col sm:flex-row gap-4 justify-between">
+                <a href="{{ path('presentation_partenaires') }}" class="btn-outline px-6 py-3 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                    Mes partenaires
+                </a>
+                <a href="{{ path('catalogue') }}" class="btn-primary px-6 py-3 flex items-center gap-2">
+                    Voir le catalogue
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </a>
+            </div>
+
+        </div>
+    </div>
+{% endblock %}
