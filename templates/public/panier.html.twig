@@ -205,4 +205,49 @@
         </div>
     </section>
 
+{# ===== DEBUG VISTAPRINT — à supprimer ===== #}
+{% if debugVistaprint is defined %}
+<section class="py-8 bg-gray-50 border-t-4 border-yellow-400">
+    <div class="container mx-auto px-4">
+        <h3 class="font-mono font-bold text-lg mb-4 text-yellow-700">[DEBUG] Calcul frais Vistaprint</h3>
+        <table class="w-full text-xs font-mono border border-gray-300 bg-white mb-4">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="border px-2 py-1 text-left">Article</th>
+                    <th class="border px-2 py-1">Fournisseur</th>
+                    <th class="border px-2 py-1">Qté</th>
+                    <th class="border px-2 py-1">Nb lignes</th>
+                    <th class="border px-2 py-1">Nb paliers</th>
+                    <th class="border px-2 py-1">Prix/u (ligne)</th>
+                    <th class="border px-2 py-1">Prix/u (palier)</th>
+                    <th class="border px-2 py-1">Prix/u utilisé</th>
+                    <th class="border px-2 py-1">Sous-total fourn.</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in debugVistaprint.rows %}
+                <tr class="{{ 'vistaprint' in row.fournisseur|lower ? 'bg-yellow-50' : '' }}">
+                    <td class="border px-2 py-1">{{ row.nom }}</td>
+                    <td class="border px-2 py-1 text-center">{{ row.fournisseur }}</td>
+                    <td class="border px-2 py-1 text-center">{{ row.qty }}</td>
+                    <td class="border px-2 py-1 text-center">{{ row.nbLignes }}</td>
+                    <td class="border px-2 py-1 text-center">{{ row.nbPaliers }}</td>
+                    <td class="border px-2 py-1 text-right {{ row.prixLigne > 0 ? 'text-green-700 font-bold' : 'text-red-500' }}">{{ row.prixLigne|number_format(2, '.') }} €</td>
+                    <td class="border px-2 py-1 text-right {{ row.prixPalier > 0 ? 'text-green-700 font-bold' : 'text-red-500' }}">{{ row.prixPalier|number_format(2, '.') }} €</td>
+                    <td class="border px-2 py-1 text-right font-bold">{{ row.prixUsed|number_format(2, '.') }} €</td>
+                    <td class="border px-2 py-1 text-right font-bold">{{ row.sousTotal|number_format(2, '.') }} €</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="font-mono text-sm space-y-1">
+            <div>Total fournisseur Vistaprint : <strong>{{ debugVistaprint.totalFournisseur|number_format(2, '.') }} €</strong></div>
+            <div>Seuil : <strong>{{ debugVistaprint.seuil }} €</strong></div>
+            <div>Frais calculés : <strong class="{{ debugVistaprint.fraisCalcule > 0 ? 'text-red-600' : 'text-green-600' }}">{{ debugVistaprint.fraisCalcule|number_format(2, '.') }} €</strong></div>
+        </div>
+    </div>
+</section>
+{% endif %}
+{# ===== /DEBUG ===== #}
+
 {% endblock %}
