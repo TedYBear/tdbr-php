@@ -278,18 +278,11 @@
                             Paiement sécurisé
                         </h2>
 
-                        {% if clientSecret %}
-                            <div id="payment-element" class="mb-4 min-h-[120px]"></div>
-                            <div id="payment-message" class="text-red-600 text-sm mt-2 hidden"></div>
-                        {% else %}
-                            <p class="text-red-600">Le service de paiement est temporairement indisponible. Veuillez réessayer.</p>
-                        {% endif %}
-
-                        <div class="flex items-center gap-2 mt-4 text-xs text-gray-500">
-                            <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                            </svg>
-                            Paiement chiffré SSL — Propulsé par <strong class="ml-1">Stripe</strong>
+                        <div class="p-4 bg-amber-50 rounded-lg border border-amber-200">
+                            <p class="text-sm font-semibold text-amber-800">Le paiement en ligne sera disponible très prochainement.</p>
+                            <p class="text-sm text-amber-700 mt-1">
+                                En attendant, <a href="{{ path('contact') }}" class="underline font-medium">contactez-nous</a> pour passer commande dès maintenant.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -345,21 +338,10 @@
                                   x-text="formatPrice(grandTotal)">{{ total|number_format(2, ',', ' ') }} €</span>
                         </div>
 
-                        {% if clientSecret %}
-                            <button type="button"
-                                    @click="pay()"
-                                    :disabled="loading"
-                                    class="w-full text-lg py-4 btn-primary rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition">
-                                <span x-show="!loading"
-                                      x-text="'Payer\u00a0' + formatPrice(grandTotal)">Payer {{ total|number_format(2, ',', ' ') }} €</span>
-                                <span x-show="loading" style="display:none;">Paiement en cours…</span>
-                            </button>
-                        {% else %}
-                            <button type="button" disabled
-                                    class="w-full text-lg py-4 bg-gray-200 text-gray-400 rounded-xl cursor-not-allowed font-semibold">
-                                Service indisponible
-                            </button>
-                        {% endif %}
+                        <button type="button" disabled
+                                class="w-full text-lg py-4 bg-gray-200 text-gray-400 rounded-xl cursor-not-allowed font-semibold">
+                            Paiement bientôt disponible
+                        </button>
 
                         {# Sécurité #}
                         <div class="mt-8 pt-8 border-t space-y-3">
