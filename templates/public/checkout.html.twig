@@ -52,9 +52,12 @@
             fraisLivraison: {{ fraisParMode.domicile }},
             cartTotal: {{ total }},
             piId: {{ paymentIntentId|default('')|json_encode|raw }},
+            codesDisponibles: {{ codesDisponiblesData|json_encode|raw }},
+            selectedCodeId: null,
+            reduction: 0,
 
             get grandTotal() {
-                return this.cartTotal + this.fraisLivraison;
+                return Math.max(0.01, this.cartTotal + this.fraisLivraison - this.reduction);
             },
 
             formatPrice(val) {
@@ -67,11 +70,37 @@
                     const resp = await fetch('/checkout/update-livraison', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ paymentIntentId: this.piId, modeLivraison: m })
+                        body: JSON.stringify({
+                            paymentIntentId: this.piId,
+                            modeLivraison: m,
+                            codeReductionId: this.selectedCodeId
+                        })
                     });
                     if (resp.ok) {
                         const data = await resp.json();
                         this.fraisLivraison = data.fraisLivraison;
+                    }
+                } catch (e) {}
+            },
+
+            async selectCode(codeId) {
+                this.selectedCodeId = codeId;
+                try {
+                    const resp = await fetch('/checkout/apply-code', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            paymentIntentId: this.piId,
+                            codeReductionId: codeId,
+                            modeLivraison: this.mode
+                        })
+                    });
+                    if (resp.ok) {
+                        const data = await resp.json();
+                        if (!data.error) {
+                            this.reduction = data.reduction;
+                            this.fraisLivraison = data.fraisLivraison;
+                        }
                     }
                 } catch (e) {}
             },
@@ -254,6 +283,47 @@
                         </div>
                     </div>
 
+                    {# Code de Réduction #}
+                    <div class="card p-5 md:p-8" x-show="codesDisponibles.length > 0" style="display:none;">
+                        <h2 class="font-heading text-3xl font-bold mb-6 flex items-center gap-3">
+                            <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                            </svg>
+                            Code de réduction
+                        </h2>
+
+                        <div class="space-y-3">
+                            {# Option : aucun code #}
+                            <div class="flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all"
+                                 :class="selectedCodeId === null ? 'border-primary bg-accent/30' : 'border-gray-200 hover:border-gray-300'"
+                                 @click="selectCode(null)">
+                                <div class="flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors"
+                                     :class="selectedCodeId === null ? 'border-primary' : 'border-gray-300'">
+                                    <div class="w-2.5 h-2.5 rounded-full bg-primary" x-show="selectedCodeId === null"></div>
+                                </div>
+                                <span class="font-medium text-gray-700">Aucun code</span>
+                            </div>
+
+                            {# Codes disponibles #}
+                            <template x-for="c in codesDisponibles" :key="c.id">
+                                <div class="flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all"
+                                     :class="selectedCodeId === c.id ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-gray-300'"
+                                     @click="selectCode(c.id)">
+                                    <div class="flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors"
+                                         :class="selectedCodeId === c.id ? 'border-green-500' : 'border-gray-300'">
+                                        <div class="w-2.5 h-2.5 rounded-full bg-green-500" x-show="selectedCodeId === c.id"></div>
+                                    </div>
+                                    <div class="flex-1 flex justify-between items-center">
+                                        <span class="font-mono font-semibold text-gray-900" x-text="c.code"></span>
+                                        <span class="font-bold text-green-600" x-text="'- ' + c.montant.toFixed(2).replace('.', ',') + '\u00a0€'"></span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+
+                        <input type="hidden" name="codeReductionId" :value="selectedCodeId ?? ''">
+                    </div>
+
                     {# Notes #}
                     <div class="card p-5 md:p-8">
                         <h2 class="font-heading text-3xl font-bold mb-6 flex items-center gap-3">
@@ -329,6 +399,10 @@
                                 <span>Livraison</span>
                                 <span class="font-semibold text-green-600"
                                       x-text="fraisLivraison === 0 ? 'Gratuite' : formatPrice(fraisLivraison)">Gratuite</span>
+                            </div>
+                            <div class="flex justify-between text-green-600" x-show="reduction > 0" style="display:none;">
+                                <span class="font-semibold">Réduction</span>
+                                <span class="font-semibold" x-text="'- ' + formatPrice(reduction)"></span>
                             </div>
                         </div>
 
