@@ -43,6 +43,9 @@ class Commande
     #[ORM\Column(type: 'json', nullable: true)]
     private ?array $modeLivraison = null;
 
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
+    private float $reduction = 0.0;
+
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
@@ -75,6 +78,8 @@ class Commande
     public function setStripePaymentIntentId(?string $id): static { $this->stripePaymentIntentId = $id; return $this; }
     public function getModeLivraison(): ?array { return $this->modeLivraison; }
     public function setModeLivraison(?array $m): static { $this->modeLivraison = $m; return $this; }
+    public function getReduction(): float { return (float) $this->reduction; }
+    public function setReduction(float $r): static { $this->reduction = $r; return $this; }
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
     public function setCreatedAt(\DateTimeImmutable $c): static { $this->createdAt = $c; return $this; }
     public function getUpdatedAt(): ?\DateTimeImmutable { return $this->updatedAt; }

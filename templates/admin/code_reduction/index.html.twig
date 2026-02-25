@@ -1,0 +1,106 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% block title %}Codes de réduction{% endblock %}
+{% block page_title %}Codes de réduction{% endblock %}
+{% block page_subtitle %}<p class="text-sm text-gray-600">{{ total }} code{{ total > 1 ? 's' : '' }} au total</p>{% endblock %}
+
+{% block body %}
+    <div class="flex justify-end mb-6">
+        <a href="{{ path('admin_codes_reduction_new') }}" class="btn-primary">
+            + Nouveau code
+        </a>
+    </div>
+
+    <div class="card overflow-hidden">
+        {% if codes|length > 0 %}
+            <table class="w-full">
+                <thead class="bg-gray-50 border-b">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Code</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Utilisateur</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Montant</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Statut</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Expiration</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Commande</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y">
+                    {% for code in codes %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 font-mono font-semibold text-primary">{{ code.code }}</td>
+                            <td class="px-6 py-4">
+                                <div class="font-medium">{{ code.user.fullName ?: code.user.email }}</div>
+                                <div class="text-sm text-gray-500">{{ code.user.email }}</div>
+                            </td>
+                            <td class="px-6 py-4 font-bold">{{ code.montant|number_format(2, ',', ' ') }} €</td>
+                            <td class="px-6 py-4">
+                                <span class="px-3 py-1 rounded-full text-xs font-semibold
+                                    {% if code.statut == 'actif' and code.isActif %}bg-green-100 text-green-800
+                                    {% elseif code.statut == 'actif' %}bg-orange-100 text-orange-800
+                                    {% else %}bg-gray-100 text-gray-600{% endif %}">
+                                    {% if code.statut == 'actif' and not code.isActif %}
+                                        Expiré
+                                    {% else %}
+                                        {{ code.statut|capitalize }}
+                                    {% endif %}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-600">
+                                {{ code.dateExpiration ? code.dateExpiration|date('d/m/Y') : '—' }}
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-600">
+                                {% if code.commande %}
+                                    <a href="{{ path('admin_commandes_detail', {id: code.commande.id}) }}"
+                                       class="text-primary hover:text-secondary">
+                                        {{ code.commande.numero }}
+                                    </a>
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 flex items-center gap-3">
+                                <a href="{{ path('admin_codes_reduction_edit', {id: code.id}) }}"
+                                   class="text-primary hover:text-secondary text-sm">Modifier</a>
+                                {% if code.statut == 'actif' %}
+                                    <form method="post"
+                                          action="{{ path('admin_codes_reduction_delete', {id: code.id}) }}"
+                                          onsubmit="return confirm('Supprimer ce code ?');">
+                                        <button type="submit" class="text-red-500 hover:text-red-700 text-sm">Supprimer</button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {% if totalPages > 1 %}
+                <div class="px-6 py-4 border-t bg-gray-50 flex justify-center">
+                    <nav class="flex gap-2">
+                        {% if currentPage > 1 %}
+                            <a href="{{ path('admin_codes_reduction', {page: currentPage - 1}) }}" class="px-4 py-2 bg-white border rounded hover:bg-gray-50">← Précédent</a>
+                        {% endif %}
+                        {% for i in 1..totalPages %}
+                            {% if i == currentPage %}
+                                <span class="px-4 py-2 bg-primary text-white rounded font-semibold">{{ i }}</span>
+                            {% elseif i == 1 or i == totalPages or (i >= currentPage - 2 and i <= currentPage + 2) %}
+                                <a href="{{ path('admin_codes_reduction', {page: i}) }}" class="px-4 py-2 bg-white border rounded hover:bg-gray-50">{{ i }}</a>
+                            {% elseif i == currentPage - 3 or i == currentPage + 3 %}
+                                <span class="px-4 py-2">...</span>
+                            {% endif %}
+                        {% endfor %}
+                        {% if currentPage < totalPages %}
+                            <a href="{{ path('admin_codes_reduction', {page: currentPage + 1}) }}" class="px-4 py-2 bg-white border rounded hover:bg-gray-50">Suivant →</a>
+                        {% endif %}
+                    </nav>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-16">
+                <p class="text-gray-500">Aucun code de réduction</p>
+                <a href="{{ path('admin_codes_reduction_new') }}" class="btn-primary mt-4 inline-block">Créer le premier code</a>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

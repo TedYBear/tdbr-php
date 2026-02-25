@@ -7,6 +7,7 @@ use App\Entity\Message;
 use App\Entity\User;
 use App\Repository\ArticleRepository;
 use App\Repository\CategoryRepository;
+use App\Repository\CodeReductionRepository;
 use App\Repository\CommandeRepository;
 use App\Repository\ProductCollectionRepository;
 use App\Repository\UserRepository;
@@ -62,6 +63,7 @@ class PublicController extends AbstractController
         private UserRepository $userRepo,
         private CartService $cartService,
         private StripeService $stripeService,
+        private CodeReductionRepository $codeReductionRepo,
     ) {
     }
 
@@ -320,7 +322,10 @@ class PublicController extends AbstractController
         $fraisVistaprint = $mode === 'domicile' ? $this->getFraisVistaprintDomicile() : 0.0;
         $fraisLivraison = $livraisonOption['prix'] + $fraisVistaprint;
         $cartTotal = $this->cartService->getTotal();
-        $total = $cartTotal + $fraisLivraison;
+        $reduction = $this->getReductionFromCode(
+            isset($data['codeReductionId']) ? (int) $data['codeReductionId'] ?: null : null
+        );
+        $total = max(0.01, $cartTotal + $fraisLivraison - $reduction);
 
         $paymentIntentId = $data['paymentIntentId'] ?? null;
         if ($paymentIntentId) {
@@ -332,6 +337,45 @@ class PublicController extends AbstractController
         }
 
         return $this->json([
+            'fraisLivraison' => $fraisLivraison,
+            'reduction'      => $reduction,
+            'total'          => $total,
+        ]);
+    }
+
+    #[Route('/checkout/apply-code', name: 'checkout_apply_code', methods: ['POST'])]
+    public function applyCode(Request $request): JsonResponse
+    {
+        if ($this->cartService->getTotalQuantity() === 0) {
+            return $this->json(['error' => 'Panier vide'], 400);
+        }
+
+        $data = json_decode($request->getContent(), true) ?? [];
+        $codeReductionId = isset($data['codeReductionId']) ? (int) $data['codeReductionId'] ?: null : null;
+        $mode = $data['modeLivraison'] ?? 'domicile';
+
+        $reduction = $this->getReductionFromCode($codeReductionId);
+        if ($codeReductionId && $reduction === 0.0) {
+            return $this->json(['error' => 'Code invalide ou expiré'], 400);
+        }
+
+        $livraisonOption = self::LIVRAISON_OPTIONS[$mode] ?? self::LIVRAISON_OPTIONS['domicile'];
+        $fraisVistaprint = $mode === 'domicile' ? $this->getFraisVistaprintDomicile() : 0.0;
+        $fraisLivraison = $livraisonOption['prix'] + $fraisVistaprint;
+        $cartTotal = $this->cartService->getTotal();
+        $total = max(0.01, $cartTotal + $fraisLivraison - $reduction);
+
+        $paymentIntentId = $data['paymentIntentId'] ?? null;
+        if ($paymentIntentId) {
+            try {
+                $this->stripeService->updatePaymentIntentAmount($paymentIntentId, $total);
+            } catch (\Exception $e) {
+                // Non-fatal
+            }
+        }
+
+        return $this->json([
+            'reduction'      => $reduction,
             'fraisLivraison' => $fraisLivraison,
             'total'          => $total,
         ]);
@@ -361,6 +405,8 @@ class PublicController extends AbstractController
             $livraisonOption = self::LIVRAISON_OPTIONS[$modeLivraison] ?? self::LIVRAISON_OPTIONS['domicile'];
             $fraisVistaprint = $modeLivraison === 'domicile' ? $this->getFraisVistaprintDomicile() : 0.0;
             $fraisLivraison = $livraisonOption['prix'] + $fraisVistaprint;
+            $codeReductionId = (int) $request->request->get('codeReductionId') ?: null;
+            $reduction = $this->getReductionFromCode($codeReductionId);
 
             try {
                 $paymentIntent = $this->stripeService->retrievePaymentIntent($paymentIntentId);
@@ -369,8 +415,9 @@ class PublicController extends AbstractController
                 return $this->redirectToRoute('checkout');
             }
 
-            // Vérification du montant côté serveur (inclut les frais de livraison)
-            $expectedAmount = (int) round(($this->cartService->getTotal() + $fraisLivraison) * 100);
+            // Vérification du montant côté serveur (inclut frais livraison et réduction)
+            $cartTotal = $this->cartService->getTotal();
+            $expectedAmount = (int) round(max(0.01, $cartTotal + $fraisLivraison - $reduction) * 100);
             if ($paymentIntent->status !== 'succeeded'
                 || $paymentIntent->amount !== $expectedAmount
                 || $paymentIntent->currency !== 'eur') {
@@ -442,7 +489,8 @@ class PublicController extends AbstractController
             $commande->setAdresseLivraison($adresseLivraison);
             $commande->setModeLivraison($modeLivraisonData);
             $commande->setArticles($orderItems);
-            $commande->setTotal($this->cartService->getTotal() + $fraisLivraison);
+            $commande->setReduction($reduction);
+            $commande->setTotal(max(0.01, $cartTotal + $fraisLivraison - $reduction));
             $commande->setModePaiement('stripe');
             $commande->setNotes($data['notes'] ?? null);
             $commande->setStatut('payee');
@@ -450,6 +498,16 @@ class PublicController extends AbstractController
 
             $this->em->persist($commande);
             $this->em->flush();
+
+            // Marquer le code de réduction comme utilisé
+            if ($codeReductionId) {
+                $codeReduction = $this->codeReductionRepo->find($codeReductionId);
+                if ($codeReduction && $codeReduction->getUser() === $this->getUser()) {
+                    $codeReduction->setStatut('utilise');
+                    $codeReduction->setCommande($commande);
+                    $this->em->flush();
+                }
+            }
 
             $this->cartService->clear();
 
@@ -476,17 +534,28 @@ class PublicController extends AbstractController
             $this->addFlash('error', 'Le service de paiement est temporairement indisponible.');
         }
 
+        $codesDisponibles = $this->getUser()
+            ? $this->codeReductionRepo->findActiveForUser($this->getUser())
+            : [];
+
+        $codesDisponiblesData = array_map(fn ($c) => [
+            'id'      => $c->getId(),
+            'code'    => $c->getCode(),
+            'montant' => $c->getMontant(),
+        ], $codesDisponibles);
+
         return $this->render('public/checkout.html.twig', [
-            'form'             => $form->createView(),
-            'cartItems'        => $this->cartService->getCart(),
-            'total'            => $total,
-            'quantity'         => $this->cartService->getTotalQuantity(),
-            'stripePublicKey'  => $_ENV['STRIPE_PUBLIC_KEY'] ?? '',
-            'clientSecret'     => $clientSecret,
-            'paymentIntentId'  => $paymentIntentId,
-            'livraisonOptions' => self::LIVRAISON_OPTIONS,
-            'pointsRelais'     => self::POINTS_RELAIS,
-            'fraisParMode'     => $fraisParMode,
+            'form'                 => $form->createView(),
+            'cartItems'            => $this->cartService->getCart(),
+            'total'                => $total,
+            'quantity'             => $this->cartService->getTotalQuantity(),
+            'stripePublicKey'      => $_ENV['STRIPE_PUBLIC_KEY'] ?? '',
+            'clientSecret'         => $clientSecret,
+            'paymentIntentId'      => $paymentIntentId,
+            'livraisonOptions'     => self::LIVRAISON_OPTIONS,
+            'pointsRelais'         => self::POINTS_RELAIS,
+            'fraisParMode'         => $fraisParMode,
+            'codesDisponiblesData' => $codesDisponiblesData,
         ]);
     }
 
@@ -680,6 +749,28 @@ class PublicController extends AbstractController
     public function logout(): void
     {
         throw new \LogicException('This method can be blank - it will be intercepted by the logout key on your firewall.');
+    }
+
+    /**
+     * Retourne le montant de la réduction si le code est valide pour l'utilisateur connecté.
+     */
+    private function getReductionFromCode(?int $codeId): float
+    {
+        if (!$codeId || !$this->getUser()) {
+            return 0.0;
+        }
+        $code = $this->codeReductionRepo->find($codeId);
+        if (!$code || $code->getUser() !== $this->getUser()) {
+            return 0.0;
+        }
+        if ($code->getStatut() !== 'actif') {
+            return 0.0;
+        }
+        $exp = $code->getDateExpiration();
+        if ($exp && $exp <= new \DateTimeImmutable()) {
+            return 0.0;
+        }
+        return $code->getMontant();
     }
 
     /**
