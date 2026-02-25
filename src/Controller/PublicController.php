@@ -230,7 +230,6 @@ class PublicController extends AbstractController
             'grilleTotals'            => $this->cartService->getGrilleTotals(),
             'fraisVistaprintDomicile' => $fraisVistaprintDomicile,
             'totalEstime'             => $total + $fraisVistaprintDomicile,
-            'debugVistaprint'         => $this->getVistaprintDebugInfo(),
         ]);
     }
 
@@ -683,48 +682,6 @@ class PublicController extends AbstractController
         throw new \LogicException('This method can be blank - it will be intercepted by the logout key on your firewall.');
     }
 
-    /** DEBUG TEMPORAIRE — à supprimer après vérification */
-    private function getVistaprintDebugInfo(): array
-    {
-        $rows = [];
-        $totalFournisseur = 0.0;
-
-        foreach ($this->cartService->getCart() as $itemId => $item) {
-            $fournisseurNom = $item['article']['fournisseurNom'] ?? '(null)';
-            $qty     = (int)($item['quantity'] ?? 1);
-            $lignes  = $item['article']['lignes']  ?? [];
-            $paliers = $item['article']['paliers'] ?? [];
-
-            $prixLigne  = $this->getPrixFournisseurLigne($lignes, $qty);
-            $prixPalier = $this->getPrixFournisseurPalier($paliers, $qty);
-            $prixUsed   = $prixLigne !== 0.0 ? $prixLigne : $prixPalier;
-            $sousTotal  = $prixUsed * $qty;
-
-            if (stripos($fournisseurNom, 'vistaprint') !== false) {
-                $totalFournisseur += $sousTotal;
-            }
-
-            $rows[] = [
-                'nom'          => $item['article']['nom'] ?? '?',
-                'fournisseur'  => $fournisseurNom,
-                'qty'          => $qty,
-                'prixLigne'    => $prixLigne,
-                'prixPalier'   => $prixPalier,
-                'prixUsed'     => $prixUsed,
-                'sousTotal'    => $sousTotal,
-                'nbLignes'     => count($lignes),
-                'nbPaliers'    => count($paliers),
-            ];
-        }
-
-        return [
-            'rows'             => $rows,
-            'totalFournisseur' => $totalFournisseur,
-            'seuil'            => 50.0,
-            'fraisCalcule'     => $totalFournisseur >= 50.0 ? 0.0 : 5.0,
-        ];
-    }
-
     /**
      * Frais de livraison Vistaprint pour le mode domicile.
      * Règle : 5 € si la somme des prix fournisseurs Vistaprint < 50 €, sinon gratuit.
@@ -741,11 +698,14 @@ class PublicController extends AbstractController
                 $qty = (int)($item['quantity'] ?? 1);
                 $lignes  = $item['article']['lignes']  ?? [];
                 $paliers = $item['article']['paliers'] ?? [];
-                $prixU = $this->getPrixFournisseurLigne($lignes, $qty);
-                if ($prixU === 0.0) {
-                    $prixU = $this->getPrixFournisseurPalier($paliers, $qty);
+                $prixLigne = $this->getPrixFournisseurLigne($lignes, $qty);
+                if ($prixLigne !== 0.0) {
+                    // lignes : prixFournisseur = total pour la quantité (pas unitaire)
+                    $totalFournisseur += $prixLigne;
+                } else {
+                    // paliers : prixFournisseur = prix unitaire
+                    $totalFournisseur += $this->getPrixFournisseurPalier($paliers, $qty) * $qty;
                 }
-                $totalFournisseur += $prixU * $qty;
             }
         }
 
