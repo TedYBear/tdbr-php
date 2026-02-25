@@ -1,0 +1,89 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% block title %}{{ boutique ? 'Modifier' : 'Nouvelle' }} boutique relais{% endblock %}
+{% block page_title %}{{ boutique ? 'Modifier' : 'Nouvelle' }} boutique relais{% endblock %}
+
+{% block body %}
+<div class="max-w-xl">
+    <form method="post" class="space-y-6">
+
+        <div class="card p-6 space-y-5">
+
+            <div class="form-group">
+                <label>Nom *</label>
+                <input type="text" name="nom"
+                       value="{{ boutique ? boutique.nom : '' }}"
+                       required class="form-input"
+                       placeholder="Ex: Du fromage au dessert">
+            </div>
+
+            <div class="form-group">
+                <label>Adresse *</label>
+                <input type="text" name="adresse"
+                       value="{{ boutique ? boutique.adresse : '' }}"
+                       required class="form-input"
+                       placeholder="Ex: 12 rue de la Paix">
+            </div>
+
+            <div class="form-group">
+                <label>Complément d'adresse</label>
+                <input type="text" name="complementAdresse"
+                       value="{{ boutique ? boutique.complementAdresse : '' }}"
+                       class="form-input"
+                       placeholder="Ex: Bâtiment B, RDC">
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="form-group">
+                    <label>Code postal *</label>
+                    <input type="text" name="codePostal"
+                           value="{{ boutique ? boutique.codePostal : '' }}"
+                           required class="form-input"
+                           placeholder="64300">
+                </div>
+                <div class="form-group">
+                    <label>Ville *</label>
+                    <input type="text" name="ville"
+                           value="{{ boutique ? boutique.ville : '' }}"
+                           required class="form-input"
+                           placeholder="Orthez">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Téléphone</label>
+                <input type="tel" name="telephone"
+                       value="{{ boutique ? boutique.telephone : '' }}"
+                       class="form-input"
+                       placeholder="05 59 00 00 00">
+            </div>
+
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email"
+                       value="{{ boutique ? boutique.email : '' }}"
+                       class="form-input"
+                       placeholder="contact@boutique.fr">
+            </div>
+
+            <div class="form-group flex items-center gap-3">
+                <input type="checkbox" name="actif" id="actif"
+                       class="w-4 h-4 accent-primary"
+                       {{ (not boutique or boutique.actif) ? 'checked' : '' }}>
+                <label for="actif" class="mb-0 cursor-pointer">Boutique active (visible dans le checkout)</label>
+            </div>
+
+        </div>
+
+        <div class="flex gap-3">
+            <button type="submit" class="btn-primary">
+                {{ boutique ? 'Mettre à jour' : 'Créer la boutique' }}
+            </button>
+            <a href="{{ path('admin_boutiques_relais') }}" class="btn-outline">
+                Annuler
+            </a>
+        </div>
+
+    </form>
+</div>
+{% endblock %}

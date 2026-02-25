@@ -1,0 +1,74 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% block title %}Boutiques relais{% endblock %}
+{% block page_title %}Boutiques relais{% endblock %}
+{% block page_subtitle %}<p class="text-sm text-gray-600">{{ total }} boutique{{ total > 1 ? 's' : '' }} au total</p>{% endblock %}
+
+{% block body %}
+    <div class="flex justify-end mb-6">
+        <a href="{{ path('admin_boutiques_relais_new') }}" class="btn-primary">
+            + Nouvelle boutique
+        </a>
+    </div>
+
+    <div class="card overflow-hidden">
+        {% if boutiques|length > 0 %}
+            <table class="w-full">
+                <thead class="bg-gray-50 border-b">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Nom</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Adresse</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Ville</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Téléphone</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Email</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Statut</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y">
+                    {% for boutique in boutiques %}
+                        <tr class="hover:bg-gray-50 {{ not boutique.actif ? 'opacity-60' : '' }}">
+                            <td class="px-6 py-4 font-semibold">{{ boutique.nom }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-600">
+                                {{ boutique.adresse }}
+                                {% if boutique.complementAdresse %}
+                                    <br><span class="text-gray-400">{{ boutique.complementAdresse }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4">{{ boutique.codePostal }} {{ boutique.ville }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-600">{{ boutique.telephone ?? '—' }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-600">{{ boutique.email ?? '—' }}</td>
+                            <td class="px-6 py-4">
+                                <span class="px-3 py-1 rounded-full text-xs font-semibold
+                                    {{ boutique.actif ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600' }}">
+                                    {{ boutique.actif ? 'Active' : 'Inactive' }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 flex items-center gap-3">
+                                <a href="{{ path('admin_boutiques_relais_edit', {id: boutique.id}) }}"
+                                   class="text-primary hover:text-secondary text-sm">Modifier</a>
+                                <form method="post"
+                                      action="{{ path('admin_boutiques_relais_toggle', {id: boutique.id}) }}">
+                                    <button type="submit"
+                                            class="text-sm {{ boutique.actif ? 'text-orange-500 hover:text-orange-700' : 'text-green-600 hover:text-green-800' }}">
+                                        {{ boutique.actif ? 'Désactiver' : 'Activer' }}
+                                    </button>
+                                </form>
+                                <form method="post"
+                                      action="{{ path('admin_boutiques_relais_delete', {id: boutique.id}) }}"
+                                      onsubmit="return confirm('Supprimer cette boutique ?');">
+                                    <button type="submit" class="text-red-500 hover:text-red-700 text-sm">Supprimer</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="text-center py-16">
+                <p class="text-gray-500">Aucune boutique relais</p>
+                <a href="{{ path('admin_boutiques_relais_new') }}" class="btn-primary mt-4 inline-block">Ajouter la première boutique</a>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
