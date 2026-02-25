@@ -7,7 +7,6 @@ use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TelType;
-use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -51,55 +50,6 @@ class CheckoutType extends AbstractType
                         'pattern' => '/^0[1-9][0-9]{8}$/',
                         'message' => 'Numéro de téléphone invalide'
                     ])
-                ]
-            ])
-
-            // Adresse de livraison
-            ->add('adresse', TextType::class, [
-                'label' => 'Adresse',
-                'attr' => ['class' => 'form-input', 'placeholder' => 'Numéro et nom de rue'],
-                'constraints' => [
-                    new Assert\NotBlank(['message' => 'L\'adresse est requise']),
-                    new Assert\Length(['min' => 5, 'max' => 200])
-                ]
-            ])
-            ->add('complementAdresse', TextType::class, [
-                'label' => 'Complément d\'adresse',
-                'required' => false,
-                'attr' => ['class' => 'form-input', 'placeholder' => 'Appartement, étage, etc. (optionnel)']
-            ])
-            ->add('codePostal', TextType::class, [
-                'label' => 'Code postal',
-                'attr' => ['class' => 'form-input', 'placeholder' => '75001'],
-                'constraints' => [
-                    new Assert\NotBlank(['message' => 'Le code postal est requis']),
-                    new Assert\Regex([
-                        'pattern' => '/^[0-9]{5}$/',
-                        'message' => 'Code postal invalide (5 chiffres)'
-                    ])
-                ]
-            ])
-            ->add('ville', TextType::class, [
-                'label' => 'Ville',
-                'attr' => ['class' => 'form-input', 'placeholder' => 'Paris'],
-                'constraints' => [
-                    new Assert\NotBlank(['message' => 'La ville est requise']),
-                    new Assert\Length(['min' => 2, 'max' => 100])
-                ]
-            ])
-            ->add('pays', ChoiceType::class, [
-                'label' => 'Pays',
-                'choices' => [
-                    'France' => 'FR',
-                    'Belgique' => 'BE',
-                    'Suisse' => 'CH',
-                    'Luxembourg' => 'LU',
-                    'Canada' => 'CA'
-                ],
-                'data' => 'FR',
-                'attr' => ['class' => 'form-select'],
-                'constraints' => [
-                    new Assert\NotBlank(['message' => 'Le pays est requis'])
                 ]
             ])
 

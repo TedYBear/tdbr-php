@@ -41,6 +41,17 @@ class StripeService
     }
 
     /**
+     * Met à jour le montant d'un PaymentIntent existant.
+     * @param float $amount Nouveau montant en euros
+     */
+    public function updatePaymentIntentAmount(string $paymentIntentId, float $amount): PaymentIntent
+    {
+        return PaymentIntent::update($paymentIntentId, [
+            'amount' => (int) round($amount * 100),
+        ]);
+    }
+
+    /**
      * Construit et vérifie un événement webhook Stripe depuis le payload brut + entête signature.
      * @throws SignatureVerificationException si la signature est invalide
      */
