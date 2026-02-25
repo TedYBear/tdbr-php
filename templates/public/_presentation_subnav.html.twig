@@ -42,6 +42,18 @@
                     <span>Mes partenaires</span>
                 </a>
 
+                {# La livraison #}
+                <a href="{{ path('presentation_livraison') }}"
+                   class="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all
+                          {{ currentRoute == 'presentation_livraison'
+                             ? 'bg-white shadow text-primary'
+                             : 'text-gray-500 hover:text-gray-800' }}">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8l1.308 9.152A2 2 0 008.29 19h7.42a2 2 0 001.982-1.848L19 8"></path>
+                    </svg>
+                    <span>La livraison</span>
+                </a>
+
             </div>
         </nav>
     </div>
