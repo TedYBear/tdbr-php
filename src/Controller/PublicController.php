@@ -7,6 +7,7 @@ use App\Entity\Message;
 use App\Entity\User;
 use App\Repository\ArticleRepository;
 use App\Repository\CategoryRepository;
+use App\Repository\BoutiqueRelaisRepository;
 use App\Repository\CodeReductionRepository;
 use App\Repository\CommandeRepository;
 use App\Repository\ProductCollectionRepository;
@@ -44,16 +45,6 @@ class PublicController extends AbstractController
         ],
     ];
 
-    private const POINTS_RELAIS = [
-        'du_fromage_au_dessert' => [
-            'nom'        => 'Du fromage au dessert',
-            'adresse'    => 'TODO adresse — à compléter',
-            'ville'      => 'Orthez',
-            'codePostal' => '64300',
-            'pays'       => 'FR',
-        ],
-    ];
-
     public function __construct(
         private EntityManagerInterface $em,
         private ArticleRepository $articleRepo,
@@ -64,6 +55,7 @@ class PublicController extends AbstractController
         private CartService $cartService,
         private StripeService $stripeService,
         private CodeReductionRepository $codeReductionRepo,
+        private BoutiqueRelaisRepository $boutiqueRelaisRepo,
     ) {
     }
 
@@ -434,15 +426,16 @@ class PublicController extends AbstractController
             $data = $form->getData();
 
             // Construire l'adresse de livraison selon le mode
-            $pointRelaisId = $request->request->get('pointRelaisId', array_key_first(self::POINTS_RELAIS));
+            $pointRelaisId = (int) $request->request->get('pointRelaisId');
             if ($modeLivraison === 'relais') {
-                $relaisData = self::POINTS_RELAIS[$pointRelaisId] ?? array_values(self::POINTS_RELAIS)[0];
+                $relais = ($pointRelaisId ? $this->boutiqueRelaisRepo->find($pointRelaisId) : null)
+                    ?? ($this->boutiqueRelaisRepo->findActives()[0] ?? null);
                 $adresseLivraison = [
-                    'adresse'           => $relaisData['adresse'],
-                    'complementAdresse' => '',
-                    'codePostal'        => $relaisData['codePostal'],
-                    'ville'             => $relaisData['ville'],
-                    'pays'              => $relaisData['pays'],
+                    'adresse'           => $relais?->getAdresse() ?? '',
+                    'complementAdresse' => $relais?->getComplementAdresse() ?? '',
+                    'codePostal'        => $relais?->getCodePostal() ?? '',
+                    'ville'             => $relais?->getVille() ?? '',
+                    'pays'              => 'FR',
                 ];
             } else {
                 $adresseLivraison = [
@@ -461,9 +454,8 @@ class PublicController extends AbstractController
                 'prix'  => $fraisLivraison,
             ];
             if ($modeLivraison === 'relais') {
-                $relaisData = self::POINTS_RELAIS[$pointRelaisId] ?? array_values(self::POINTS_RELAIS)[0];
-                $modeLivraisonData['pointRelaisNom']     = $relaisData['nom'];
-                $modeLivraisonData['pointRelaisAdresse'] = $relaisData['adresse'] . ', ' . $relaisData['codePostal'] . ' ' . $relaisData['ville'];
+                $modeLivraisonData['pointRelaisNom']     = $relais?->getNom() ?? '';
+                $modeLivraisonData['pointRelaisAdresse'] = ($relais?->getAdresse() ?? '') . ', ' . ($relais?->getCodePostal() ?? '') . ' ' . ($relais?->getVille() ?? '');
             }
 
             $orderItems = [];
@@ -553,7 +545,7 @@ class PublicController extends AbstractController
             'clientSecret'         => $clientSecret,
             'paymentIntentId'      => $paymentIntentId,
             'livraisonOptions'     => self::LIVRAISON_OPTIONS,
-            'pointsRelais'         => self::POINTS_RELAIS,
+            'pointsRelais'         => $this->boutiqueRelaisRepo->findActives(),
             'fraisParMode'         => $fraisParMode,
             'codesDisponiblesData' => $codesDisponiblesData,
         ]);
