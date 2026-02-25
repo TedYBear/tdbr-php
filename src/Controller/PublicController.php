@@ -248,13 +248,14 @@ class PublicController extends AbstractController
         }
 
         $articleArray = [
-            'id'            => $article->getId(),
-            'nom'           => $article->getNom(),
-            'slug'          => $article->getSlug(),
-            'prix'          => $article->getPrixBase(),
-            'image'         => $article->getFirstImageUrl(),
-            'paliers'       => $article->getGrillePrix() ? $article->getGrillePrix()->getPaliers() : [],
-            'grilleId'      => $article->getGrillePrix() ? $article->getGrillePrix()->getId() : null,
+            'id'             => $article->getId(),
+            'nom'            => $article->getNom(),
+            'slug'           => $article->getSlug(),
+            'prix'           => $article->getPrixBase(),
+            'image'          => $article->getFirstImageUrl(),
+            'paliers'        => $article->getGrillePrix() ? $article->getGrillePrix()->getPaliers() : [],
+            'lignes'         => $article->getGrillePrix() ? $article->getGrillePrix()->getLignes() : [],
+            'grilleId'       => $article->getGrillePrix() ? $article->getGrillePrix()->getId() : null,
             'fournisseurNom' => $article->getFournisseur()?->getNom(),
         ];
 
@@ -690,7 +691,12 @@ class PublicController extends AbstractController
             if ($fournisseurNom && stripos($fournisseurNom, 'vistaprint') !== false) {
                 $hasVistaprint = true;
                 $qty = (int)($item['quantity'] ?? 1);
-                $prixU = $this->getPrixFournisseurPalier($item['article']['paliers'] ?? [], $qty);
+                $lignes  = $item['article']['lignes']  ?? [];
+                $paliers = $item['article']['paliers'] ?? [];
+                $prixU = $this->getPrixFournisseurLigne($lignes, $qty);
+                if ($prixU === 0.0) {
+                    $prixU = $this->getPrixFournisseurPalier($paliers, $qty);
+                }
                 $totalFournisseur += $prixU * $qty;
             }
         }
@@ -700,6 +706,19 @@ class PublicController extends AbstractController
         }
 
         return $totalFournisseur >= 50.0 ? 0.0 : 5.0;
+    }
+
+    /**
+     * Résout le prix fournisseur unitaire depuis les lignes (quantité exacte).
+     */
+    private function getPrixFournisseurLigne(array $lignes, int $qty): float
+    {
+        foreach ($lignes as $ligne) {
+            if ((int)($ligne['quantite'] ?? 0) === $qty) {
+                return (float)($ligne['prixFournisseur'] ?? 0);
+            }
+        }
+        return 0.0;
     }
 
     /**
