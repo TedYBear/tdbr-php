@@ -153,14 +153,21 @@
                                     <span class="font-semibold">{{ total|number_format(2, ',', ' ') }} €</span>
                                 </div>
                                 <div class="flex justify-between text-gray-700">
-                                    <span>Livraison</span>
-                                    <span class="font-semibold text-green-600">Gratuite</span>
+                                    <span>Livraison estimée</span>
+                                    {% if fraisVistaprintDomicile > 0 %}
+                                        <span class="font-semibold text-amber-600">{{ fraisVistaprintDomicile|number_format(2, ',', ' ') }} €</span>
+                                    {% else %}
+                                        <span class="font-semibold text-green-600">Gratuite</span>
+                                    {% endif %}
                                 </div>
+                                {% if fraisVistaprintDomicile > 0 %}
+                                    <p class="text-xs text-gray-500">Frais de livraison à domicile (Vistaprint). Offerts dès 50 € d'achats Vistaprint.</p>
+                                {% endif %}
                             </div>
 
                             <div class="flex justify-between text-xl font-bold mb-8">
-                                <span>Total</span>
-                                <span class="text-primary text-3xl">{{ total|number_format(2, ',', ' ') }} €</span>
+                                <span>Total estimé</span>
+                                <span class="text-primary text-3xl">{{ totalEstime|number_format(2, ',', ' ') }} €</span>
                             </div>
 
                             <a href="{{ path('checkout') }}"
