@@ -94,6 +94,43 @@
                             </a>
                         </div>
                     </div>
+
+                    {# Codes de Réduction #}
+                    {% if codesReduction|length > 0 %}
+                    <div class="card p-8">
+                        <h2 class="font-heading text-2xl font-bold mb-6 flex items-center gap-3">
+                            <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                            </svg>
+                            Mes Réductions
+                        </h2>
+
+                        <div class="space-y-3">
+                            {% for code in codesReduction %}
+                                {% set actif = code.isActif %}
+                                <div class="rounded-xl border-2 p-4 {{ actif ? 'border-green-200 bg-green-50' : 'border-gray-100 bg-gray-50 opacity-60' }}">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="font-mono font-bold text-lg {{ actif ? 'text-gray-900' : 'text-gray-400' }}">{{ code.code }}</span>
+                                        <span class="font-bold text-xl {{ actif ? 'text-green-600' : 'text-gray-400' }}">- {{ code.montant|number_format(2, ',', ' ') }} €</span>
+                                    </div>
+                                    <div class="flex items-center justify-between text-xs text-gray-500">
+                                        <span class="px-2 py-0.5 rounded-full font-semibold
+                                            {{ actif ? 'bg-green-100 text-green-700' : (code.statut == 'utilise' ? 'bg-gray-200 text-gray-500' : 'bg-orange-100 text-orange-600') }}">
+                                            {% if actif %}Disponible
+                                            {% elseif code.statut == 'utilise' %}Utilisé
+                                            {% else %}Expiré{% endif %}
+                                        </span>
+                                        {% if code.dateExpiration and actif %}
+                                            <span>Expire le {{ code.dateExpiration|date('d/m/Y') }}</span>
+                                        {% elseif code.commande %}
+                                            <span>Utilisé — {{ code.commande.numero }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
 
                 {# Historique Commandes #}

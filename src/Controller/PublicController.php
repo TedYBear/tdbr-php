@@ -739,9 +739,15 @@ class PublicController extends AbstractController
             return ($client['email'] ?? '') === $userEmail;
         })), 0, 10);
 
+        $codesReduction = $this->codeReductionRepo->findBy(
+            ['user' => $user],
+            ['createdAt' => 'DESC']
+        );
+
         return $this->render('auth/profil.html.twig', [
-            'user' => $user,
-            'commandes' => $commandes
+            'user'           => $user,
+            'commandes'      => $commandes,
+            'codesReduction' => $codesReduction,
         ]);
     }
 
