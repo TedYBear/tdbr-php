@@ -14,6 +14,22 @@ class CodeReductionRepository extends ServiceEntityRepository
         parent::__construct($registry, CodeReduction::class);
     }
 
+    public function findActiveGlobal(): array
+    {
+        $now = new \DateTimeImmutable();
+
+        return $this->createQueryBuilder('c')
+            ->where('c.user IS NULL')
+            ->andWhere('c.statut = :statut')
+            ->andWhere('c.dateDebut IS NULL OR c.dateDebut <= :now')
+            ->andWhere('c.dateExpiration IS NULL OR c.dateExpiration > :now')
+            ->setParameter('statut', 'actif')
+            ->setParameter('now', $now)
+            ->orderBy('c.montant', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
     public function findActiveForUser(User $user): array
     {
         $now = new \DateTimeImmutable();
