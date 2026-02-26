@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\Commande;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 use Twig\Environment;
@@ -37,16 +38,19 @@ class MailerService
     /**
      * Envoie un email de confirmation de commande
      */
-    public function sendOrderConfirmation(array $commande): void
+    public function sendOrderConfirmation(Commande $commande, string $confirmationUrl = ''): void
     {
         $html = $this->twig->render('emails/order_confirmation.html.twig', [
-            'commande' => $commande
+            'commande'        => $commande,
+            'confirmationUrl' => $confirmationUrl,
         ]);
+
+        $client = $commande->getClient();
 
         $email = (new Email())
             ->from($this->fromEmail)
-            ->to($commande['client']['email'])
-            ->subject('Confirmation de commande ' . $commande['numero'])
+            ->to($client['email'])
+            ->subject('Confirmation de commande ' . $commande->getNumero())
             ->html($html);
 
         $this->mailer->send($email);

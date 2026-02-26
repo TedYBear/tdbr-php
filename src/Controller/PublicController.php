@@ -13,6 +13,7 @@ use App\Repository\CommandeRepository;
 use App\Repository\ProductCollectionRepository;
 use App\Repository\UserRepository;
 use App\Service\CartService;
+use App\Service\MailerService;
 use App\Service\StripeService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -23,6 +24,7 @@ use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class PublicController extends AbstractController
@@ -56,6 +58,7 @@ class PublicController extends AbstractController
         private StripeService $stripeService,
         private CodeReductionRepository $codeReductionRepo,
         private BoutiqueRelaisRepository $boutiqueRelaisRepo,
+        private MailerService $mailerService,
     ) {
     }
 
@@ -530,6 +533,18 @@ class PublicController extends AbstractController
             }
 
             $this->cartService->clear();
+
+            // Envoyer l'email de confirmation au client
+            try {
+                $confirmationUrl = $this->generateUrl(
+                    'confirmation',
+                    ['id' => $commande->getId()],
+                    UrlGeneratorInterface::ABSOLUTE_URL
+                );
+                $this->mailerService->sendOrderConfirmation($commande, $confirmationUrl);
+            } catch (\Exception $e) {
+                // L'échec d'email ne doit pas bloquer la commande
+            }
 
             return $this->redirectToRoute('confirmation', ['id' => $commande->getId()]);
         }
