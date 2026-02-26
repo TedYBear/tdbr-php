@@ -6,6 +6,7 @@ use App\Repository\ArticleRepository;
 use App\Repository\CategoryRepository;
 use App\Repository\ProductCollectionRepository;
 use App\Repository\CommandeRepository;
+use App\Repository\DevisRepository;
 use App\Repository\MessageRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,6 +22,7 @@ class DashboardController extends AbstractController
         private CategoryRepository $categoryRepo,
         private ProductCollectionRepository $collectionRepo,
         private CommandeRepository $commandeRepo,
+        private DevisRepository $devisRepo,
         private MessageRepository $messageRepo,
     ) {
     }
@@ -32,6 +34,7 @@ class DashboardController extends AbstractController
         $categoriesCount = $this->categoryRepo->count(['actif' => true]);
         $collectionsCount = $this->collectionRepo->count(['actif' => true]);
         $commandesCount = $this->commandeRepo->count([]);
+        $devisCount = $this->devisRepo->count([]);
         $messagesNonLus = $this->messageRepo->count(['lu' => false]);
 
         $recentCommandes = $this->commandeRepo->findBy([], ['createdAt' => 'DESC'], 5);
@@ -42,6 +45,7 @@ class DashboardController extends AbstractController
                 'categories' => $categoriesCount,
                 'collections' => $collectionsCount,
                 'commandes' => $commandesCount,
+                'devis' => $devisCount,
                 'messagesNonLus' => $messagesNonLus
             ],
             'recentCommandes' => $recentCommandes
