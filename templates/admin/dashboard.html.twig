@@ -11,7 +11,7 @@
     {# Stats Cards #}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
         {# Articles #}
-        <div class="card p-6 border-l-4 border-primary">
+        <a href="{{ path('admin_articles') }}" class="card p-6 border-l-4 border-primary hover:shadow-md transition-shadow block">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm text-gray-600 mb-1">Articles</p>
@@ -23,10 +23,10 @@
                     </svg>
                 </div>
             </div>
-        </div>
+        </a>
 
         {# Commandes #}
-        <div class="card p-6 border-l-4 border-secondary">
+        <a href="{{ path('admin_commandes') }}" class="card p-6 border-l-4 border-secondary hover:shadow-md transition-shadow block">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm text-gray-600 mb-1">Commandes</p>
@@ -38,10 +38,10 @@
                     </svg>
                 </div>
             </div>
-        </div>
+        </a>
 
         {# Devis #}
-        <div class="card p-6 border-l-4 border-amber-500">
+        <a href="{{ path('admin_devis') }}" class="card p-6 border-l-4 border-amber-500 hover:shadow-md transition-shadow block">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm text-gray-600 mb-1">Devis</p>
@@ -53,10 +53,10 @@
                     </svg>
                 </div>
             </div>
-        </div>
+        </a>
 
         {# Messages #}
-        <div class="card p-6 border-l-4 border-blue-500">
+        <a href="{{ path('admin_messages') }}" class="card p-6 border-l-4 border-blue-500 hover:shadow-md transition-shadow block">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm text-gray-600 mb-1">Messages non lus</p>
@@ -68,10 +68,10 @@
                     </svg>
                 </div>
             </div>
-        </div>
+        </a>
 
         {# Catégories #}
-        <div class="card p-6 border-l-4 border-green-500">
+        <a href="{{ path('admin_categories') }}" class="card p-6 border-l-4 border-green-500 hover:shadow-md transition-shadow block">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm text-gray-600 mb-1">Catégories</p>
@@ -83,7 +83,7 @@
                     </svg>
                 </div>
             </div>
-        </div>
+        </a>
     </div>
 
     {# Commandes Récentes #}
