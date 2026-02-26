@@ -20,6 +20,7 @@
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Utilisateur</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Montant</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Statut</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Période</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Expiration</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Commande</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Actions</th>
@@ -30,8 +31,12 @@
                         <tr class="hover:bg-gray-50">
                             <td class="px-6 py-4 font-mono font-semibold text-primary">{{ code.code }}</td>
                             <td class="px-6 py-4">
-                                <div class="font-medium">{{ code.user.fullName ?: code.user.email }}</div>
-                                <div class="text-sm text-gray-500">{{ code.user.email }}</div>
+                                {% if code.isGlobal %}
+                                    <span class="px-2 py-0.5 bg-purple-100 text-purple-800 rounded-full text-xs font-semibold">Global</span>
+                                {% else %}
+                                    <div class="font-medium">{{ code.user.fullName ?: code.user.email }}</div>
+                                    <div class="text-sm text-gray-500">{{ code.user.email }}</div>
+                                {% endif %}
                             </td>
                             <td class="px-6 py-4 font-bold">{{ code.montant|number_format(2, ',', ' ') }} €</td>
                             <td class="px-6 py-4">
@@ -45,6 +50,9 @@
                                         {{ code.statut|capitalize }}
                                     {% endif %}
                                 </span>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-600">
+                                {{ code.dateDebut ? 'Dès le ' ~ code.dateDebut|date('d/m/Y') : '—' }}
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-600">
                                 {{ code.dateExpiration ? code.dateExpiration|date('d/m/Y') : '—' }}

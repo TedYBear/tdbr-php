@@ -92,30 +92,39 @@ class CodeReductionAdminController extends AbstractController
 
     private function handleForm(Request $request, CodeReduction $code): Response
     {
-        $nom        = trim($request->request->get('code', ''));
-        $montant    = (float) str_replace(',', '.', $request->request->get('montant', '0'));
-        $statut     = $request->request->get('statut', 'actif');
-        $userId     = (int) $request->request->get('userId');
-        $dateExp    = $request->request->get('dateExpiration', '');
+        $nom       = trim($request->request->get('code', ''));
+        $montant   = (float) str_replace(',', '.', $request->request->get('montant', '0'));
+        $statut    = $request->request->get('statut', 'actif');
+        $type      = $request->request->get('type', 'global');
+        $userId    = (int) $request->request->get('userId');
+        $dateDebut = $request->request->get('dateDebut', '');
+        $dateExp   = $request->request->get('dateExpiration', '');
 
-        if (!$nom || $montant <= 0 || !$userId) {
-            $this->addFlash('error', 'Code, montant et utilisateur sont requis');
+        if (!$nom || $montant <= 0) {
+            $this->addFlash('error', 'Code et montant sont requis');
             return $this->redirectToRoute(
                 $code->getId() ? 'admin_codes_reduction_edit' : 'admin_codes_reduction_new',
                 $code->getId() ? ['id' => $code->getId()] : []
             );
         }
 
-        $user = $this->userRepo->find($userId);
-        if (!$user) {
-            $this->addFlash('error', 'Utilisateur introuvable');
-            return $this->redirectToRoute('admin_codes_reduction_new');
+        // Utilisateur : null si code global
+        $user = null;
+        if ($type === 'user' && $userId) {
+            $user = $this->userRepo->find($userId);
+            if (!$user) {
+                $this->addFlash('error', 'Utilisateur introuvable');
+                return $this->redirectToRoute('admin_codes_reduction_new');
+            }
         }
 
-        $code->setCode($nom);
+        $code->setCode(strtoupper($nom));
         $code->setMontant($montant);
         $code->setStatut(in_array($statut, ['actif', 'utilise']) ? $statut : 'actif');
         $code->setUser($user);
+        $code->setDateDebut(
+            $dateDebut ? \DateTimeImmutable::createFromFormat('Y-m-d', $dateDebut) ?: null : null
+        );
         $code->setDateExpiration(
             $dateExp ? \DateTimeImmutable::createFromFormat('Y-m-d', $dateExp) ?: null : null
         );
