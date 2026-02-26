@@ -28,16 +28,32 @@
             </div>
 
             <div class="form-group">
-                <label>Utilisateur *</label>
-                <select name="userId" required class="form-select">
+                <label>Type de code</label>
+                <select name="type" class="form-select" onchange="toggleUserField(this.value)">
+                    <option value="global" {{ (not code or code.isGlobal) ? 'selected' : '' }}>Global — valable pour tous les utilisateurs</option>
+                    <option value="user" {{ (code and not code.isGlobal) ? 'selected' : '' }}>Spécifique à un utilisateur</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="userField" style="{{ (code and not code.isGlobal) ? '' : 'display:none' }}">
+                <label>Utilisateur</label>
+                <select name="userId" class="form-select">
                     <option value="">-- Choisir un utilisateur --</option>
                     {% for user in users %}
                         <option value="{{ user.id }}"
-                            {% if code and code.user.id == user.id %}selected{% endif %}>
+                            {% if code and not code.isGlobal and code.user.id == user.id %}selected{% endif %}>
                             {{ user.email }}{% if user.fullName %} — {{ user.fullName }}{% endif %}
                         </option>
                     {% endfor %}
                 </select>
+            </div>
+
+            <div class="form-group">
+                <label>Date de début</label>
+                <input type="date" name="dateDebut"
+                       value="{{ code and code.dateDebut ? code.dateDebut|date('Y-m-d') : '' }}"
+                       class="form-input">
+                <p class="text-xs text-gray-500 mt-1">Laisser vide pour que le code soit actif immédiatement.</p>
             </div>
 
             <div class="form-group">
@@ -69,4 +85,10 @@
 
     </form>
 </div>
+
+<script>
+function toggleUserField(type) {
+    document.getElementById('userField').style.display = type === 'user' ? '' : 'none';
+}
+</script>
 {% endblock %}

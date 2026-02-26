@@ -512,7 +512,7 @@ class PublicController extends AbstractController
             // Marquer le code de réduction comme utilisé
             if ($codeReductionId) {
                 $codeReduction = $this->codeReductionRepo->find($codeReductionId);
-                if ($codeReduction && $codeReduction->getUser() === $this->getUser()) {
+                if ($codeReduction && ($codeReduction->isGlobal() || $codeReduction->getUser() === $this->getUser())) {
                     $codeReduction->setStatut('utilise');
                     $codeReduction->setCommande($commande);
                     $this->em->flush();
@@ -776,14 +776,14 @@ class PublicController extends AbstractController
             return 0.0;
         }
         $code = $this->codeReductionRepo->find($codeId);
-        if (!$code || $code->getUser() !== $this->getUser()) {
+        if (!$code) {
             return 0.0;
         }
-        if ($code->getStatut() !== 'actif') {
+        // Le code doit appartenir à l'utilisateur ou être global
+        if (!$code->isGlobal() && $code->getUser() !== $this->getUser()) {
             return 0.0;
         }
-        $exp = $code->getDateExpiration();
-        if ($exp && $exp <= new \DateTimeImmutable()) {
+        if (!$code->isActif()) {
             return 0.0;
         }
         return $code->getMontant();
