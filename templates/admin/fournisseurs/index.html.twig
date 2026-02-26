@@ -64,7 +64,7 @@
                                 Modifier
                             </a>
                             <form method="post" action="{{ path('admin_fournisseurs_delete', {id: fournisseur.id}) }}"
-                                  onsubmit="return confirm('Supprimer ce fournisseur ?')">
+                                  onsubmit="window.confirmForm(event, this, 'Supprimer ce fournisseur ?')">
                                 <button type="submit" class="px-3 py-1.5 text-sm border border-red-200 text-red-600 rounded-lg hover:bg-red-50">
                                     Supprimer
                                 </button>

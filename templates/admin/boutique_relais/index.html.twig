@@ -56,7 +56,7 @@
                                 </form>
                                 <form method="post"
                                       action="{{ path('admin_boutiques_relais_delete', {id: boutique.id}) }}"
-                                      onsubmit="return confirm('Supprimer cette boutique ?');">
+                                      onsubmit="window.confirmForm(event, this, 'Supprimer cette boutique ?')">
                                     <button type="submit" class="text-red-500 hover:text-red-700 text-sm">Supprimer</button>
                                 </form>
                             </td>

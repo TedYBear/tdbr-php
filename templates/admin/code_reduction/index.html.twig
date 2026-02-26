@@ -73,7 +73,7 @@
                                 {% if code.statut == 'actif' %}
                                     <form method="post"
                                           action="{{ path('admin_codes_reduction_delete', {id: code.id}) }}"
-                                          onsubmit="return confirm('Supprimer ce code ?');">
+                                          onsubmit="window.confirmForm(event, this, 'Supprimer ce code ?')">
                                         <button type="submit" class="text-red-500 hover:text-red-700 text-sm">Supprimer</button>
                                     </form>
                                 {% endif %}

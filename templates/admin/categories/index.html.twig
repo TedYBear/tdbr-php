@@ -37,7 +37,7 @@
                             <td class="px-6 py-4">
                                 <div class="flex gap-2">
                                     <a href="{{ path('admin_categories_edit', {id: category.id}) }}" class="text-primary hover:text-secondary">Modifier</a>
-                                    <form method="post" action="{{ path('admin_categories_delete', {id: category.id}) }}" onsubmit="return confirm('Supprimer cette catégorie ?');">
+                                    <form method="post" action="{{ path('admin_categories_delete', {id: category.id}) }}" onsubmit="window.confirmForm(event, this, 'Supprimer cette catégorie ?')">
                                         <button type="submit" class="text-red-600 hover:text-red-700">Supprimer</button>
                                     </form>
                                 </div>

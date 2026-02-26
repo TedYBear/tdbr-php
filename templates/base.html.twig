@@ -30,26 +30,31 @@
 
     {% include 'layout/flash_messages.html.twig' %}
 
-    {# Toast notifications — vanilla JS, aucune dépendance Alpine #}
+    {# Toast + Modale de confirmation — vanilla JS #}
     <div id="toast-container" style="position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;display:flex;flex-direction:column;gap:0.75rem;pointer-events:none;" aria-live="polite"></div>
+    <div id="confirm-modal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.45);align-items:center;justify-content:center;">
+        <div style="background:#fff;border-radius:1rem;padding:2rem;max-width:22rem;width:90%;box-shadow:0 25px 50px rgba(0,0,0,0.25);text-align:center;">
+            <p id="confirm-message" style="font-size:1rem;font-weight:600;color:#111;margin-bottom:1.5rem;line-height:1.5;"></p>
+            <div style="display:flex;gap:0.75rem;justify-content:center;">
+                <button id="confirm-cancel" style="padding:0.625rem 1.25rem;border-radius:0.5rem;border:1.5px solid #d1d5db;background:#fff;font-weight:600;cursor:pointer;color:#374151;font-size:0.875rem;">Annuler</button>
+                <button id="confirm-ok" style="padding:0.625rem 1.25rem;border-radius:0.5rem;border:none;background:#dc2626;color:#fff;font-weight:600;cursor:pointer;font-size:0.875rem;">Confirmer</button>
+            </div>
+        </div>
+    </div>
     <script>
     window.showToast = function(message, type) {
         var container = document.getElementById('toast-container');
         if (!container) return;
-
         var toast = document.createElement('div');
         toast.style.cssText = 'min-width:18rem;padding:0.75rem 1.25rem;border-radius:0.75rem;color:#fff;display:flex;align-items:center;gap:0.75rem;box-shadow:0 10px 25px rgba(0,0,0,0.25);pointer-events:auto;opacity:0;transform:translateY(0.5rem);transition:opacity 0.3s,transform 0.3s;background-color:' + (type === 'error' ? '#dc2626' : '#111827');
-
         var icon = type === 'error'
             ? '<svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>'
             : '<svg width="20" height="20" fill="none" stroke="#4ade80" viewBox="0 0 24 24" style="flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>';
-
         toast.innerHTML = icon
             + '<span style="font-size:0.875rem;font-weight:600;flex:1">' + message + '</span>'
             + '<button onclick="this.closest(\'[data-toast]\')._remove()" style="opacity:0.6;cursor:pointer;background:none;border:none;color:#fff;padding:0;line-height:0;margin-left:0.5rem">'
             + '<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>'
             + '</button>';
-
         toast.dataset.toast = '1';
         toast._remove = function() {
             clearTimeout(timer);
@@ -57,16 +62,27 @@
             toast.style.transform = 'translateY(0.5rem)';
             setTimeout(function() { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 300);
         };
-
         container.appendChild(toast);
-        requestAnimationFrame(function() {
-            requestAnimationFrame(function() {
-                toast.style.opacity = '1';
-                toast.style.transform = 'translateY(0)';
-            });
-        });
-
+        requestAnimationFrame(function() { requestAnimationFrame(function() {
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateY(0)';
+        }); });
         var timer = setTimeout(function() { toast._remove(); }, 3500);
+    };
+    window.showConfirm = function(message, onConfirm) {
+        var modal = document.getElementById('confirm-modal');
+        document.getElementById('confirm-message').textContent = message;
+        modal.style.display = 'flex';
+        var okBtn = document.getElementById('confirm-ok');
+        var cancelBtn = document.getElementById('confirm-cancel');
+        function close() { modal.style.display = 'none'; okBtn.onclick = null; cancelBtn.onclick = null; modal.onclick = null; }
+        okBtn.onclick = function() { close(); onConfirm(); };
+        cancelBtn.onclick = function() { close(); };
+        modal.onclick = function(e) { if (e.target === modal) close(); };
+    };
+    window.confirmForm = function(event, form, message) {
+        event.preventDefault();
+        window.showConfirm(message, function() { form.submit(); });
     };
     </script>
 
