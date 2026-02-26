@@ -137,10 +137,10 @@
                                 btn.classList.add('animate-pulse');
                                 setTimeout(() => btn.classList.remove('animate-pulse'), 1000);
                             }
-                            window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Article ajouté au panier !' } }));
+                            window.showToast('Article ajouté au panier !');
                         }
                     } catch (error) {
-                        window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Erreur lors de l\'ajout au panier', type: 'error' } }));
+                        window.showToast('Erreur lors de l\'ajout au panier', 'error');
                     } finally {
                         this.addingToCart = false;
                     }
