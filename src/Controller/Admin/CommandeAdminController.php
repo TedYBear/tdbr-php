@@ -72,4 +72,18 @@ class CommandeAdminController extends AbstractController
         $this->addFlash('success', 'Statut de la commande mis à jour');
         return $this->redirectToRoute('admin_commandes_detail', ['id' => $id]);
     }
+
+    #[Route('/{id}/delete', name: 'admin_commandes_delete', methods: ['POST'])]
+    public function delete(int $id): Response
+    {
+        $commande = $this->commandeRepo->find($id);
+
+        if ($commande) {
+            $this->em->remove($commande);
+            $this->em->flush();
+            $this->addFlash('success', 'Commande supprimée');
+        }
+
+        return $this->redirectToRoute('admin_commandes');
+    }
 }
