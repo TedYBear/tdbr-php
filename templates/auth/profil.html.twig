@@ -114,12 +114,17 @@
                                         <span class="font-bold text-xl {{ actif ? 'text-green-600' : 'text-gray-400' }}">- {{ code.montant|number_format(2, ',', ' ') }} €</span>
                                     </div>
                                     <div class="flex items-center justify-between text-xs text-gray-500">
-                                        <span class="px-2 py-0.5 rounded-full font-semibold
-                                            {{ actif ? 'bg-green-100 text-green-700' : (code.statut == 'utilise' ? 'bg-gray-200 text-gray-500' : 'bg-orange-100 text-orange-600') }}">
-                                            {% if actif %}Disponible
-                                            {% elseif code.statut == 'utilise' %}Utilisé
-                                            {% else %}Expiré{% endif %}
-                                        </span>
+                                        <div class="flex items-center gap-2">
+                                            <span class="px-2 py-0.5 rounded-full font-semibold
+                                                {{ actif ? 'bg-green-100 text-green-700' : (code.statut == 'utilise' ? 'bg-gray-200 text-gray-500' : 'bg-orange-100 text-orange-600') }}">
+                                                {% if actif %}Disponible
+                                                {% elseif code.statut == 'utilise' %}Utilisé
+                                                {% else %}Expiré{% endif %}
+                                            </span>
+                                            {% if code.isGlobal %}
+                                                <span class="px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full font-semibold">Global</span>
+                                            {% endif %}
+                                        </div>
                                         {% if code.dateExpiration and actif %}
                                             <span>Expire le {{ code.dateExpiration|date('d/m/Y') }}</span>
                                         {% elseif code.commande %}

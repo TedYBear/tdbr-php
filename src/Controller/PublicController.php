@@ -754,6 +754,12 @@ class PublicController extends AbstractController
             ['createdAt' => 'DESC']
         );
 
+        // Ajouter les codes globaux actifs
+        $codesGlobaux = $this->codeReductionRepo->findActiveGlobal();
+        foreach ($codesGlobaux as $cg) {
+            $codesReduction[] = $cg;
+        }
+
         return $this->render('auth/profil.html.twig', [
             'user'           => $user,
             'commandes'      => $commandes,
