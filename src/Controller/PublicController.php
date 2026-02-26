@@ -399,7 +399,17 @@ class PublicController extends AbstractController
             return $this->redirectToRoute('panier');
         }
 
-        $form = $this->createForm(\App\Form\CheckoutType::class);
+        $user = $this->getUser();
+        $formData = [];
+        if ($user instanceof \App\Entity\User) {
+            $formData = [
+                'prenom'    => $user->getPrenom(),
+                'nom'       => $user->getNom(),
+                'email'     => $user->getEmail(),
+                'telephone' => $user->getTelephone(),
+            ];
+        }
+        $form = $this->createForm(\App\Form\CheckoutType::class, $formData);
         $form->handleRequest($request);
 
         // POST : vérifier le paiement Stripe et créer la commande
