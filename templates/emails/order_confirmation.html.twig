@@ -47,11 +47,13 @@
         {{ commande.modePaiement|capitalize }}
     </p>
 
+    {% if confirmationUrl %}
     <div style="text-align: center; margin: 30px 0;">
-        <a href="http://localhost:8000/confirmation/{{ commande._id }}" class="button">
+        <a href="{{ confirmationUrl }}" style="display:inline-block;background-color:#8B7355;color:#fff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:700;font-size:16px;">
             Voir ma commande
         </a>
     </div>
+    {% endif %}
 
     <p style="font-size: 14px; line-height: 1.6; color: #666; margin-top: 30px;">
         Nous préparons votre commande avec soin. Vous recevrez un email lorsqu'elle sera expédiée.
