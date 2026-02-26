@@ -73,6 +73,20 @@ class CommandeAdminController extends AbstractController
         return $this->redirectToRoute('admin_commandes_detail', ['id' => $id]);
     }
 
+    #[Route('/{id}/facture', name: 'admin_commandes_facture', requirements: ['id' => '\d+'])]
+    public function facture(int $id): Response
+    {
+        $commande = $this->commandeRepo->find($id);
+
+        if (!$commande) {
+            throw $this->createNotFoundException('Commande introuvable');
+        }
+
+        return $this->render('commandes/facture.html.twig', [
+            'commande' => $commande,
+        ]);
+    }
+
     #[Route('/{id}/delete', name: 'admin_commandes_delete', methods: ['POST'])]
     public function delete(int $id): Response
     {

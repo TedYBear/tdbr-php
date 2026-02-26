@@ -593,6 +593,28 @@ class PublicController extends AbstractController
         ]);
     }
 
+    #[Route('/commandes/{id}/facture', name: 'commande_facture', requirements: ['id' => '\d+'])]
+    public function facture(int $id): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_USER');
+
+        $commande = $this->commandeRepo->find($id);
+
+        if (!$commande) {
+            throw $this->createNotFoundException('Commande introuvable');
+        }
+
+        // Vérifier que la commande appartient à l'utilisateur connecté
+        $client = $commande->getClient();
+        if (($client['email'] ?? '') !== $this->getUser()->getUserIdentifier()) {
+            throw $this->createAccessDeniedException();
+        }
+
+        return $this->render('commandes/facture.html.twig', [
+            'commande' => $commande,
+        ]);
+    }
+
     #[Route('/contact', name: 'contact', methods: ['GET', 'POST'])]
     public function contact(Request $request, MailerInterface $mailer): Response
     {
