@@ -46,7 +46,7 @@
                                     <a href="{{ path('admin_devis_detail', {id: d.id}) }}"
                                        class="text-primary hover:text-secondary font-medium text-sm">Voir</a>
                                     <form method="post" action="{{ path('admin_devis_delete', {id: d.id}) }}"
-                                          onsubmit="return confirm('Supprimer ce devis ?')">
+                                          onsubmit="window.confirmForm(event, this, 'Supprimer ce devis ?')">
                                         <button type="submit" class="text-sm text-red-600 hover:text-red-700">Supprimer</button>
                                     </form>
                                 </div>

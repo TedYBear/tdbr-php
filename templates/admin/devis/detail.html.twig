@@ -112,7 +112,7 @@
 
             {# Supprimer #}
             <form method="post" action="{{ path('admin_devis_delete', {id: devis.id}) }}"
-                  onsubmit="return confirm('Supprimer définitivement ce devis ?')">
+                  onsubmit="window.confirmForm(event, this, 'Supprimer définitivement ce devis ?')">
                 <button type="submit" class="w-full px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition text-sm">
                     Supprimer ce devis
                 </button>

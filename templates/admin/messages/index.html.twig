@@ -28,7 +28,7 @@
                                         <button type="submit" class="text-sm text-primary hover:text-secondary">Marquer lu</button>
                                     </form>
                                 {% endif %}
-                                <form method="post" action="{{ path('admin_messages_delete', {id: message.id}) }}" onsubmit="return confirm('Supprimer ce message ?');">
+                                <form method="post" action="{{ path('admin_messages_delete', {id: message.id}) }}" onsubmit="window.confirmForm(event, this, 'Supprimer ce message ?')">
                                     <button type="submit" class="text-sm text-red-600 hover:text-red-700">Supprimer</button>
                                 </form>
                             </div>

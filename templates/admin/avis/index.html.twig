@@ -80,7 +80,7 @@
 
                                         {# Supprimer #}
                                         <form method="post" action="{{ path('admin_avis_delete', {id: a.id}) }}"
-                                              onsubmit="return confirm('Supprimer cet avis définitivement ?');">
+                                              onsubmit="window.confirmForm(event, this, 'Supprimer cet avis définitivement ?')">
                                             <button type="submit" class="text-sm px-3 py-1.5 bg-red-100 text-red-700 hover:bg-red-200 rounded-lg transition">
                                                 Supprimer
                                             </button>
