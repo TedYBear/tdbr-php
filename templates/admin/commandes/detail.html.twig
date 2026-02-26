@@ -101,6 +101,14 @@
                     <div><strong>Modifiée le:</strong><br>{{ commande.updatedAt ? commande.updatedAt|date('d/m/Y à H:i') : '-' }}</div>
                 </div>
             </div>
+
+            {# Supprimer #}
+            <form method="post" action="{{ path('admin_commandes_delete', {id: commande.id}) }}"
+                  onsubmit="return confirm('Supprimer définitivement cette commande ?')">
+                <button type="submit" class="w-full px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition text-sm">
+                    Supprimer cette commande
+                </button>
+            </form>
         </div>
     </div>
 {% endblock %}
