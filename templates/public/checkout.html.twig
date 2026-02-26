@@ -348,12 +348,8 @@
                             Paiement sécurisé
                         </h2>
 
-                        <div class="p-4 bg-amber-50 rounded-lg border border-amber-200">
-                            <p class="text-sm font-semibold text-amber-800">Le paiement en ligne sera disponible très prochainement.</p>
-                            <p class="text-sm text-amber-700 mt-1">
-                                En attendant, <a href="{{ path('contact') }}" class="underline font-medium">contactez-nous</a> pour passer commande dès maintenant.
-                            </p>
-                        </div>
+                        <div id="payment-element" class="mb-4"></div>
+                        <div id="payment-message" class="hidden text-red-600 text-sm font-medium mt-2"></div>
                     </div>
                 </div>
 
@@ -412,9 +408,18 @@
                                   x-text="formatPrice(grandTotal)">{{ total|number_format(2, ',', ' ') }} €</span>
                         </div>
 
-                        <button type="button" disabled
-                                class="w-full text-lg py-4 bg-gray-200 text-gray-400 rounded-xl cursor-not-allowed font-semibold">
-                            Paiement bientôt disponible
+                        <button type="button" @click="pay()"
+                                :disabled="loading"
+                                :class="loading ? 'opacity-60 cursor-wait' : ''"
+                                class="w-full btn-primary text-lg py-4 rounded-xl font-bold">
+                            <span x-show="!loading">Payer <span x-text="formatPrice(grandTotal)"></span></span>
+                            <span x-show="loading" class="flex items-center justify-center gap-2">
+                                <svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                                </svg>
+                                Traitement…
+                            </span>
                         </button>
 
                         {# Sécurité #}
