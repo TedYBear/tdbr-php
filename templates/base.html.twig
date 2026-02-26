@@ -30,49 +30,45 @@
 
     {% include 'layout/flash_messages.html.twig' %}
 
-    {# Toast notifications #}
-    <div
-        x-data="{
-            toasts: [],
-            add(message, type) {
-                const id = Date.now();
-                this.toasts.push({ id, message, type: type || 'success' });
-                setTimeout(() => this.remove(id), 3500);
-            },
-            remove(id) {
-                this.toasts = this.toasts.filter(t => t.id !== id);
-            }
-        }"
-        @toast.window="add($event.detail.message, $event.detail.type)"
-        class="fixed bottom-6 right-6 z-50 flex flex-col gap-3"
-        style="pointer-events:none;"
-        aria-live="polite">
-        <template x-for="toast in toasts" :key="toast.id">
-            <div
-                x-transition:enter="transition ease-out duration-300"
-                x-transition:enter-start="opacity-0 translate-y-3"
-                x-transition:enter-end="opacity-100 translate-y-0"
-                x-transition:leave="transition ease-in duration-200"
-                x-transition:leave-start="opacity-100"
-                x-transition:leave-end="opacity-0"
-                :class="toast.type === 'error' ? 'bg-red-600' : 'bg-gray-900'"
-                class="flex items-center gap-3 px-5 py-3 rounded-xl text-white shadow-2xl"
-                style="min-width:18rem;pointer-events:auto;">
-                <svg x-show="toast.type !== 'error'" class="w-5 h-5 flex-shrink-0" style="color:#4ade80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
-                </svg>
-                <svg x-show="toast.type === 'error'" class="w-5 h-5 flex-shrink-0 text-red-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-                <span class="text-sm font-semibold flex-1" x-text="toast.message"></span>
-                <button @click="remove(toast.id)" class="ml-2 opacity-60 hover:opacity-100 transition-opacity" style="pointer-events:auto;">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                </button>
-            </div>
-        </template>
-    </div>
+    {# Toast notifications — vanilla JS, aucune dépendance Alpine #}
+    <div id="toast-container" style="position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;display:flex;flex-direction:column;gap:0.75rem;pointer-events:none;" aria-live="polite"></div>
+    <script>
+    window.showToast = function(message, type) {
+        var container = document.getElementById('toast-container');
+        if (!container) return;
+
+        var toast = document.createElement('div');
+        toast.style.cssText = 'min-width:18rem;padding:0.75rem 1.25rem;border-radius:0.75rem;color:#fff;display:flex;align-items:center;gap:0.75rem;box-shadow:0 10px 25px rgba(0,0,0,0.25);pointer-events:auto;opacity:0;transform:translateY(0.5rem);transition:opacity 0.3s,transform 0.3s;background-color:' + (type === 'error' ? '#dc2626' : '#111827');
+
+        var icon = type === 'error'
+            ? '<svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>'
+            : '<svg width="20" height="20" fill="none" stroke="#4ade80" viewBox="0 0 24 24" style="flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>';
+
+        toast.innerHTML = icon
+            + '<span style="font-size:0.875rem;font-weight:600;flex:1">' + message + '</span>'
+            + '<button onclick="this.closest(\'[data-toast]\')._remove()" style="opacity:0.6;cursor:pointer;background:none;border:none;color:#fff;padding:0;line-height:0;margin-left:0.5rem">'
+            + '<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>'
+            + '</button>';
+
+        toast.dataset.toast = '1';
+        toast._remove = function() {
+            clearTimeout(timer);
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(0.5rem)';
+            setTimeout(function() { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 300);
+        };
+
+        container.appendChild(toast);
+        requestAnimationFrame(function() {
+            requestAnimationFrame(function() {
+                toast.style.opacity = '1';
+                toast.style.transform = 'translateY(0)';
+            });
+        });
+
+        var timer = setTimeout(function() { toast._remove(); }, 3500);
+    };
+    </script>
 
     <main class="min-h-screen">
         {% block body %}{% endblock %}
