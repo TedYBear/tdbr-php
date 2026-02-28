@@ -25,10 +25,10 @@ class StripeService
     public function createPaymentIntent(float $amount, string $orderRef): PaymentIntent
     {
         return PaymentIntent::create([
-            'amount'   => (int) round($amount * 100),
-            'currency' => 'eur',
-            'metadata' => ['order_ref' => $orderRef],
-            'automatic_payment_methods' => ['enabled' => true],
+            'amount'                 => (int) round($amount * 100),
+            'currency'               => 'eur',
+            'metadata'               => ['order_ref' => $orderRef],
+            'payment_method_types'   => ['card'],
         ]);
     }
 
