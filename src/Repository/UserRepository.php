@@ -23,4 +23,19 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $user->setPassword($newHashedPassword);
         $this->getEntityManager()->flush();
     }
+
+    /**
+     * Retourne tous les utilisateurs avec leur nombre de commandes.
+     * Résultat : [['user' => User, 'commandeCount' => int], ...]
+     */
+    public function findAllWithCommandeCount(): array
+    {
+        return $this->createQueryBuilder('u')
+            ->select('u', 'COUNT(c.id) AS commandeCount')
+            ->leftJoin('App\Entity\Commande', 'c', 'WITH', 'c.user = u')
+            ->groupBy('u.id')
+            ->orderBy('u.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 }

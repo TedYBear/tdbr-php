@@ -1,0 +1,70 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% block title %}Utilisateurs{% endblock %}
+{% block page_title %}Utilisateurs{% endblock %}
+
+{% block body %}
+    <div class="mb-6 flex items-center justify-between">
+        <p class="text-gray-500 text-sm">{{ total }} utilisateur{{ total > 1 ? 's' : '' }} enregistré{{ total > 1 ? 's' : '' }}</p>
+    </div>
+
+    <div class="card overflow-hidden">
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50 border-b">
+                <tr>
+                    <th class="text-left px-4 py-3 font-semibold text-gray-600">Nom</th>
+                    <th class="text-left px-4 py-3 font-semibold text-gray-600">Email</th>
+                    <th class="text-left px-4 py-3 font-semibold text-gray-600">Téléphone</th>
+                    <th class="text-left px-4 py-3 font-semibold text-gray-600">Rôle</th>
+                    <th class="text-center px-4 py-3 font-semibold text-gray-600">Commandes</th>
+                    <th class="text-left px-4 py-3 font-semibold text-gray-600">Inscrit le</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for row in rows %}
+                    {% set user = row[0] %}
+                    {% set commandeCount = row.commandeCount %}
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="px-4 py-3">
+                            <div class="font-semibold text-gray-800">
+                                {{ user.prenom }} {{ user.nom }}
+                            </div>
+                        </td>
+                        <td class="px-4 py-3 text-gray-600">
+                            <a href="mailto:{{ user.email }}" class="hover:text-primary transition">
+                                {{ user.email }}
+                            </a>
+                        </td>
+                        <td class="px-4 py-3 text-gray-500">
+                            {{ user.telephone ?? '—' }}
+                        </td>
+                        <td class="px-4 py-3">
+                            {% if 'ROLE_ADMIN' in user.roles %}
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-700">Admin</span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-gray-100 text-gray-600">Client</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                            {% if commandeCount > 0 %}
+                                <a href="{{ path('admin_commandes', {statut: ''}) }}?user={{ user.id }}"
+                                   class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-sm hover:bg-primary hover:text-white transition">
+                                    {{ commandeCount }}
+                                </a>
+                            {% else %}
+                                <span class="text-gray-300">0</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3 text-gray-400 text-xs">
+                            {{ user.createdAt|date('d/m/Y') }}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="px-4 py-8 text-center text-gray-400">Aucun utilisateur enregistré.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
