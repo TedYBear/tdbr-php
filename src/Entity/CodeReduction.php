@@ -38,6 +38,12 @@ class CodeReduction
     private ?Commande $commande = null;
 
     #[ORM\Column]
+    private bool $isCampaignGift = false;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $recipientEmail = null;
+
+    #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
     public function __construct()
@@ -61,6 +67,12 @@ class CodeReduction
     public function isGlobal(): bool { return $this->user === null; }
     public function getCommande(): ?Commande { return $this->commande; }
     public function setCommande(?Commande $commande): static { $this->commande = $commande; return $this; }
+    public function isCampaignGift(): bool { return $this->isCampaignGift; }
+    public function setIsCampaignGift(bool $v): static { $this->isCampaignGift = $v; return $this; }
+
+    public function getRecipientEmail(): ?string { return $this->recipientEmail; }
+    public function setRecipientEmail(?string $v): static { $this->recipientEmail = $v; return $this; }
+
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
 
     public function isActif(): bool

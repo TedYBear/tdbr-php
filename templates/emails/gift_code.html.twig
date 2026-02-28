@@ -1,0 +1,38 @@
+{% extends 'emails/base.html.twig' %}
+
+{% block header_title %}Un cadeau pour vous !{% endblock %}
+
+{% block content %}
+    <h2 style="color: #2C2416; margin-top: 0;">Merci pour votre commande !</h2>
+
+    <p style="font-size: 16px; line-height: 1.6; color: #333;">
+        Votre soutien compte énormément pour nous. Pour vous remercier d'avoir fait confiance à TDBR,
+        voici un code cadeau à utiliser sur votre prochaine commande :
+    </p>
+
+    <div style="background-color: #F5E6D3; padding: 28px; border-radius: 12px; margin: 28px 0; text-align: center;">
+        <div style="font-size: 13px; color: #8B7355; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; font-weight: 600;">
+            Votre code cadeau
+        </div>
+        <div style="font-size: 2rem; font-weight: 800; color: #2C2416; letter-spacing: 0.15em; font-family: monospace; background: #fff; display: inline-block; padding: 12px 28px; border-radius: 8px; border: 2px dashed #D4AF7A;">
+            {{ code }}
+        </div>
+        <div style="margin-top: 16px; font-size: 18px; font-weight: 700; color: #8B7355;">
+            {% if type == 'pourcentage' %}
+                {{ montant|number_format(0, ',', ' ') }} % de réduction
+            {% else %}
+                {{ montant|number_format(2, ',', ' ') }} € de réduction
+            {% endif %}
+        </div>
+    </div>
+
+    <p style="font-size: 14px; line-height: 1.6; color: #666;">
+        Ce code est valable pour une utilisation sur votre prochaine commande. Saisissez-le dans le champ
+        prévu à cet effet lors du passage en caisse.
+    </p>
+
+    <p style="font-size: 16px; line-height: 1.6; color: #333; font-weight: 600; margin-top: 32px;">
+        À très bientôt !<br>
+        L'équipe TDBR
+    </p>
+{% endblock %}

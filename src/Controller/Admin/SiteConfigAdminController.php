@@ -2,6 +2,7 @@
 
 namespace App\Controller\Admin;
 
+use App\Repository\CodeReductionRepository;
 use App\Repository\SiteConfigRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -17,6 +18,7 @@ class SiteConfigAdminController extends AbstractController
     public function __construct(
         private EntityManagerInterface $em,
         private SiteConfigRepository $siteConfigRepo,
+        private CodeReductionRepository $codeReductionRepo,
     ) {
     }
 
@@ -35,7 +37,23 @@ class SiteConfigAdminController extends AbstractController
         }
 
         return $this->render('admin/site_config/edit.html.twig', [
-            'config' => $config,
+            'config'     => $config,
+            'giftCount'  => $this->codeReductionRepo->countCampaignGift(),
         ]);
+    }
+
+    #[Route('/gift', name: '_gift', methods: ['POST'])]
+    public function editGift(Request $request): Response
+    {
+        $config = $this->siteConfigRepo->getConfig();
+
+        $config->setGiftActive((bool) $request->request->get('giftActive'));
+        $config->setGiftType(in_array($request->request->get('giftType'), ['fixe', 'pourcentage']) ? $request->request->get('giftType') : 'fixe');
+        $config->setGiftValue(max(0.01, (float) $request->request->get('giftValue', 5)));
+        $config->setGiftMaxBeneficiaires(max(1, (int) $request->request->get('giftMaxBeneficiaires', 10)));
+        $this->em->flush();
+
+        $this->addFlash('success', 'Campagne code cadeau enregistrée.');
+        return $this->redirectToRoute('admin_site_config');
     }
 }

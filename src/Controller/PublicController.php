@@ -5,12 +5,14 @@ namespace App\Controller;
 use App\Entity\Commande;
 use App\Entity\Message;
 use App\Entity\User;
+use App\Entity\CodeReduction;
 use App\Repository\ArticleRepository;
 use App\Repository\CategoryRepository;
 use App\Repository\BoutiqueRelaisRepository;
 use App\Repository\CodeReductionRepository;
 use App\Repository\CommandeRepository;
 use App\Repository\ProductCollectionRepository;
+use App\Repository\SiteConfigRepository;
 use App\Repository\UserRepository;
 use App\Service\CartService;
 use App\Service\MailerService;
@@ -59,6 +61,7 @@ class PublicController extends AbstractController
         private CodeReductionRepository $codeReductionRepo,
         private BoutiqueRelaisRepository $boutiqueRelaisRepo,
         private MailerService $mailerService,
+        private SiteConfigRepository $siteConfigRepo,
     ) {
     }
 
@@ -544,6 +547,36 @@ class PublicController extends AbstractController
                 $this->mailerService->sendOrderConfirmation($commande, $confirmationUrl);
             } catch (\Exception $e) {
                 // L'échec d'email ne doit pas bloquer la commande
+            }
+
+            // Campagne code cadeau
+            try {
+                $siteConfig = $this->siteConfigRepo->getConfig();
+                if ($siteConfig->isGiftActive()) {
+                    $clientEmail = strtolower($commande->getClient()['email']);
+                    $beneficiairesCount = $this->codeReductionRepo->countCampaignGift();
+                    if (
+                        $beneficiairesCount < $siteConfig->getGiftMaxBeneficiaires()
+                        && !$this->codeReductionRepo->hasCampaignGiftForEmail($clientEmail)
+                    ) {
+                        $montant = $siteConfig->getGiftType() === 'pourcentage'
+                            ? round($commande->getTotal() * $siteConfig->getGiftValue() / 100, 2)
+                            : $siteConfig->getGiftValue();
+
+                        $giftCode = new CodeReduction();
+                        $giftCode->setCode('CADEAU-' . strtoupper(bin2hex(random_bytes(4))));
+                        $giftCode->setMontant($montant);
+                        $giftCode->setStatut('actif');
+                        $giftCode->setIsCampaignGift(true);
+                        $giftCode->setRecipientEmail($clientEmail);
+                        $this->em->persist($giftCode);
+                        $this->em->flush();
+
+                        $this->mailerService->sendGiftCode($clientEmail, $giftCode->getCode(), $montant, $siteConfig->getGiftType());
+                    }
+                }
+            } catch (\Exception $e) {
+                // L'échec de la campagne ne doit pas bloquer la commande
             }
 
             return $this->redirectToRoute('confirmation', ['id' => $commande->getId()]);
