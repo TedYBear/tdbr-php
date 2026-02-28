@@ -2,12 +2,26 @@
 
 namespace App\Twig;
 
+use App\Repository\SiteConfigRepository;
 use Twig\Extension\AbstractExtension;
+use Twig\Extension\GlobalsInterface;
 use Twig\TwigFilter;
 use Twig\TwigFunction;
 
-class AppExtension extends AbstractExtension
+class AppExtension extends AbstractExtension implements GlobalsInterface
 {
+    public function __construct(
+        private SiteConfigRepository $siteConfigRepo,
+    ) {
+    }
+
+    public function getGlobals(): array
+    {
+        return [
+            'siteConfig' => $this->siteConfigRepo->getConfig(),
+        ];
+    }
+
     public function getFilters(): array
     {
         return [
