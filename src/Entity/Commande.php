@@ -3,6 +3,7 @@ namespace App\Entity;
 
 use App\Repository\CommandeRepository;
 use Doctrine\ORM\Mapping as ORM;
+use App\Entity\User;
 
 #[ORM\Entity(repositoryClass: CommandeRepository::class)]
 #[ORM\Table(name: 'commandes')]
@@ -46,6 +47,10 @@ class Commande
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
     private float $reduction = 0.0;
 
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?User $user = null;
+
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
@@ -84,4 +89,7 @@ class Commande
     public function setCreatedAt(\DateTimeImmutable $c): static { $this->createdAt = $c; return $this; }
     public function getUpdatedAt(): ?\DateTimeImmutable { return $this->updatedAt; }
     public function setUpdatedAt(?\DateTimeImmutable $u): static { $this->updatedAt = $u; return $this; }
+
+    public function getUser(): ?User { return $this->user; }
+    public function setUser(?User $user): static { $this->user = $user; return $this; }
 }
