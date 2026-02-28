@@ -47,4 +47,26 @@ class CodeReductionRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function countCampaignGift(): int
+    {
+        return (int) $this->createQueryBuilder('c')
+            ->select('COUNT(c.id)')
+            ->where('c.isCampaignGift = true')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function hasCampaignGiftForEmail(string $email): bool
+    {
+        $count = (int) $this->createQueryBuilder('c')
+            ->select('COUNT(c.id)')
+            ->where('c.isCampaignGift = true')
+            ->andWhere('c.recipientEmail = :email')
+            ->setParameter('email', strtolower($email))
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return $count > 0;
+    }
 }

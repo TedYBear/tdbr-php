@@ -33,4 +33,30 @@ class SiteConfig
 
     public function getBannerTexte(): string { return $this->bannerTexte; }
     public function setBannerTexte(string $v): static { $this->bannerTexte = $v; return $this; }
+
+    // --- Campagne code cadeau ---
+
+    #[ORM\Column]
+    private bool $giftActive = false;
+
+    #[ORM\Column(length: 20)]
+    private string $giftType = 'fixe'; // 'fixe' | 'pourcentage'
+
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
+    private float $giftValue = 5.0;
+
+    #[ORM\Column]
+    private int $giftMaxBeneficiaires = 10;
+
+    public function isGiftActive(): bool { return $this->giftActive; }
+    public function setGiftActive(bool $v): static { $this->giftActive = $v; return $this; }
+
+    public function getGiftType(): string { return $this->giftType; }
+    public function setGiftType(string $v): static { $this->giftType = $v; return $this; }
+
+    public function getGiftValue(): float { return (float) $this->giftValue; }
+    public function setGiftValue(float $v): static { $this->giftValue = $v; return $this; }
+
+    public function getGiftMaxBeneficiaires(): int { return $this->giftMaxBeneficiaires; }
+    public function setGiftMaxBeneficiaires(int $v): static { $this->giftMaxBeneficiaires = $v; return $this; }
 }

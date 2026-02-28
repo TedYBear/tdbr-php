@@ -5,7 +5,7 @@
 
 {% block body %}
     <div class="max-w-2xl">
-        <div class="card p-6">
+        <div class="card p-6 mb-6">
             <h2 class="text-xl font-bold mb-6">Bandeau d'information</h2>
 
             <form method="post">
@@ -85,6 +85,92 @@
     });
     document.getElementById('bannerTexte').addEventListener('input', function() {
         document.getElementById('preview-texte').textContent = this.value || 'Message...';
+    });
+    </script>
+
+    {# === Campagne code cadeau === #}
+    <div class="card p-6">
+        <h2 class="text-xl font-bold mb-2">Campagne code cadeau</h2>
+        <p class="text-sm text-gray-500 mb-6">
+            Génère automatiquement un code de réduction pour chaque nouveau client après sa première commande,
+            jusqu'à atteindre le nombre de bénéficiaires défini.
+        </p>
+
+        <form method="post" action="{{ path('admin_site_config_gift') }}">
+            {# Compteur bénéficiaires #}
+            <div class="flex items-center gap-4 p-4 bg-amber-50 border border-amber-200 rounded-lg mb-6">
+                <div class="text-3xl font-black text-amber-600">{{ giftCount }}</div>
+                <div>
+                    <div class="font-semibold text-gray-800">bénéficiaire{{ giftCount > 1 ? 's' : '' }} sur {{ config.giftMaxBeneficiaires }}</div>
+                    <div class="text-sm text-gray-500">codes cadeaux envoyés depuis le lancement de la campagne</div>
+                </div>
+            </div>
+
+            {# Toggle actif/inactif #}
+            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg mb-6">
+                <div>
+                    <div class="font-semibold text-gray-800">Activer la campagne</div>
+                    <div class="text-sm text-gray-500">Les nouveaux clients reçoivent un code cadeau automatiquement</div>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" name="giftActive" value="1" class="sr-only peer"
+                           {{ config.giftActive ? 'checked' : '' }}>
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer
+                                peer-checked:after:translate-x-full peer-checked:after:border-white
+                                after:content-[''] after:absolute after:top-[2px] after:left-[2px]
+                                after:bg-white after:border-gray-300 after:border after:rounded-full
+                                after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                </label>
+            </div>
+
+            {# Nombre max de bénéficiaires #}
+            <div class="mb-4">
+                <label class="block text-sm font-semibold text-gray-700 mb-1" for="giftMaxBeneficiaires">
+                    Nombre maximum de bénéficiaires
+                </label>
+                <input type="number" id="giftMaxBeneficiaires" name="giftMaxBeneficiaires"
+                       value="{{ config.giftMaxBeneficiaires }}"
+                       min="1" max="10000"
+                       class="form-input w-full">
+                <p class="text-xs text-gray-400 mt-1">La campagne s'arrête automatiquement après ce nombre de codes envoyés</p>
+            </div>
+
+            {# Type + valeur #}
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1" for="giftType">
+                        Type de réduction
+                    </label>
+                    <select id="giftType" name="giftType" class="form-select w-full">
+                        <option value="fixe" {{ config.giftType == 'fixe' ? 'selected' : '' }}>Montant fixe (€)</option>
+                        <option value="pourcentage" {{ config.giftType == 'pourcentage' ? 'selected' : '' }}>Pourcentage (%)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1" for="giftValue">
+                        Valeur
+                    </label>
+                    <div class="relative">
+                        <input type="number" id="giftValue" name="giftValue"
+                               value="{{ config.giftValue }}"
+                               min="0.01" step="0.01"
+                               class="form-input w-full pr-10">
+                        <span id="gift-unit" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 font-semibold text-sm">
+                            {{ config.giftType == 'pourcentage' ? '%' : '€' }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary px-6 py-2.5">
+                Enregistrer la campagne
+            </button>
+        </form>
+    </div>
+
+    <script>
+    document.getElementById('giftType').addEventListener('change', function() {
+        document.getElementById('gift-unit').textContent = this.value === 'pourcentage' ? '%' : '€';
     });
     </script>
 {% endblock %}

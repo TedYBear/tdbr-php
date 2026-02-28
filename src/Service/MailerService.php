@@ -105,6 +105,26 @@ class MailerService
     }
 
     /**
+     * Envoie un code cadeau suite à une commande (campagne)
+     */
+    public function sendGiftCode(string $toEmail, string $code, float $montant, string $type): void
+    {
+        $html = $this->twig->render('emails/gift_code.html.twig', [
+            'code'    => $code,
+            'montant' => $montant,
+            'type'    => $type,
+        ]);
+
+        $email = (new Email())
+            ->from($this->fromEmail)
+            ->to($toEmail)
+            ->subject('Un cadeau vous attend chez TDBR !')
+            ->html($html);
+
+        $this->mailer->send($email);
+    }
+
+    /**
      * Envoie une réponse à un message de contact
      */
     public function sendContactReply(string $toEmail, string $subject, string $messageContent): void
