@@ -521,6 +521,9 @@ class PublicController extends AbstractController
             $commande->setNotes($data['notes'] ?? null);
             $commande->setStatut('payee');
             $commande->setStripePaymentIntentId($paymentIntentId);
+            if ($this->getUser() instanceof User) {
+                $commande->setUser($this->getUser());
+            }
 
             $this->em->persist($commande);
             $this->em->flush();
@@ -658,8 +661,7 @@ class PublicController extends AbstractController
         }
 
         // Vérifier que la commande appartient à l'utilisateur connecté
-        $client = $commande->getClient();
-        if (($client['email'] ?? '') !== $this->getUser()->getUserIdentifier()) {
+        if ($commande->getUser() !== $this->getUser()) {
             throw $this->createAccessDeniedException();
         }
 
@@ -827,12 +829,11 @@ class PublicController extends AbstractController
             return $this->redirectToRoute('profil');
         }
 
-        $userEmail = $user->getUserIdentifier();
-        $allCommandes = $this->commandeRepo->findBy([], ['createdAt' => 'DESC']);
-        $commandes = array_slice(array_values(array_filter($allCommandes, function($c) use ($userEmail) {
-            $client = $c->getClient();
-            return ($client['email'] ?? '') === $userEmail;
-        })), 0, 10);
+        $commandes = $this->commandeRepo->findBy(
+            ['user' => $user],
+            ['createdAt' => 'DESC'],
+            10
+        );
 
         $codesReduction = $this->codeReductionRepo->findBy(
             ['user' => $user],
