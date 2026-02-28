@@ -569,6 +569,11 @@ class PublicController extends AbstractController
                         $giftCode->setStatut('actif');
                         $giftCode->setIsCampaignGift(true);
                         $giftCode->setRecipientEmail($clientEmail);
+                        /** @var \App\Entity\User|null $currentUser */
+                        $currentUser = $this->getUser();
+                        if ($currentUser instanceof User) {
+                            $giftCode->setUser($currentUser);
+                        }
                         $this->em->persist($giftCode);
                         $this->em->flush();
 
