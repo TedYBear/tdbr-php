@@ -348,8 +348,10 @@
                             Paiement sécurisé
                         </h2>
 
-                        <div id="payment-element" class="mb-4"></div>
-                        <div id="payment-message" class="hidden text-red-600 text-sm font-medium mt-2"></div>
+                        <div style="background-color:#fef3c7;border:1px solid #f59e0b;border-radius:0.75rem;padding:1.25rem 1.5rem;color:#92400e;font-size:0.9rem;line-height:1.6;">
+                            <strong style="display:block;margin-bottom:0.25rem;">Paiement en ligne temporairement indisponible</strong>
+                            Pour passer commande, contactez-nous directement via la page <a href="{{ path('contact') }}" style="font-weight:700;text-decoration:underline;color:#92400e;">Contact</a>.
+                        </div>
                     </div>
                 </div>
 
@@ -408,18 +410,9 @@
                                   x-text="formatPrice(grandTotal)">{{ total|number_format(2, ',', ' ') }} €</span>
                         </div>
 
-                        <button type="button" @click="pay()"
-                                :disabled="loading"
-                                :class="loading ? 'opacity-60 cursor-wait' : ''"
-                                class="w-full btn-primary text-lg py-4 rounded-xl font-bold">
-                            <span x-show="!loading">Payer <span x-text="formatPrice(grandTotal)"></span></span>
-                            <span x-show="loading" class="flex items-center justify-center gap-2">
-                                <svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
-                                </svg>
-                                Traitement…
-                            </span>
+                        <button type="button" disabled
+                                class="w-full text-lg py-4 rounded-xl font-bold bg-gray-200 text-gray-400 cursor-not-allowed">
+                            Paiement indisponible
                         </button>
 
                         {# Sécurité #}
