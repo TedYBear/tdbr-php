@@ -5,41 +5,31 @@
 {% block body %}
     {% include 'public/_presentation_subnav.html.twig' %}
 
-    {# Hero Section with Image #}
+    {# Hero Section #}
     <section class="relative py-8 md:py-12 bg-gradient-to-b from-white to-gray-50">
         <div class="container mx-auto px-4">
-            <div class="grid md:grid-cols-2 gap-6 md:gap-8 max-w-6xl mx-auto items-center">
-                {# Image portrait #}
-                <div class="relative h-[400px] md:h-[600px] rounded-xl overflow-hidden shadow-2xl bg-gray-100">
-                    <img src="{{ asset('build/images/pres.png') }}"
-                         alt="TedYBear - TDBR"
-                         class="w-full h-full object-contain">
-                </div>
-
-                {# Texte d'introduction #}
-                <div>
-                    <h1 class="font-heading text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-3 md:mb-4">
-                        Salut, moi c'est <span class="gradient-text">TedYBear</span>
-                    </h1>
-                    <p class="text-xl md:text-2xl text-gray-600 mb-4 md:mb-6 font-light">
-                        (avec un seul D, parce que oui, ça compte)
+            <div class="max-w-4xl mx-auto">
+                <h1 class="font-heading text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-3 md:mb-4">
+                    Salut, moi c'est <span class="gradient-text">TedYBear</span>
+                </h1>
+                <p class="text-xl md:text-2xl text-gray-600 mb-4 md:mb-6 font-light">
+                    (avec un seul D, parce que oui, ça compte)
+                </p>
+                <div class="space-y-4 text-base md:text-lg text-gray-700 leading-relaxed">
+                    <p>
+                        À l'état civil, je m'appelle <strong>Emmanuel</strong>. Mais sorti du boulot, personne ne m'appelle comme ça.
+                        Pour tout le monde, c'est <strong>Manu</strong>. Et depuis très longtemps, mon pseudo sur le net et dans le milieu artistique,
+                        c'est <strong>TedYBear</strong>.
                     </p>
-                    <div class="space-y-4 text-base md:text-lg text-gray-700 leading-relaxed">
-                        <p>
-                            À l'état civil, je m'appelle <strong>Emmanuel</strong>. Mais sorti du boulot, personne ne m'appelle comme ça.
-                            Pour tout le monde, c'est <strong>Manu</strong>. Et depuis très longtemps, mon pseudo sur le net et dans le milieu artistique,
-                            c'est <strong>TedYBear</strong>.
-                        </p>
-                        <p>
-                            Pourquoi TedYBear ? Parce que je suis un mélange paradoxal :
-                            <strong>gentil comme un nounours mais parfois ronchon comme un ours qui n'a pas eu son café</strong>.
-                        </p>
-                        <p>
-                            À 50 balais, j'assume complètement cette double nature. Et pour en faire une marque,
-                            j'ai créé <strong class="gradient-text">TDBR</strong> — une contraction de TedYBear, courte, percutante,
-                            et idéale pour un nom de marque.
-                        </p>
-                    </div>
+                    <p>
+                        Pourquoi TedYBear ? Parce que je suis un mélange paradoxal :
+                        <strong>gentil comme un nounours mais parfois ronchon comme un ours qui n'a pas eu son café</strong>.
+                    </p>
+                    <p>
+                        À 50 balais, j'assume complètement cette double nature. Et pour en faire une marque,
+                        j'ai créé <strong class="gradient-text">TDBR</strong> — une contraction de TedYBear, courte, percutante,
+                        et idéale pour un nom de marque.
+                    </p>
                 </div>
             </div>
         </div>
