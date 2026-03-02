@@ -59,4 +59,12 @@ class SiteConfig
 
     public function getGiftMaxBeneficiaires(): int { return $this->giftMaxBeneficiaires; }
     public function setGiftMaxBeneficiaires(int $v): static { $this->giftMaxBeneficiaires = $v; return $this; }
+
+    // --- Livraison Vistaprint ---
+
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
+    private float $fraisVistaprintDomicile = 5.0;
+
+    public function getFraisVistaprintDomicile(): float { return (float) $this->fraisVistaprintDomicile; }
+    public function setFraisVistaprintDomicile(float $v): static { $this->fraisVistaprintDomicile = $v; return $this; }
 }

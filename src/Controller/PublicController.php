@@ -913,7 +913,8 @@ class PublicController extends AbstractController
             return 0.0;
         }
 
-        return $totalFournisseur >= 50.0 ? 0.0 : 5.0;
+        $frais = $this->siteConfigRepo->getConfig()->getFraisVistaprintDomicile();
+        return $totalFournisseur >= 50.0 ? 0.0 : $frais;
     }
 
     /**

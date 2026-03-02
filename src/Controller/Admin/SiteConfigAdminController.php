@@ -42,6 +42,17 @@ class SiteConfigAdminController extends AbstractController
         ]);
     }
 
+    #[Route('/livraison', name: '_livraison', methods: ['POST'])]
+    public function editLivraison(Request $request): Response
+    {
+        $config = $this->siteConfigRepo->getConfig();
+        $config->setFraisVistaprintDomicile(max(0.0, (float) $request->request->get('fraisVistaprintDomicile', 5)));
+        $this->em->flush();
+
+        $this->addFlash('success', 'Frais de livraison Vistaprint enregistrés.');
+        return $this->redirectToRoute('admin_site_config');
+    }
+
     #[Route('/gift', name: '_gift', methods: ['POST'])]
     public function editGift(Request $request): Response
     {

@@ -88,6 +88,35 @@
     });
     </script>
 
+    {# === Livraison Vistaprint === #}
+    <div class="card p-6 mb-6">
+        <h2 class="text-xl font-bold mb-2">Livraison Vistaprint</h2>
+        <p class="text-sm text-gray-500 mb-6">
+            Frais de livraison à domicile appliqués lorsque la commande contient des articles Vistaprint
+            et que le total fournisseur est inférieur à 50 €.
+        </p>
+
+        <form method="post" action="{{ path('admin_site_config_livraison') }}">
+            <div class="mb-6">
+                <label class="block text-sm font-semibold text-gray-700 mb-1" for="fraisVistaprintDomicile">
+                    Frais de livraison domicile (€)
+                </label>
+                <div class="relative w-40">
+                    <input type="number" id="fraisVistaprintDomicile" name="fraisVistaprintDomicile"
+                           value="{{ config.fraisVistaprintDomicile }}"
+                           min="0" step="0.01"
+                           class="form-input w-full pr-8">
+                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 font-semibold text-sm">€</span>
+                </div>
+                <p class="text-xs text-gray-400 mt-1">Mettre 0 pour rendre la livraison Vistaprint toujours gratuite</p>
+            </div>
+
+            <button type="submit" class="btn-primary px-6 py-2.5">
+                Enregistrer
+            </button>
+        </form>
+    </div>
+
     {# === Campagne code cadeau === #}
     <div class="card p-6">
         <h2 class="text-xl font-bold mb-2">Campagne code cadeau</h2>
