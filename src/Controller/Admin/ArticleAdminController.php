@@ -244,6 +244,10 @@ class ArticleAdminController extends AbstractController
             $this->em->flush();
 
             $this->addFlash('success', 'Article modifié avec succès');
+            $returnUrl = $request->request->get('returnUrl', '');
+            if ($returnUrl && str_starts_with($returnUrl, '/admin/')) {
+                return $this->redirect($returnUrl);
+            }
             return $this->redirectToRoute('admin_articles');
         }
 
@@ -253,6 +257,7 @@ class ArticleAdminController extends AbstractController
             'fournisseurs' => $fournisseurs,
             'grilles' => $grilles,
             'templates' => $this->buildTemplatesData(),
+            'returnUrl' => $request->query->get('returnUrl', ''),
         ]);
     }
 
