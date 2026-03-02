@@ -16,19 +16,40 @@
     <div style="background-color: #F5E6D3; padding: 20px; border-radius: 8px; margin: 20px 0;">
         <h3 style="margin-top: 0; color: #8B7355;">Récapitulatif de votre commande</h3>
 
+        {% set sousTotal = 0 %}
         {% for article in commande.articles %}
+            {% set ligneTotal = article.prix * article.quantity %}
+            {% set sousTotal = sousTotal + ligneTotal %}
             <div style="padding: 10px 0; border-bottom: 1px solid #D4AF7A;">
                 <strong>{{ article.nom }}</strong>
                 {% if article.variant %}
                     <br><span style="font-size: 14px; color: #666;">Variante: {{ article.variant.nom }}</span>
                 {% endif %}
                 <br>Quantité: {{ article.quantity }} × {{ article.prix|number_format(2, ',', ' ') }} €
-                = <strong>{{ (article.prix * article.quantity)|number_format(2, ',', ' ') }} €</strong>
+                = <strong>{{ ligneTotal|number_format(2, ',', ' ') }} €</strong>
             </div>
         {% endfor %}
 
-        <div style="padding-top: 15px; font-size: 18px; font-weight: bold; color: #8B7355;">
-            Total : {{ commande.total|number_format(2, ',', ' ') }} €
+        {% set fraisLivraison = commande.total - sousTotal + commande.reduction %}
+        <div style="padding-top: 12px;">
+            <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #D4AF7A; font-size: 14px; color: #666;">
+                <span>Articles</span>
+                <span>{{ sousTotal|number_format(2, ',', ' ') }} €</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #D4AF7A; font-size: 14px; color: #666;">
+                <span>Livraison</span>
+                <span>{% if fraisLivraison <= 0 %}Gratuite{% else %}{{ fraisLivraison|number_format(2, ',', ' ') }} €{% endif %}</span>
+            </div>
+            {% if commande.reduction > 0 %}
+            <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #D4AF7A; font-size: 14px; font-weight: 600; color: #15803d;">
+                <span>Réduction</span>
+                <span>- {{ commande.reduction|number_format(2, ',', ' ') }} €</span>
+            </div>
+            {% endif %}
+            <div style="display: flex; justify-content: space-between; padding-top: 12px; font-size: 18px; font-weight: bold; color: #8B7355;">
+                <span>Total</span>
+                <span>{{ commande.total|number_format(2, ',', ' ') }} €</span>
+            </div>
         </div>
     </div>
 

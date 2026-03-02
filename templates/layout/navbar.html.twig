@@ -1,4 +1,8 @@
 {# Navbar Component #}
+<style>
+.nav-menu-link { border-radius: 0.5rem; padding: 0.375rem 0.75rem; transition: background-color 0.15s, color 0.15s; }
+.nav-menu-link:hover { background-color: #fffbeb; }
+</style>
 <nav class="bg-white shadow-md sticky top-0 z-50" x-data="{ mobileOpen: false }">
     <div class="container mx-auto px-4 py-3 md:py-4">
         <div class="flex items-center justify-between">
@@ -10,14 +14,13 @@
             </a>
 
             {# Menu Desktop (md+) #}
-            <div class="hidden md:flex items-center space-x-6">
-                <a href="{{ path('home') }}" class="hover:text-primary transition">Accueil</a>
-                <a href="{{ path('presentation') }}" class="hover:text-primary transition">Présentation</a>
-                <a href="{{ path('catalogue', {}) }}" class="hover:text-primary transition">Catalogue</a>
-
-<a href="{{ path('avis_liste') }}" class="hover:text-primary transition">Vos retours</a>
-                <a href="{{ path('devis') }}" class="btn-primary text-sm">Demander un devis</a>
-                <a href="{{ path('contact', {}) }}" class="hover:text-primary transition">Contact</a>
+            <div class="hidden md:flex items-center space-x-1">
+                <a href="{{ path('home') }}" class="nav-menu-link hover:text-primary">Accueil</a>
+                <a href="{{ path('presentation') }}" class="nav-menu-link hover:text-primary">Présentation</a>
+                <a href="{{ path('catalogue', {}) }}" class="nav-menu-link hover:text-primary">Catalogue</a>
+                <a href="{{ path('avis_liste') }}" class="nav-menu-link hover:text-primary">Vos retours</a>
+                <a href="{{ path('devis') }}" class="nav-menu-link hover:text-primary">Devis</a>
+                <a href="{{ path('contact', {}) }}" class="nav-menu-link hover:text-primary">Contact</a>
             </div>
 
             {# Actions (toujours visibles) #}
@@ -80,11 +83,8 @@
             <a href="{{ path('catalogue', {}) }}" class="block px-3 py-3 rounded-xl hover:bg-gray-50 font-medium" @click="mobileOpen = false">Catalogue</a>
 
 <a href="{{ path('avis_liste') }}" class="block px-3 py-3 rounded-xl hover:bg-gray-50 font-medium" @click="mobileOpen = false">Vos retours</a>
+            <a href="{{ path('devis') }}" class="block px-3 py-3 rounded-xl hover:bg-gray-50 font-medium" @click="mobileOpen = false">Devis</a>
             <a href="{{ path('contact', {}) }}" class="block px-3 py-3 rounded-xl hover:bg-gray-50 font-medium" @click="mobileOpen = false">Contact</a>
-
-            <div class="pt-2 pb-1">
-                <a href="{{ path('devis') }}" class="btn-primary block text-center" @click="mobileOpen = false">Demander un devis</a>
-            </div>
 
             {# Compte #}
             <div class="border-t border-gray-100 pt-3 mt-1 space-y-1">
