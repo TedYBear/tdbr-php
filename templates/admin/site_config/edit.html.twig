@@ -140,9 +140,9 @@
                 <div>
                     <div class="font-semibold text-gray-800">Activer la campagne</div>
                     <div class="text-sm text-gray-500">Les nouveaux clients reçoivent un code cadeau automatiquement</div>
-                    <div x-show="!active && {{ giftCount }} > 0" style="display:none"
-                         class="text-xs text-red-600 font-semibold mt-1">
-                        Désactiver supprimera les {{ giftCount }} code(s) existant(s) et remettra le compteur à zéro.
+                    <div x-show="!active" style="display:none"
+                         class="text-xs text-amber-600 font-semibold mt-1">
+                        Désactiver remettra le compteur à zéro. Les codes déjà distribués restent valides.
                     </div>
                 </div>
                 <label class="relative inline-flex items-center cursor-pointer">

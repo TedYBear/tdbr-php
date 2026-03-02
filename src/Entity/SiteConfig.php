@@ -60,6 +60,12 @@ class SiteConfig
     public function getGiftMaxBeneficiaires(): int { return $this->giftMaxBeneficiaires; }
     public function setGiftMaxBeneficiaires(int $v): static { $this->giftMaxBeneficiaires = $v; return $this; }
 
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $giftResetAt = null;
+
+    public function getGiftResetAt(): ?\DateTimeImmutable { return $this->giftResetAt; }
+    public function setGiftResetAt(?\DateTimeImmutable $v): static { $this->giftResetAt = $v; return $this; }
+
     // --- Livraison Vistaprint ---
 
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]

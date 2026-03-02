@@ -558,10 +558,11 @@ class PublicController extends AbstractController
                 $siteConfig = $this->siteConfigRepo->getConfig();
                 if ($siteConfig->isGiftActive()) {
                     $clientEmail = strtolower($commande->getClient()['email']);
-                    $beneficiairesCount = $this->codeReductionRepo->countCampaignGift();
+                    $since = $siteConfig->getGiftResetAt();
+                    $beneficiairesCount = $this->codeReductionRepo->countCampaignGift($since);
                     if (
                         $beneficiairesCount < $siteConfig->getGiftMaxBeneficiaires()
-                        && !$this->codeReductionRepo->hasCampaignGiftForEmail($clientEmail)
+                        && !$this->codeReductionRepo->hasCampaignGiftForEmail($clientEmail, $since)
                     ) {
                         $montant = $siteConfig->getGiftType() === 'pourcentage'
                             ? round($commande->getTotal() * $siteConfig->getGiftValue() / 100, 2)
