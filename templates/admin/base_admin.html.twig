@@ -8,9 +8,12 @@
     {% block stylesheets %}
         <link rel="stylesheet" href="{{ asset('build/app.3c391010.css') }}">
     {% endblock %}
+    <style>[x-cloak]{display:none!important}</style>
 </head>
 <body class="bg-gray-50">
-    <div class="flex h-screen overflow-hidden" x-data="{ sidebarOpen: false }">
+    <div class="flex h-screen overflow-hidden"
+         x-data="{ sidebarOpen: window.innerWidth >= 768 }"
+         @resize.window="sidebarOpen = window.innerWidth >= 768">
         {# Backdrop mobile #}
         <div x-show="sidebarOpen"
              @click="sidebarOpen = false"
@@ -27,7 +30,7 @@
         {% include 'admin/partials/sidebar.html.twig' %}
 
         {# Main Content #}
-        <div class="flex-1 flex flex-col overflow-hidden">
+        <div class="flex-1 flex flex-col overflow-hidden md:ml-64">
             {# Top Navbar #}
             {% include 'admin/partials/navbar.html.twig' %}
 
