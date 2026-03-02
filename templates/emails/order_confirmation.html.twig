@@ -31,26 +31,26 @@
         {% endfor %}
 
         {% set fraisLivraison = commande.total - sousTotal + commande.reduction %}
-        <div style="padding-top: 12px;">
-            <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #D4AF7A; font-size: 14px; color: #666;">
-                <span>Articles</span>
-                <span>{{ sousTotal|number_format(2, ',', ' ') }} €</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #D4AF7A; font-size: 14px; color: #666;">
-                <span>Livraison</span>
-                <span>{% if fraisLivraison <= 0 %}Gratuite{% else %}{{ fraisLivraison|number_format(2, ',', ' ') }} €{% endif %}</span>
-            </div>
+        <table style="width:100%;border-collapse:collapse;margin-top:12px;">
+            <tr>
+                <td style="padding:6px 0;border-bottom:1px solid #D4AF7A;font-size:14px;color:#666;">Articles</td>
+                <td style="padding:6px 0;border-bottom:1px solid #D4AF7A;font-size:14px;color:#666;text-align:right;">{{ sousTotal|number_format(2, ',', ' ') }} €</td>
+            </tr>
+            <tr>
+                <td style="padding:6px 0;border-bottom:1px solid #D4AF7A;font-size:14px;color:#666;">Livraison</td>
+                <td style="padding:6px 0;border-bottom:1px solid #D4AF7A;font-size:14px;color:#666;text-align:right;">{% if fraisLivraison <= 0 %}Gratuite{% else %}{{ fraisLivraison|number_format(2, ',', ' ') }} €{% endif %}</td>
+            </tr>
             {% if commande.reduction > 0 %}
-            <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #D4AF7A; font-size: 14px; font-weight: 600; color: #15803d;">
-                <span>Réduction</span>
-                <span>- {{ commande.reduction|number_format(2, ',', ' ') }} €</span>
-            </div>
+            <tr>
+                <td style="padding:6px 0;border-bottom:1px solid #D4AF7A;font-size:14px;font-weight:600;color:#15803d;">Réduction</td>
+                <td style="padding:6px 0;border-bottom:1px solid #D4AF7A;font-size:14px;font-weight:600;color:#15803d;text-align:right;">- {{ commande.reduction|number_format(2, ',', ' ') }} €</td>
+            </tr>
             {% endif %}
-            <div style="display: flex; justify-content: space-between; padding-top: 12px; font-size: 18px; font-weight: bold; color: #8B7355;">
-                <span>Total</span>
-                <span>{{ commande.total|number_format(2, ',', ' ') }} €</span>
-            </div>
-        </div>
+            <tr>
+                <td style="padding-top:12px;font-size:18px;font-weight:bold;color:#8B7355;">Total</td>
+                <td style="padding-top:12px;font-size:18px;font-weight:bold;color:#8B7355;text-align:right;">{{ commande.total|number_format(2, ',', ' ') }} €</td>
+            </tr>
+        </table>
     </div>
 
     <h3 style="color: #8B7355;">Mode de livraison</h3>
