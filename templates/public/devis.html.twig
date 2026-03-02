@@ -1,16 +1,17 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Demande de Devis - TDBR{% endblock %}
+{% block title %}Création Sur-Mesure - TDBR{% endblock %}
 
 {% block body %}
     {# Hero #}
     <section class="py-12 bg-gradient-to-br from-accent to-white">
         <div class="container mx-auto px-4 text-center">
             <h1 class="font-heading text-5xl font-bold mb-4">
-                Demande de <span class="gradient-text">Devis</span>
+                Création <span class="gradient-text">Sur-Mesure</span>
             </h1>
             <p class="text-lg text-gray-700 max-w-2xl mx-auto">
-                Vous souhaitez une création personnalisée ? Décrivez-nous votre projet et nous vous recontacterons rapidement.
+                Un design unique conçu pour vous — cadeau d'entreprise, événement, idée personnelle.
+                Décrivez votre projet et recevez un devis personnalisé.
             </p>
         </div>
     </section>
@@ -30,6 +31,25 @@
                         {{ message }}
                     </div>
                 {% endfor %}
+
+                {# Intro sur-mesure #}
+                <div class="mb-8 grid sm:grid-cols-3 gap-4">
+                    <div class="card p-5 text-center">
+                        <div class="text-3xl mb-2">🎨</div>
+                        <div class="font-semibold text-gray-800 mb-1">Design unique</div>
+                        <div class="text-sm text-gray-500">Votre visuel, vos couleurs, votre identité</div>
+                    </div>
+                    <div class="card p-5 text-center">
+                        <div class="text-3xl mb-2">📦</div>
+                        <div class="font-semibold text-gray-800 mb-1">Support au choix</div>
+                        <div class="text-sm text-gray-500">Mugs, t-shirts, tote-bags, accessoires…</div>
+                    </div>
+                    <div class="card p-5 text-center">
+                        <div class="text-3xl mb-2">💬</div>
+                        <div class="font-semibold text-gray-800 mb-1">Devis gratuit</div>
+                        <div class="text-sm text-gray-500">Réponse sous 48h, sans engagement</div>
+                    </div>
+                </div>
 
                 {% if not app.user %}
                     <div class="mb-6 p-5 bg-amber-50 border border-amber-200 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -158,7 +178,7 @@
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
                             </svg>
-                            Envoyer ma demande de devis
+                            Envoyer ma demande sur-mesure
                         </span>
                     </button>
                 {% else %}
