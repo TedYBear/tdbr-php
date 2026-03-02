@@ -270,27 +270,28 @@ class PublicController extends AbstractController
             return $this->json(['error' => 'Article introuvable'], 404);
         }
 
+        $deltaPrix = 0.0;
+        if ($variantId) {
+            foreach ($article->getVariantes() as $v) {
+                if ($v->getId() == $variantId && $v->getDeltaPrix() !== null) {
+                    $deltaPrix = $v->getDeltaPrix();
+                    break;
+                }
+            }
+        }
+
         $articleArray = [
             'id'             => $article->getId(),
             'nom'            => $article->getNom(),
             'slug'           => $article->getSlug(),
-            'prix'           => $article->getPrixBase(),
+            'prix'           => $article->getPrixBase() + $deltaPrix,
+            'deltaPrix'      => $deltaPrix,
             'image'          => $article->getFirstImageUrl(),
             'paliers'        => $article->getGrillePrix() ? $article->getGrillePrix()->getPaliers() : [],
             'lignes'         => $article->getGrillePrix() ? $article->getGrillePrix()->getLignes() : [],
             'grilleId'       => $article->getGrillePrix() ? $article->getGrillePrix()->getId() : null,
             'fournisseurNom' => $article->getFournisseur()?->getNom(),
         ];
-
-        // Utiliser le prix de la variante sélectionnée si disponible
-        if ($variantId) {
-            foreach ($article->getVariantes() as $v) {
-                if ($v->getId() == $variantId && $v->getPrix()) {
-                    $articleArray['prix'] = $v->getPrix();
-                    break;
-                }
-            }
-        }
 
         $this->cartService->addItem($articleArray, $quantity, is_array($choices) ? $choices : []);
 

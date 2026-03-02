@@ -23,8 +23,12 @@ class Variante
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $sku = null;
 
+    /**
+     * Delta de prix par rapport au prix de base de l'article (peut être positif ou négatif).
+     * Exemple : +2.00 pour un surcoût XL, -1.50 pour une réduction XS.
+     */
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2, nullable: true)]
-    private ?float $prix = null;
+    private ?float $deltaPrix = null;
 
     /**
      * Valeurs structurées de cette variante.
@@ -43,8 +47,8 @@ class Variante
     public function setNom(string $nom): static { $this->nom = $nom; return $this; }
     public function getSku(): ?string { return $this->sku; }
     public function setSku(?string $sku): static { $this->sku = $sku; return $this; }
-    public function getPrix(): ?float { return $this->prix !== null ? (float)$this->prix : null; }
-    public function setPrix(?float $p): static { $this->prix = $p; return $this; }
+    public function getDeltaPrix(): ?float { return $this->deltaPrix !== null ? (float)$this->deltaPrix : null; }
+    public function setDeltaPrix(?float $d): static { $this->deltaPrix = $d; return $this; }
     public function getValeurs(): ?array { return $this->valeurs; }
     public function setValeurs(?array $v): static { $this->valeurs = $v; return $this; }
     public function isActif(): bool { return $this->actif; }

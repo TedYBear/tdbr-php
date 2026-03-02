@@ -95,7 +95,7 @@ class CartService
                 $totalQty = $grilleTotals[$grilleId];
                 $resolved = $this->resolveUnitPrice($item['article']['paliers'], $totalQty);
                 if ($resolved !== null) {
-                    $item['article']['prix'] = $resolved;
+                    $item['article']['prix'] = $resolved + ($item['article']['deltaPrix'] ?? 0.0);
                 }
             }
         }
