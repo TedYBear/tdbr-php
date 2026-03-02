@@ -38,7 +38,7 @@ class SiteConfigAdminController extends AbstractController
 
         return $this->render('admin/site_config/edit.html.twig', [
             'config'     => $config,
-            'giftCount'  => $this->codeReductionRepo->countCampaignGift(),
+            'giftCount'  => $this->codeReductionRepo->countCampaignGift($config->getGiftResetAt()),
         ]);
     }
 
@@ -66,8 +66,9 @@ class SiteConfigAdminController extends AbstractController
         $this->em->flush();
 
         if (!$active) {
-            $deleted = $this->codeReductionRepo->deleteAllCampaignGifts();
-            $this->addFlash('success', "Campagne désactivée. {$deleted} code(s) cadeau supprimé(s), compteur remis à zéro.");
+            $config->setGiftResetAt(new \DateTimeImmutable());
+            $this->em->flush();
+            $this->addFlash('success', 'Campagne désactivée. Le compteur de bénéficiaires a été remis à zéro (les codes déjà distribués restent valides).');
         } else {
             $this->addFlash('success', 'Campagne code cadeau activée.');
         }

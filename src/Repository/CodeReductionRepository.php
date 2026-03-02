@@ -48,34 +48,27 @@ class CodeReductionRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    public function countCampaignGift(): int
+    public function countCampaignGift(?\DateTimeImmutable $since = null): int
     {
-        return (int) $this->createQueryBuilder('c')
+        $qb = $this->createQueryBuilder('c')
             ->select('COUNT(c.id)')
-            ->where('c.isCampaignGift = true')
-            ->getQuery()
-            ->getSingleScalarResult();
+            ->where('c.isCampaignGift = true');
+        if ($since !== null) {
+            $qb->andWhere('c.createdAt >= :since')->setParameter('since', $since);
+        }
+        return (int) $qb->getQuery()->getSingleScalarResult();
     }
 
-    public function hasCampaignGiftForEmail(string $email): bool
+    public function hasCampaignGiftForEmail(string $email, ?\DateTimeImmutable $since = null): bool
     {
-        $count = (int) $this->createQueryBuilder('c')
+        $qb = $this->createQueryBuilder('c')
             ->select('COUNT(c.id)')
             ->where('c.isCampaignGift = true')
             ->andWhere('c.recipientEmail = :email')
-            ->setParameter('email', strtolower($email))
-            ->getQuery()
-            ->getSingleScalarResult();
-
-        return $count > 0;
-    }
-
-    public function deleteAllCampaignGifts(): int
-    {
-        return (int) $this->createQueryBuilder('c')
-            ->delete()
-            ->where('c.isCampaignGift = true')
-            ->getQuery()
-            ->execute();
+            ->setParameter('email', strtolower($email));
+        if ($since !== null) {
+            $qb->andWhere('c.createdAt >= :since')->setParameter('since', $since);
+        }
+        return (int) $qb->getQuery()->getSingleScalarResult() > 0;
     }
 }
