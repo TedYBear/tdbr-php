@@ -69,4 +69,13 @@ class CodeReductionRepository extends ServiceEntityRepository
 
         return $count > 0;
     }
+
+    public function deleteAllCampaignGifts(): int
+    {
+        return (int) $this->createQueryBuilder('c')
+            ->delete()
+            ->where('c.isCampaignGift = true')
+            ->getQuery()
+            ->execute();
+    }
 }
