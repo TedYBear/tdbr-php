@@ -12,13 +12,13 @@
 </head>
 <body class="bg-gray-50">
     <div class="flex h-screen overflow-hidden"
-         x-data="{ sidebarOpen: window.innerWidth >= 768 }"
-         @resize.window="sidebarOpen = window.innerWidth >= 768">
-        {# Backdrop mobile #}
-        <div x-show="sidebarOpen"
+         x-data="{ sidebarOpen: window.innerWidth >= 768, isDesktop: window.innerWidth >= 768 }"
+         @resize.window="isDesktop = window.innerWidth >= 768; sidebarOpen = window.innerWidth >= 768">
+        {# Backdrop mobile uniquement #}
+        <div x-show="sidebarOpen && !isDesktop"
              @click="sidebarOpen = false"
              style="display:none"
-             class="fixed inset-0 z-40 bg-black/50 md:hidden"
+             class="fixed inset-0 z-40 bg-black/50"
              x-transition:enter="transition-opacity duration-300"
              x-transition:enter-start="opacity-0"
              x-transition:enter-end="opacity-100"
@@ -30,7 +30,8 @@
         {% include 'admin/partials/sidebar.html.twig' %}
 
         {# Main Content #}
-        <div class="flex-1 flex flex-col overflow-hidden md:ml-64">
+        <div class="flex-1 flex flex-col overflow-hidden"
+             :style="isDesktop ? 'margin-left: 16rem' : ''">
             {# Top Navbar #}
             {% include 'admin/partials/navbar.html.twig' %}
 
