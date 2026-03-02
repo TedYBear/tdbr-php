@@ -58,13 +58,19 @@ class SiteConfigAdminController extends AbstractController
     {
         $config = $this->siteConfigRepo->getConfig();
 
-        $config->setGiftActive((bool) $request->request->get('giftActive'));
+        $active = (bool) $request->request->get('giftActive');
+        $config->setGiftActive($active);
         $config->setGiftType(in_array($request->request->get('giftType'), ['fixe', 'pourcentage']) ? $request->request->get('giftType') : 'fixe');
         $config->setGiftValue(max(0.01, (float) $request->request->get('giftValue', 5)));
         $config->setGiftMaxBeneficiaires(max(1, (int) $request->request->get('giftMaxBeneficiaires', 10)));
         $this->em->flush();
 
-        $this->addFlash('success', 'Campagne code cadeau enregistrée.');
+        if (!$active) {
+            $deleted = $this->codeReductionRepo->deleteAllCampaignGifts();
+            $this->addFlash('success', "Campagne désactivée. {$deleted} code(s) cadeau supprimé(s), compteur remis à zéro.");
+        } else {
+            $this->addFlash('success', 'Campagne code cadeau activée.');
+        }
         return $this->redirectToRoute('admin_site_config');
     }
 }
