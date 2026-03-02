@@ -19,7 +19,7 @@
                 {% set variantesJson = [] %}
                 {% for v in article.variantes %}
                     {% if v.actif %}
-                        {% set variantesJson = variantesJson|merge([{id: v.id, nom: v.nom, prix: v.prix, valeurs: v.valeurs}]) %}
+                        {% set variantesJson = variantesJson|merge([{id: v.id, nom: v.nom, deltaPrix: v.deltaPrix, valeurs: v.valeurs}]) %}
                     {% endif %}
                 {% endfor %}
                 variants: {{ variantesJson|json_encode|raw }},
@@ -80,10 +80,10 @@
                 },
 
                 get currentPrice() {
-                    if (this.selectedVariant && this.selectedVariant.prix) {
-                        return parseFloat(this.selectedVariant.prix);
-                    }
-                    return this.basePrice;
+                    const delta = this.selectedVariant
+                        ? (parseFloat(this.selectedVariant.deltaPrix) || 0)
+                        : 0;
+                    return this.basePrice + delta;
                 },
 
                 get allSelected() {
