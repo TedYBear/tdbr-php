@@ -59,7 +59,8 @@ class ArticleAdminController extends AbstractController
                     $v = new Variante();
                     $v->setNom($varianteData['nom']);
                     $v->setSku($varianteData['sku'] ?? null);
-                    $v->setPrix(!empty($varianteData['prix']) ? (float)$varianteData['prix'] : (float)($data['prix'] ?? 0));
+                    $rawDelta = $varianteData['deltaPrix'] ?? '';
+                    $v->setDeltaPrix($rawDelta !== '' && $rawDelta !== null ? (float)$rawDelta : null);
                     $v->setActif(isset($varianteData['actif']));
                     $valeurs = !empty($varianteData['valeurs']) ? json_decode($varianteData['valeurs'], true) : null;
                     $v->setValeurs(is_array($valeurs) ? $valeurs : null);
@@ -330,7 +331,7 @@ class ArticleAdminController extends AbstractController
             $newV = new Variante();
             $newV->setNom($v->getNom());
             $newV->setSku($v->getSku() ? $v->getSku() . '-C' : null);
-            $newV->setPrix($v->getPrix());
+            $newV->setDeltaPrix($v->getDeltaPrix());
             $newV->setValeurs($v->getValeurs());
             $newV->setActif(false);
             $clone->addVariante($newV);
