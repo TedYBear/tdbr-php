@@ -140,6 +140,7 @@
     }
 }">
     <form method="post" class="space-y-8">
+        <input type="hidden" name="returnUrl" value="{{ returnUrl ?? '' }}">
         <div class="grid lg:grid-cols-3 gap-8">
             {# Formulaire principal #}
             <div class="lg:col-span-2 space-y-6">
