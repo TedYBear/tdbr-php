@@ -1,16 +1,25 @@
 {# Admin Sidebar #}
-<aside class="w-64 bg-gradient-to-b from-primary to-primary/90 text-white flex-shrink-0 overflow-y-auto">
+<aside class="fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-primary to-primary/90 text-white overflow-y-auto flex-shrink-0 transition-transform duration-300 ease-in-out -translate-x-full md:static md:z-auto md:translate-x-0"
+       :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
     <div class="p-6">
-        {# Logo #}
-        <a href="{{ path('home') }}" class="flex items-center gap-3 mb-8">
-            <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-                <span class="text-primary font-black text-xl">T</span>
-            </div>
-            <div>
-                <div class="font-heading text-xl font-black">TDBR</div>
-                <div class="text-xs text-white/70">Administration</div>
-            </div>
-        </a>
+        {# Logo + bouton fermer (mobile) #}
+        <div class="flex items-center justify-between mb-8">
+            <a href="{{ path('home') }}" class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                    <span class="text-primary font-black text-xl">T</span>
+                </div>
+                <div>
+                    <div class="font-heading text-xl font-black">TDBR</div>
+                    <div class="text-xs text-white/70">Administration</div>
+                </div>
+            </a>
+            <button @click="sidebarOpen = false"
+                    class="p-1 text-white/70 hover:text-white rounded md:hidden">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
 
         {# Menu #}
         <nav class="space-y-1">

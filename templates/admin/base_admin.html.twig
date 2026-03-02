@@ -10,7 +10,19 @@
     {% endblock %}
 </head>
 <body class="bg-gray-50">
-    <div class="flex h-screen overflow-hidden">
+    <div class="flex h-screen overflow-hidden" x-data="{ sidebarOpen: false }">
+        {# Backdrop mobile #}
+        <div x-show="sidebarOpen"
+             @click="sidebarOpen = false"
+             style="display:none"
+             class="fixed inset-0 z-40 bg-black/50 md:hidden"
+             x-transition:enter="transition-opacity duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition-opacity duration-300"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"></div>
+
         {# Sidebar #}
         {% include 'admin/partials/sidebar.html.twig' %}
 
