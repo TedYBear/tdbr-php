@@ -348,8 +348,9 @@
                             Paiement sécurisé
                         </h2>
 
-                        <div id="payment-element" class="mb-4"></div>
-                        <div id="payment-message" class="hidden text-red-600 text-sm font-medium mt-2"></div>
+                        <div class="p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 font-medium">
+                            Paiement par carte temporairement indisponible. Veuillez choisir le virement bancaire.
+                        </div>
                     </div>
                 </div>
 
@@ -408,12 +409,11 @@
                                   x-text="formatPrice(grandTotal)">{{ total|number_format(2, ',', ' ') }} €</span>
                         </div>
 
-                        <button type="button" @click="pay()"
-                                :disabled="loading"
-                                :class="loading ? 'opacity-60 cursor-wait' : ''"
-                                class="w-full btn-primary text-lg py-4 rounded-xl font-bold">
-                            <span x-show="!loading">Payer <span x-text="formatPrice(grandTotal)"></span></span>
-                            <span x-show="loading" class="flex items-center justify-center gap-2">
+                        <button type="button"
+                                disabled
+                                class="w-full btn-primary text-lg py-4 rounded-xl font-bold opacity-40 cursor-not-allowed">
+                            <span>Paiement indisponible</span>
+                            <span class="hidden flex items-center justify-center gap-2">
                                 <svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
