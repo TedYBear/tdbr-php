@@ -270,6 +270,22 @@ class PublicController extends AbstractController
             return $this->json(['error' => 'Article introuvable'], 404);
         }
 
+        $grille = $article->getGrillePrix();
+        if (!$grille) {
+            return $this->json(['error' => 'Article non commandable (aucune grille de prix définie)'], 400);
+        }
+
+        $prixVente1 = null;
+        foreach ($grille->getPaliers() as $palier) {
+            if ((int)($palier['min'] ?? 0) === 1 && isset($palier['prixVente']) && $palier['prixVente'] !== null) {
+                $prixVente1 = (float)$palier['prixVente'];
+                break;
+            }
+        }
+        if ($prixVente1 === null) {
+            return $this->json(['error' => 'Article non commandable (prix unitaire non défini dans la grille)'], 400);
+        }
+
         $deltaPrix = 0.0;
         if ($variantId) {
             foreach ($article->getVariantes() as $v) {
@@ -284,7 +300,7 @@ class PublicController extends AbstractController
             'id'             => $article->getId(),
             'nom'            => $article->getNom(),
             'slug'           => $article->getSlug(),
-            'prix'           => $article->getPrixBase() + $deltaPrix,
+            'prix'           => $prixVente1 + $deltaPrix,
             'deltaPrix'      => $deltaPrix,
             'image'          => $article->getFirstImageUrl(),
             'paliers'        => $article->getGrillePrix() ? $article->getGrillePrix()->getPaliers() : [],
