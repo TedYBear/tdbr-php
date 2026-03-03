@@ -1,7 +1,8 @@
 <?php
+
 namespace App\Controller\Admin;
 
-use App\Repository\DevisRepository;
+use App\Repository\DemandeSurMesureRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -9,14 +10,15 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[IsGranted('ROLE_ADMIN')]
 #[Route('/admin/devis')]
-class DevisAdminController extends AbstractController
+#[IsGranted('ROLE_ADMIN')]
+class DemandeSurMesureAdminController extends AbstractController
 {
     public function __construct(
-        private DevisRepository $devisRepo,
+        private DemandeSurMesureRepository $devisRepo,
         private EntityManagerInterface $em,
-    ) {}
+    ) {
+    }
 
     #[Route('', name: 'admin_devis')]
     public function index(): Response
@@ -41,6 +43,7 @@ class DevisAdminController extends AbstractController
 
         $statut = $request->request->get('statut');
         $statutsValides = ['nouveau', 'en_cours', 'envoye', 'accepte', 'refuse'];
+
         if (in_array($statut, $statutsValides)) {
             $devis->setStatut($statut);
             $devis->setUpdatedAt(new \DateTimeImmutable());
