@@ -70,7 +70,17 @@
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 font-semibold">{{ article.prixBase|number_format(2, ',', ' ') }} €</td>
+                            <td class="px-6 py-4 font-semibold">
+                                {% if article.grillePrix %}
+                                    {% set p1 = null %}
+                                    {% for p in article.grillePrix.paliers %}
+                                        {% if p.min == 1 and p.prixVente is not null and p1 is null %}{% set p1 = p.prixVente %}{% endif %}
+                                    {% endfor %}
+                                    {% if p1 is not null %}{{ p1|number_format(2, ',', ' ') }} €{% else %}—{% endif %}
+                                {% else %}
+                                    <span class="text-gray-400 text-sm">Sans grille</span>
+                                {% endif %}
+                            </td>
                             <td class="px-6 py-4 text-sm text-gray-600">
                                 {{ article.variantes|length }} variante{{ article.variantes|length > 1 ? 's' : '' }}
                             </td>
