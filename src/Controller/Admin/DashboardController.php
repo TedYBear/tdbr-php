@@ -6,7 +6,7 @@ use App\Repository\ArticleRepository;
 use App\Repository\CategoryRepository;
 use App\Repository\ProductCollectionRepository;
 use App\Repository\CommandeRepository;
-use App\Repository\DevisRepository;
+use App\Repository\DemandeSurMesureRepository;
 use App\Repository\MessageRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -22,7 +22,7 @@ class DashboardController extends AbstractController
         private CategoryRepository $categoryRepo,
         private ProductCollectionRepository $collectionRepo,
         private CommandeRepository $commandeRepo,
-        private DevisRepository $devisRepo,
+        private DemandeSurMesureRepository $devisRepo,
         private MessageRepository $messageRepo,
     ) {
     }

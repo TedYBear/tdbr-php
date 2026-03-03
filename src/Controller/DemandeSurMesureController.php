@@ -1,8 +1,8 @@
 <?php
 namespace App\Controller;
 
-use App\Entity\Devis;
-use App\Form\DevisType;
+use App\Entity\DemandeSurMesure;
+use App\Form\DemandeSurMesureType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -11,7 +11,7 @@ use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Annotation\Route;
 
-class DevisController extends AbstractController
+class DemandeSurMesureController extends AbstractController
 {
     public function __construct(private EntityManagerInterface $em) {}
 
@@ -24,7 +24,7 @@ class DevisController extends AbstractController
             return $this->redirectToRoute('connexion', ['redirect' => '/devis']);
         }
 
-        $form = $this->createForm(DevisType::class);
+        $form = $this->createForm(DemandeSurMesureType::class);
 
         // Pré-remplir nom, email et téléphone depuis le compte connecté
         if ($user = $this->getUser()) {
@@ -44,40 +44,40 @@ class DevisController extends AbstractController
             $supportsRaw = $request->request->all('supports') ?: [];
             $supports = array_values(array_filter($supportsRaw));
 
-            $devis = new Devis();
-            $devis->setNom($data['nom']);
-            $devis->setEmail($data['email']);
-            $devis->setTelephone($data['telephone'] ?? null);
-            $devis->setConcept($data['concept']);
-            $devis->setContexte($data['contexte'] ?? null);
-            $devis->setSupports($supports);
-            $devis->setAutreSupport($request->request->get('autreSupport') ?: null);
-            $devis->setQuantite($data['quantite']);
-            $devis->setMoyenContact($data['moyenContact']);
-            $devis->setMessageAdditionnel($data['messageAdditionnel'] ?? null);
+            $demande = new DemandeSurMesure();
+            $demande->setNom($data['nom']);
+            $demande->setEmail($data['email']);
+            $demande->setTelephone($data['telephone'] ?? null);
+            $demande->setConcept($data['concept']);
+            $demande->setContexte($data['contexte'] ?? null);
+            $demande->setSupports($supports);
+            $demande->setAutreSupport($request->request->get('autreSupport') ?: null);
+            $demande->setQuantite($data['quantite']);
+            $demande->setMoyenContact($data['moyenContact']);
+            $demande->setMessageAdditionnel($data['messageAdditionnel'] ?? null);
 
-            $this->em->persist($devis);
+            $this->em->persist($demande);
             $this->em->flush();
 
             // Notification email
             try {
                 $from = $_ENV['MAILER_FROM'] ?? 'tdbrlaboutique@gmail.com';
                 $corps = "Nouvelle demande sur-mesure\n\n"
-                    . "Nom : " . $devis->getNom() . "\n"
-                    . "Email : " . $devis->getEmail() . "\n"
-                    . ($devis->getTelephone() ? "Téléphone : " . $devis->getTelephone() . "\n" : "")
-                    . "\nProjet :\n" . $devis->getConcept() . "\n"
-                    . ($devis->getContexte() ? "\nContexte : " . $devis->getContexte() . "\n" : "")
-                    . "\nSupports souhaités : " . implode(', ', $devis->getSupports()) . "\n"
-                    . "Quantité : " . $devis->getQuantite() . "\n"
-                    . "Contact préféré : " . $devis->getMoyenContact() . "\n"
-                    . ($devis->getMessageAdditionnel() ? "\nMessage : " . $devis->getMessageAdditionnel() . "\n" : "");
+                    . "Nom : " . $demande->getNom() . "\n"
+                    . "Email : " . $demande->getEmail() . "\n"
+                    . ($demande->getTelephone() ? "Téléphone : " . $demande->getTelephone() . "\n" : "")
+                    . "\nProjet :\n" . $demande->getConcept() . "\n"
+                    . ($demande->getContexte() ? "\nContexte : " . $demande->getContexte() . "\n" : "")
+                    . "\nSupports souhaités : " . implode(', ', $demande->getSupports()) . "\n"
+                    . "Quantité : " . $demande->getQuantite() . "\n"
+                    . "Contact préféré : " . $demande->getMoyenContact() . "\n"
+                    . ($demande->getMessageAdditionnel() ? "\nMessage : " . $demande->getMessageAdditionnel() . "\n" : "");
 
                 $email = (new Email())
                     ->from($from)
                     ->to($from)
-                    ->replyTo($devis->getEmail())
-                    ->subject('[TDBR Sur-mesure] Nouvelle demande de ' . $devis->getNom())
+                    ->replyTo($demande->getEmail())
+                    ->subject('[TDBR Sur-mesure] Nouvelle demande de ' . $demande->getNom())
                     ->text($corps);
                 $mailer->send($email);
             } catch (\Throwable $e) {

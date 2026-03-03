@@ -1,12 +1,12 @@
 <?php
 namespace App\Entity;
 
-use App\Repository\DevisRepository;
+use App\Repository\DemandeSurMesureRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: DevisRepository::class)]
-#[ORM\Table(name: 'devis')]
-class Devis
+#[ORM\Entity(repositoryClass: DemandeSurMesureRepository::class)]
+#[ORM\Table(name: 'demandes_sur_mesure')]
+class DemandeSurMesure
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
