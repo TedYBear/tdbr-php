@@ -52,7 +52,7 @@ class DevisAdminController extends AbstractController
         }
 
         $this->em->flush();
-        $this->addFlash('success', 'Devis mis à jour.');
+        $this->addFlash('success', 'Demande mise à jour.');
         return $this->redirectToRoute('admin_devis_detail', ['id' => $id]);
     }
 
@@ -63,7 +63,7 @@ class DevisAdminController extends AbstractController
         if ($devis) {
             $this->em->remove($devis);
             $this->em->flush();
-            $this->addFlash('success', 'Devis supprimé.');
+            $this->addFlash('success', 'Demande supprimée.');
         }
         return $this->redirectToRoute('admin_devis');
     }

@@ -1,7 +1,7 @@
 {% extends 'admin/base_admin.html.twig' %}
 
-{% block title %}Devis #{{ devis.id }}{% endblock %}
-{% block page_title %}Devis de {{ devis.nom }}{% endblock %}
+{% block title %}Demande #{{ devis.id }}{% endblock %}
+{% block page_title %}Demande sur-mesure de {{ devis.nom }}{% endblock %}
 {% block page_subtitle %}<p class="text-sm text-gray-500 mt-1">Reçu le {{ devis.createdAt|date('d/m/Y à H:i') }}</p>{% endblock %}
 
 {% block body %}
@@ -10,7 +10,7 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
             </svg>
-            Retour aux devis
+            Retour aux demandes
         </a>
     </div>
 
@@ -88,7 +88,7 @@
                         <select name="statut" class="form-input">
                             <option value="nouveau" {{ devis.statut == 'nouveau' ? 'selected' : '' }}>Nouveau</option>
                             <option value="en_cours" {{ devis.statut == 'en_cours' ? 'selected' : '' }}>En cours</option>
-                            <option value="envoye" {{ devis.statut == 'envoye' ? 'selected' : '' }}>Devis envoyé</option>
+                            <option value="envoye" {{ devis.statut == 'envoye' ? 'selected' : '' }}>Réponse envoyée</option>
                             <option value="accepte" {{ devis.statut == 'accepte' ? 'selected' : '' }}>Accepté</option>
                             <option value="refuse" {{ devis.statut == 'refuse' ? 'selected' : '' }}>Refusé</option>
                         </select>
@@ -104,7 +104,7 @@
             {# Répondre #}
             <div class="card p-6">
                 <h2 class="font-heading text-xl font-bold mb-4">Répondre</h2>
-                <a href="mailto:{{ devis.email }}?subject=Votre demande de devis TDBR"
+                <a href="mailto:{{ devis.email }}?subject=Votre demande sur-mesure TDBR"
                    class="btn-outline w-full text-center block">
                     Envoyer un email
                 </a>
@@ -112,9 +112,9 @@
 
             {# Supprimer #}
             <form method="post" action="{{ path('admin_devis_delete', {id: devis.id}) }}"
-                  onsubmit="window.confirmForm(event, this, 'Supprimer définitivement ce devis ?')">
+                  onsubmit="window.confirmForm(event, this, 'Supprimer définitivement cette demande ?')">
                 <button type="submit" class="w-full px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition text-sm">
-                    Supprimer ce devis
+                    Supprimer cette demande
                 </button>
             </form>
         </div>

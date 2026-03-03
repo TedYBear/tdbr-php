@@ -20,7 +20,7 @@ class DevisController extends AbstractController
     {
         // Si non connecté, bloquer la soumission et rediriger vers login
         if (!$this->getUser() && $request->isMethod('POST')) {
-            $this->addFlash('error', 'Vous devez être connecté pour envoyer une demande de devis.');
+            $this->addFlash('error', 'Vous devez être connecté pour envoyer une demande sur-mesure.');
             return $this->redirectToRoute('connexion', ['redirect' => '/devis']);
         }
 
@@ -62,7 +62,7 @@ class DevisController extends AbstractController
             // Notification email
             try {
                 $from = $_ENV['MAILER_FROM'] ?? 'tdbrlaboutique@gmail.com';
-                $corps = "Nouvelle demande de devis\n\n"
+                $corps = "Nouvelle demande sur-mesure\n\n"
                     . "Nom : " . $devis->getNom() . "\n"
                     . "Email : " . $devis->getEmail() . "\n"
                     . ($devis->getTelephone() ? "Téléphone : " . $devis->getTelephone() . "\n" : "")
@@ -77,7 +77,7 @@ class DevisController extends AbstractController
                     ->from($from)
                     ->to($from)
                     ->replyTo($devis->getEmail())
-                    ->subject('[TDBR Devis] Nouvelle demande de ' . $devis->getNom())
+                    ->subject('[TDBR Sur-mesure] Nouvelle demande de ' . $devis->getNom())
                     ->text($corps);
                 $mailer->send($email);
             } catch (\Throwable $e) {
@@ -88,7 +88,7 @@ class DevisController extends AbstractController
                 );
             }
 
-            $this->addFlash('success', 'Votre demande de devis a été envoyée ! Nous vous contacterons dans les plus brefs délais.');
+            $this->addFlash('success', 'Votre demande sur-mesure a été envoyée ! Nous vous contacterons dans les plus brefs délais.');
             return $this->redirectToRoute('devis');
         }
 
