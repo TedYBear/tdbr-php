@@ -1,7 +1,7 @@
 {% extends 'admin/base_admin.html.twig' %}
 
-{% block title %}Devis{% endblock %}
-{% block page_title %}Demandes de Devis{% endblock %}
+{% block title %}Sur-mesure{% endblock %}
+{% block page_title %}Demandes sur-mesure{% endblock %}
 {% block page_subtitle %}<p class="text-sm text-gray-500 mt-1">{{ devis|length }} demande{{ devis|length > 1 ? 's' : '' }}</p>{% endblock %}
 
 {% block body %}
@@ -46,7 +46,7 @@
                                     <a href="{{ path('admin_devis_detail', {id: d.id}) }}"
                                        class="text-primary hover:text-secondary font-medium text-sm">Voir</a>
                                     <form method="post" action="{{ path('admin_devis_delete', {id: d.id}) }}"
-                                          onsubmit="window.confirmForm(event, this, 'Supprimer ce devis ?')">
+                                          onsubmit="window.confirmForm(event, this, 'Supprimer cette demande ?')">
                                         <button type="submit" class="text-sm text-red-600 hover:text-red-700">Supprimer</button>
                                     </form>
                                 </div>
@@ -58,7 +58,7 @@
         </div>
     {% else %}
         <div class="card p-16 text-center">
-            <p class="text-gray-500">Aucune demande de devis pour le moment.</p>
+            <p class="text-gray-500">Aucune demande sur-mesure pour le moment.</p>
         </div>
     {% endif %}
 {% endblock %}
