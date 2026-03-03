@@ -52,11 +52,21 @@
             {% endif %}
 
             {# Prix et CTA #}
+            {% set cardPrix = null %}
+            {% if article.grillePrix is defined and article.grillePrix %}
+                {% for p in article.grillePrix.paliers %}
+                    {% if p.min == 1 and p.prixVente is not null and cardPrix is null %}
+                        {% set cardPrix = p.prixVente %}
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
             <div class="flex items-center justify-between">
                 <div>
-                    <span class="text-2xl font-bold text-primary">
-                        {{ (article.prix ?? article.prixBase ?? 0)|number_format(2, ',', ' ') }} €
-                    </span>
+                    {% if cardPrix is not null %}
+                        <span class="text-2xl font-bold text-primary">{{ cardPrix|number_format(2, ',', ' ') }} €</span>
+                    {% else %}
+                        <span class="text-sm text-gray-400 italic">Prix non disponible</span>
+                    {% endif %}
                 </div>
                 <span class="btn-primary text-sm px-4 py-2">
                     Voir détails

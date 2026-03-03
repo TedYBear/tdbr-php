@@ -141,7 +141,6 @@ class ArticleAdminController extends AbstractController
             $article->setNom($data['nom']);
             $article->setSlug($this->slugify->slugify($data['nom']));
             $article->setDescription($data['description'] ?? null);
-            $article->setPrixBase((float)($data['prix'] ?? 0));
             $article->setActif(isset($data['actif']));
             $article->setEnVedette(isset($data['enVedette']));
 
@@ -208,7 +207,6 @@ class ArticleAdminController extends AbstractController
             $article->setNom($data['nom']);
             $article->setSlug($this->slugify->slugify($data['nom']));
             $article->setDescription($data['description'] ?? null);
-            $article->setPrixBase((float)($data['prix'] ?? 0));
             $article->setActif(isset($data['actif']));
             $article->setEnVedette(isset($data['enVedette']));
             $article->setUpdatedAt(new \DateTimeImmutable());
@@ -317,7 +315,6 @@ class ArticleAdminController extends AbstractController
         $clone->setNom($source->getNom() . ' (copie)');
         $clone->setSlug($this->slugify->slugify($source->getNom()) . '-copie-' . substr(uniqid(), -6));
         $clone->setDescription($source->getDescription());
-        $clone->setPrixBase($source->getPrixBase());
         $clone->setActif(false);
         $clone->setEnVedette(false);
         $clone->setCollection($source->getCollection());

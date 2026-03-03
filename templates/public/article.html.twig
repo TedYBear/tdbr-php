@@ -30,7 +30,9 @@
                 {% endfor %}
                 imagesData: {{ imagesArr|json_encode|raw }},
 
-                basePrice: {{ article.prixBase }},
+                {% set prixBase = 0 %}
+                {% if article.grillePrix %}{% for p in article.grillePrix.paliers %}{% if p.min == 1 and p.prixVente is not null and prixBase == 0 %}{% set prixBase = p.prixVente %}{% endif %}{% endfor %}{% endif %}
+                basePrice: {{ prixBase }},
                 choices: {},
 
                 get images() {
@@ -257,12 +259,18 @@
                     </div>
 
                     {# Prix — mis à jour dynamiquement selon la variante sélectionnée #}
+                    {% if article.grillePrix %}
                     <div class="flex items-baseline gap-4">
                         <span class="text-4xl md:text-5xl font-black text-primary"
                               x-text="currentPrice.toFixed(2).replace('.', ',') + ' €'">
-                            {{ article.prixBase|number_format(2, ',', ' ') }} €
+                            {{ prixBase|number_format(2, ',', ' ') }} €
                         </span>
                     </div>
+                    {% else %}
+                    <div class="px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-sm font-medium">
+                        Prix non disponible — cet article n'est pas commandable pour le moment.
+                    </div>
+                    {% endif %}
 
                     {# Tableau de prix dégressifs #}
                     {% if article.grillePrix %}
@@ -403,6 +411,7 @@
                                     x-ref="addBtn"
                                     @click="addToCart()"
                                     :disabled="addingToCart || !allSelected || variantUnavailable"
+                                    {% if not article.grillePrix %}disabled{% endif %}
                                     class="btn-primary flex-1 py-4 text-xl disabled:opacity-50 disabled:cursor-not-allowed">
                                 <span x-show="!addingToCart" class="flex items-center justify-center gap-3">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
