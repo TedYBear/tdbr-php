@@ -138,7 +138,7 @@
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex gap-2">
-                                    <a href="{{ path('admin_articles_edit', {id: article.id, returnUrl: app.request.uri}) }}" class="text-primary hover:text-secondary">Modifier</a>
+                                    <a href="{{ path('admin_articles_edit', {id: article.id, returnUrl: app.request.requestUri}) }}" class="text-primary hover:text-secondary">Modifier</a>
                                     <form method="post" action="{{ path('admin_articles_clone', {id: article.id}) }}">
                                         <button type="submit" class="text-blue-600 hover:text-blue-700">Cloner</button>
                                     </form>
