@@ -1,0 +1,50 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Compte créé - TDBR{% endblock %}
+
+{% block body %}
+    <section class="min-h-screen py-20 bg-gradient-to-br from-primary/5 via-white to-secondary/5 flex items-center">
+        <div class="container mx-auto px-4">
+            <div class="max-w-lg mx-auto text-center">
+                <div class="card p-10 shadow-2xl">
+
+                    {# Icône succès #}
+                    <div class="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-green-400 to-green-600 rounded-full mb-6 shadow-lg">
+                        <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+
+                    <h1 class="font-heading text-3xl font-black mb-3">
+                        <span class="gradient-text">Compte créé !</span>
+                    </h1>
+
+                    <p class="text-gray-600 mb-2">
+                        Votre compte a bien été créé.
+                    </p>
+                    <p class="text-gray-500 text-sm mb-8">
+                        Un email de bienvenue vous a été envoyé. Vérifiez également vos spams si vous ne le recevez pas.
+                    </p>
+
+                    <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                        <a href="{{ path('connexion') }}" class="btn-primary px-8 py-3">
+                            Se connecter
+                        </a>
+                        <a href="{{ path('catalogue') }}" class="btn-outline px-8 py-3">
+                            Voir le catalogue
+                        </a>
+                    </div>
+                </div>
+
+                <div class="text-center mt-8">
+                    <a href="{{ path('home') }}" class="inline-flex items-center gap-2 text-gray-600 hover:text-primary transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                        Retour à l'accueil
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
