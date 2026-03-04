@@ -18,16 +18,20 @@
                     <th class="text-left px-4 py-3 font-semibold text-gray-600">Rôle</th>
                     <th class="text-center px-4 py-3 font-semibold text-gray-600">Commandes</th>
                     <th class="text-left px-4 py-3 font-semibold text-gray-600">Inscrit le</th>
+                    <th class="text-right px-4 py-3 font-semibold text-gray-600">Actions</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
+                {% set me = app.user %}
                 {% for row in rows %}
                     {% set user = row[0] %}
                     {% set commandeCount = row.commandeCount %}
+                    {% set isSelf = (me and me.id == user.id) %}
                     <tr class="hover:bg-gray-50 transition">
                         <td class="px-4 py-3">
                             <div class="font-semibold text-gray-800">
                                 {{ user.prenom }} {{ user.nom }}
+                                {% if isSelf %}<span class="ml-1 text-xs text-gray-400">(vous)</span>{% endif %}
                             </div>
                         </td>
                         <td class="px-4 py-3 text-gray-600">
@@ -58,10 +62,44 @@
                         <td class="px-4 py-3 text-gray-400 text-xs">
                             {{ user.createdAt|date('d/m/Y') }}
                         </td>
+                        <td class="px-4 py-3 text-right">
+                            <div class="flex items-center justify-end gap-2">
+                                {% if not isSelf %}
+                                    {# Toggle admin role #}
+                                    <form method="post" action="{{ path('admin_utilisateurs_toggle_admin', {id: user.id}) }}">
+                                        {% if 'ROLE_ADMIN' in user.roles %}
+                                            <button type="submit"
+                                                    class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-50 text-red-600 hover:bg-red-100 transition"
+                                                    title="Retirer le rôle admin">
+                                                Retirer admin
+                                            </button>
+                                        {% else %}
+                                            <button type="submit"
+                                                    class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-50 text-blue-600 hover:bg-blue-100 transition"
+                                                    title="Promouvoir en admin">
+                                                Promouvoir
+                                            </button>
+                                        {% endif %}
+                                    </form>
+
+                                    {# Delete user #}
+                                    <form method="post" action="{{ path('admin_utilisateurs_delete', {id: user.id}) }}"
+                                          onsubmit="return confirm('Supprimer {{ user.prenom }} {{ user.nom }} ? Cette action est irréversible.')">
+                                        <button type="submit"
+                                                class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-600 transition"
+                                                title="Supprimer l'utilisateur">
+                                            Supprimer
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <span class="text-xs text-gray-300">—</span>
+                                {% endif %}
+                            </div>
+                        </td>
                     </tr>
                 {% else %}
                     <tr>
-                        <td colspan="6" class="px-4 py-8 text-center text-gray-400">Aucun utilisateur enregistré.</td>
+                        <td colspan="7" class="px-4 py-8 text-center text-gray-400">Aucun utilisateur enregistré.</td>
                     </tr>
                 {% endfor %}
             </tbody>
