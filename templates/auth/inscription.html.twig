@@ -21,8 +21,14 @@
                         <p class="text-gray-600">Rejoignez la famille TDBR dès maintenant</p>
                     </div>
 
+                    {# Flash messages #}
+                    {% for message in app.flashes('error') %}
+                        <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-800 text-sm">{{ message }}</div>
+                    {% endfor %}
+
                     {# Formulaire #}
                     {{ form_start(form, {'attr': {'class': 'space-y-6'}}) }}
+                        {{ form_errors(form) }}
 
                         {# Informations personnelles #}
                         <div class="grid md:grid-cols-2 gap-6">
@@ -64,6 +70,7 @@
                                     {{ form_label(form.password.second) }}
                                     {{ form_widget(form.password.second) }}
                                     {{ form_errors(form.password.second) }}
+                                    {{ form_errors(form.password) }}
                                 </div>
                             </div>
                         </div>
