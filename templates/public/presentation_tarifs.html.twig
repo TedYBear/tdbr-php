@@ -1,0 +1,214 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tarifs & frais de port - TDBR{% endblock %}
+
+{% block body %}
+    {% include 'public/_presentation_subnav.html.twig' %}
+
+    <div class="min-h-screen bg-gradient-to-b from-gray-50 to-white py-12 md:py-20">
+        <div class="container mx-auto px-4 max-w-4xl">
+
+            {# Header #}
+            <div class="text-center mb-12 md:mb-16">
+                <h1 class="font-heading text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+                    Tarifs &amp; frais de port
+                </h1>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                    Politique tarifaire transparente : tarifs dégressifs, frais de port selon le mode de livraison, et pas de TVA.
+                </p>
+            </div>
+
+            <div class="space-y-8">
+
+                {# Tarifs dégressifs #}
+                <div class="card p-8 md:p-10">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center flex-shrink-0">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="font-heading text-2xl md:text-3xl font-bold text-gray-900">
+                                Tarifs dégressifs
+                            </h2>
+                            <span class="text-sm text-primary font-medium">Plus vous commandez, moins c'est cher</span>
+                        </div>
+                    </div>
+
+                    <p class="text-gray-700 leading-relaxed mb-4">
+                        Fabriquer plusieurs articles du même type en une seule commande est moins coûteux à l'unité.
+                        Je répercute directement ces économies sur vos prix : <strong>plus vous commandez d'articles du même type,
+                        moins chaque article vous coûte</strong>.
+                    </p>
+                    <p class="text-gray-700 leading-relaxed mb-4">
+                        Ces réductions s'appliquent <strong>par famille d'article</strong> : T-shirts, mugs, hoodies…
+                        Chaque famille a sa propre grille de tarifs dégressifs.
+                    </p>
+
+                    <div class="mt-6 p-4 bg-primary/5 border border-primary/15 rounded-xl">
+                        <p class="text-sm text-gray-700">
+                            <strong class="text-gray-900">Visible dans le panier :</strong>
+                            les réductions sont calculées et affichées automatiquement au fur et à mesure que vous ajoutez des articles.
+                        </p>
+                    </div>
+                </div>
+
+                {# Tailles XL #}
+                <div class="card p-8 md:p-10">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center flex-shrink-0">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="font-heading text-2xl md:text-3xl font-bold text-gray-900">
+                                Grandes tailles
+                            </h2>
+                            <span class="text-sm text-primary font-medium">2XL et 3XL</span>
+                        </div>
+                    </div>
+
+                    <p class="text-gray-700 leading-relaxed mb-4">
+                        Pour les articles textiles, les tailles <strong>2XL et 3XL</strong> sont proposées à un tarif légèrement supérieur.
+                        Ce surcoût reflète fidèlement ce que me facture mon fournisseur Printful pour ces tailles,
+                        sans marge supplémentaire de ma part.
+                    </p>
+
+                    <div class="mt-6 p-4 bg-primary/5 border border-primary/15 rounded-xl">
+                        <p class="text-sm text-gray-700">
+                            Les prix affichés sur chaque article s'adaptent automatiquement selon la taille sélectionnée.
+                        </p>
+                    </div>
+                </div>
+
+                {# Frais de port #}
+                <div class="card p-8 md:p-10">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center flex-shrink-0">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8l1.308 9.152A2 2 0 008.29 19h7.42a2 2 0 001.982-1.848L19 8"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="font-heading text-2xl md:text-3xl font-bold text-gray-900">
+                                Frais de port
+                            </h2>
+                            <span class="text-sm text-primary font-medium">Selon le mode de livraison et le fournisseur</span>
+                        </div>
+                    </div>
+
+                    <p class="text-gray-700 leading-relaxed mb-6">
+                        Les frais de port dépendent à la fois du <strong>mode de livraison choisi</strong> et du <strong>fournisseur</strong>
+                        qui produit les articles. Voici comment ça fonctionne :
+                    </p>
+
+                    <div class="space-y-4">
+
+                        {# Printful #}
+                        <div class="p-5 bg-gray-50 rounded-xl border border-gray-200">
+                            <h3 class="font-semibold text-gray-900 mb-2">Articles textiles — Printful</h3>
+                            <p class="text-sm text-gray-700 leading-relaxed">
+                                Printful inclut systématiquement les frais de port dans ses tarifs.
+                                <strong>Il n'y a pas de livraison gratuite</strong>, quel que soit le volume commandé.
+                                Ces frais sont donc intégrés dans le prix des articles.
+                            </p>
+                        </div>
+
+                        {# Vistaprint #}
+                        <div class="p-5 bg-gray-50 rounded-xl border border-gray-200">
+                            <h3 class="font-semibold text-gray-900 mb-2">Mugs &amp; accessoires — Vistaprint</h3>
+                            <p class="text-sm text-gray-700 leading-relaxed mb-3">
+                                Vistaprint offre la livraison <strong>au-delà d'un certain montant de commande</strong>.
+                                En dessous de ce seuil, des frais de port s'appliquent.
+                            </p>
+                            <ul class="text-sm text-gray-700 space-y-1.5">
+                                <li class="flex items-start gap-2">
+                                    <svg class="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h3m10-11v10a1 1 0 01-1 1h-3m-6 0h6"></path>
+                                    </svg>
+                                    <span><strong>Livraison à domicile sous le seuil :</strong> les frais de port vous sont facturés tels quels.</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <svg class="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    </svg>
+                                    <span><strong>Remise en main propre ou boutique partenaire :</strong> je mutualise les commandes pour atteindre le seuil de gratuité — quitte à constituer un peu de stock si le volume n'est pas encore suffisant. Aucun frais ne vous est répercuté.</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                    </div>
+                </div>
+
+                {# TVA #}
+                <div class="card p-8 md:p-10">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center flex-shrink-0">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="font-heading text-2xl md:text-3xl font-bold text-gray-900">
+                                TVA &amp; fiscalité
+                            </h2>
+                            <span class="text-sm text-primary font-medium">Franchise en base de TVA</span>
+                        </div>
+                    </div>
+
+                    <p class="text-gray-700 leading-relaxed mb-4">
+                        TDBR est une <strong>micro-entreprise en franchise en base de TVA</strong>.
+                        Concrètement : <strong>les prix affichés sont les prix que vous payez</strong> — il n'y a aucune TVA
+                        ajoutée sur vos achats. Ce que vous voyez est ce que vous réglez.
+                    </p>
+                    <p class="text-gray-700 leading-relaxed">
+                        En pratique, les prix sont à la fois hors taxes et toutes taxes comprises — ces deux montants sont identiques.
+                        TDBR acquitte la TVA auprès de ses fournisseurs mais ne la collecte pas sur ses ventes.
+                    </p>
+
+                    <div class="mt-6 p-4 bg-primary/5 border border-primary/15 rounded-xl">
+                        <p class="text-sm text-gray-700">
+                            La mention légale "TVA non applicable — art. 293 B du CGI" figure sur les factures conformément à la réglementation.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+            {# CTA #}
+            <div class="mt-12 text-center p-8 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-2xl border border-primary/10">
+                <h3 class="font-heading text-2xl font-bold text-gray-900 mb-3">
+                    Des questions sur les tarifs ?
+                </h3>
+                <p class="text-gray-600 mb-6">
+                    N'hésitez pas à me contacter, je vous répondrai avec plaisir.
+                </p>
+                <a href="{{ path('contact') }}" class="btn-primary inline-flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                    </svg>
+                    Me contacter
+                </a>
+            </div>
+
+            {# Navigation #}
+            <div class="mt-10 flex flex-col sm:flex-row gap-4 justify-between">
+                <a href="{{ path('presentation_livraison') }}" class="btn-outline px-6 py-3 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                    La livraison
+                </a>
+                <a href="{{ path('catalogue') }}" class="btn-primary px-6 py-3 flex items-center gap-2">
+                    Voir le catalogue
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </a>
+            </div>
+
+        </div>
+    </div>
+{% endblock %}
