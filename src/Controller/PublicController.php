@@ -802,16 +802,35 @@ class PublicController extends AbstractController
             $user->setRoles(['ROLE_USER']);
             $user->setPassword($passwordHasher->hashPassword($user, $data['password']));
 
-            $this->em->persist($user);
-            $this->em->flush();
+            try {
+                $this->em->persist($user);
+                $this->em->flush();
+            } catch (\Throwable $e) {
+                $this->addFlash('error', 'Une erreur est survenue lors de la création de votre compte. Veuillez réessayer.');
+                return $this->render('auth/inscription.html.twig', ['form' => $form->createView()]);
+            }
 
-            $this->addFlash('success', 'Votre compte a été créé avec succès ! Vous pouvez maintenant vous connecter.');
-            return $this->redirectToRoute('connexion');
+            try {
+                $this->mailerService->sendRegistrationConfirmation(
+                    $user->getEmail(),
+                    $user->getPrenom() ?? $user->getNom() ?? 'cher client'
+                );
+            } catch (\Throwable $e) {
+                // L'échec d'envoi d'email ne bloque pas la création du compte
+            }
+
+            return $this->redirectToRoute('inscription_confirmation');
         }
 
         return $this->render('auth/inscription.html.twig', [
             'form' => $form->createView()
         ]);
+    }
+
+    #[Route('/inscription/confirmation', name: 'inscription_confirmation', methods: ['GET'])]
+    public function inscriptionConfirmation(): Response
+    {
+        return $this->render('auth/inscription_confirmation.html.twig');
     }
 
     #[Route('/profil', name: 'profil', methods: ['GET', 'POST'])]

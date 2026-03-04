@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\Commande;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Twig\Environment;
 
 class MailerService
@@ -12,6 +13,7 @@ class MailerService
     public function __construct(
         private MailerInterface $mailer,
         private Environment $twig,
+        private UrlGeneratorInterface $urlGenerator,
         private string $fromEmail = 'noreply@tdbr.fr',
         private string $fromName = 'TDBR'
     ) {
@@ -22,8 +24,11 @@ class MailerService
      */
     public function sendRegistrationConfirmation(string $toEmail, string $userName): void
     {
+        $catalogueUrl = $this->urlGenerator->generate('catalogue', [], UrlGeneratorInterface::ABSOLUTE_URL);
+
         $html = $this->twig->render('emails/registration.html.twig', [
-            'userName' => $userName
+            'userName'     => $userName,
+            'catalogueUrl' => $catalogueUrl,
         ]);
 
         $email = (new Email())
