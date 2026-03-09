@@ -1273,6 +1273,12 @@ class PublicController extends AbstractController
                 $proposition->setStatut('payee');
                 $proposition->setUpdatedAt(new \DateTimeImmutable());
                 $this->em->flush();
+
+                try {
+                    $this->mailerService->sendOrderConfirmation($commande);
+                } catch (\Throwable $e) {
+                    // non-bloquant
+                }
             }
         }
 
