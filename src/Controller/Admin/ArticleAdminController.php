@@ -61,6 +61,8 @@ class ArticleAdminController extends AbstractController
                     $v->setSku($varianteData['sku'] ?? null);
                     $rawDelta = $varianteData['deltaPrix'] ?? '';
                     $v->setDeltaPrix($rawDelta !== '' && $rawDelta !== null ? (float)$rawDelta : null);
+                    $rawPfId = $varianteData['printfulVariantId'] ?? '';
+                    $v->setPrintfulVariantId($rawPfId !== '' ? (int)$rawPfId : null);
                     $v->setActif(isset($varianteData['actif']));
                     $valeurs = !empty($varianteData['valeurs']) ? json_decode($varianteData['valeurs'], true) : null;
                     $v->setValeurs(is_array($valeurs) ? $valeurs : null);

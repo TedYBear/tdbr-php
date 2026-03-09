@@ -41,6 +41,7 @@ class FournisseurAdminController extends AbstractController
             $fournisseur = new Fournisseur();
             $fournisseur->setNom($data['nom']);
             $fournisseur->setUrl(!empty($data['url']) ? $data['url'] : null);
+            $fournisseur->setPrintfulApiKey(!empty($data['printfulApiKey']) ? trim($data['printfulApiKey']) : null);
 
             $logoFile = $request->files->get('logo');
             if ($logoFile) {
@@ -84,6 +85,7 @@ class FournisseurAdminController extends AbstractController
 
             $fournisseur->setNom($data['nom']);
             $fournisseur->setUrl(!empty($data['url']) ? $data['url'] : null);
+            $fournisseur->setPrintfulApiKey(!empty($data['printfulApiKey']) ? trim($data['printfulApiKey']) : null);
 
             $logoFile = $request->files->get('logo');
             if ($logoFile) {

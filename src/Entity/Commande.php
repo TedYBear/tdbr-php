@@ -41,6 +41,9 @@ class Commande
     #[ORM\Column(length: 255, nullable: true, unique: true)]
     private ?string $stripePaymentIntentId = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?int $printfulOrderId = null;
+
     #[ORM\Column(type: 'json', nullable: true)]
     private ?array $modeLivraison = null;
 
@@ -81,6 +84,9 @@ class Commande
     public function setStatut(string $s): static { $this->statut = $s; return $this; }
     public function getStripePaymentIntentId(): ?string { return $this->stripePaymentIntentId; }
     public function setStripePaymentIntentId(?string $id): static { $this->stripePaymentIntentId = $id; return $this; }
+
+    public function getPrintfulOrderId(): ?int { return $this->printfulOrderId; }
+    public function setPrintfulOrderId(?int $id): static { $this->printfulOrderId = $id; return $this; }
     public function getModeLivraison(): ?array { return $this->modeLivraison; }
     public function setModeLivraison(?array $m): static { $this->modeLivraison = $m; return $this; }
     public function getReduction(): float { return (float) $this->reduction; }
