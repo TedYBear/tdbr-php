@@ -12,6 +12,7 @@ use App\Repository\BoutiqueRelaisRepository;
 use App\Repository\CodeReductionRepository;
 use App\Repository\CommandeRepository;
 use App\Repository\FournisseurRepository;
+use App\Repository\PropositionCommercialeRepository;
 use App\Repository\ProductCollectionRepository;
 use App\Repository\SiteConfigRepository;
 use App\Repository\UserRepository;
@@ -63,6 +64,7 @@ class PublicController extends AbstractController
         private CodeReductionRepository $codeReductionRepo,
         private BoutiqueRelaisRepository $boutiqueRelaisRepo,
         private FournisseurRepository $fournisseurRepo,
+        private PropositionCommercialeRepository $propositionRepo,
         private MailerService $mailerService,
         private SiteConfigRepository $siteConfigRepo,
         private PrintfulService $printfulService,
@@ -1155,5 +1157,39 @@ class PublicController extends AbstractController
             }
         }
         return 0.0;
+    }
+
+    // ─── Propositions commerciales ──────────────────────────────────────────
+
+    #[Route('/proposition/{token}', name: 'proposition_view')]
+    public function propositionView(string $token): Response
+    {
+        $proposition = $this->propositionRepo->findByToken($token);
+        if (!$proposition) {
+            throw $this->createNotFoundException('Proposition introuvable');
+        }
+
+        return $this->render('public/proposition.html.twig', [
+            'proposition' => $proposition,
+        ]);
+    }
+
+    #[Route('/proposition/{token}/valider', name: 'proposition_accept', methods: ['POST'])]
+    public function propositionAccept(string $token): Response
+    {
+        $proposition = $this->propositionRepo->findByToken($token);
+        if (!$proposition) {
+            throw $this->createNotFoundException('Proposition introuvable');
+        }
+
+        if (!in_array($proposition->getStatut(), ['envoyee', 'brouillon'])) {
+            return $this->redirectToRoute('proposition_view', ['token' => $token]);
+        }
+
+        $proposition->setStatut('acceptee');
+        $proposition->setUpdatedAt(new \DateTimeImmutable());
+        $this->em->flush();
+
+        return $this->redirectToRoute('proposition_view', ['token' => $token]);
     }
 }

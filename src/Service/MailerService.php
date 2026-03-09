@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\Commande;
+use App\Entity\PropositionCommerciale;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -124,6 +125,36 @@ class MailerService
             ->from($this->fromEmail)
             ->to($toEmail)
             ->subject('Un cadeau vous attend chez TDBR !')
+            ->html($html);
+
+        $this->mailer->send($email);
+    }
+
+    /**
+     * Envoie une proposition commerciale au client
+     */
+    public function sendProposition(PropositionCommerciale $proposition): void
+    {
+        $publicUrl = $this->urlGenerator->generate(
+            'proposition_view',
+            ['token' => $proposition->getToken()],
+            UrlGeneratorInterface::ABSOLUTE_URL
+        );
+
+        $html = $this->twig->render('emails/proposition.html.twig', [
+            'proposition' => $proposition,
+            'publicUrl'   => $publicUrl,
+        ]);
+
+        $subject = 'Votre proposition commerciale TDBR';
+        if ($proposition->getClientNom()) {
+            $subject .= ' — ' . $proposition->getClientNom();
+        }
+
+        $email = (new Email())
+            ->from($this->fromEmail)
+            ->to($proposition->getClientEmail())
+            ->subject($subject)
             ->html($html);
 
         $this->mailer->send($email);

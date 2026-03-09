@@ -1,0 +1,143 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% block title %}{{ proposition ? 'Modifier la proposition' : 'Nouvelle proposition' }}{% endblock %}
+{% block page_title %}{{ proposition ? 'Modifier la proposition' : 'Nouvelle proposition commerciale' }}{% endblock %}
+{% block page_subtitle %}
+    {% if devis %}
+        <p class="text-sm text-gray-500 mt-1">
+            Liée à la demande <a href="{{ path('admin_devis_detail', {id: devis.id}) }}" class="text-primary hover:underline">#{{ devis.id }} — {{ devis.nom }}</a>
+        </p>
+    {% endif %}
+{% endblock %}
+
+{% block body %}
+<div class="grid lg:grid-cols-3 gap-8">
+    {# Formulaire principal #}
+    <div class="lg:col-span-2">
+        <form method="post" class="space-y-6">
+            <div class="card p-6 space-y-5">
+
+                <div class="form-group">
+                    <label>Email du client *</label>
+                    <input type="email" name="clientEmail" required class="form-input"
+                           value="{{ proposition ? proposition.clientEmail : (devis ? devis.email : '') }}"
+                           placeholder="client@exemple.fr">
+                </div>
+
+                <div class="form-group">
+                    <label>Nom du client</label>
+                    <input type="text" name="clientNom" class="form-input"
+                           value="{{ proposition ? proposition.clientNom : (devis ? devis.nom : '') }}"
+                           placeholder="Prénom Nom">
+                </div>
+
+                <div class="form-group">
+                    <label>Description de la proposition *</label>
+                    <textarea name="description" required class="form-input font-mono text-sm" rows="10"
+                              placeholder="Décrivez en détail le contenu de la proposition : articles, quantités, personnalisations, délais...">{{ proposition ? proposition.description : '' }}</textarea>
+                    <p class="text-xs text-gray-500 mt-1">Ce texte sera affiché dans l'email et sur la page de validation.</p>
+                </div>
+
+                <div class="form-group">
+                    <label>Prix total (€) *</label>
+                    <input type="number" name="prixTotal" required class="form-input" step="0.01" min="0"
+                           value="{{ proposition ? proposition.prixTotal : '' }}"
+                           placeholder="0.00">
+                    <p class="text-xs text-gray-500 mt-1">TVA non applicable (franchise en base).</p>
+                </div>
+
+            </div>
+
+            <div class="flex gap-3 flex-wrap">
+                <button type="submit" name="action" value="save" class="btn-outline">
+                    Enregistrer en brouillon
+                </button>
+                <button type="submit" name="action" value="send"
+                        class="btn-primary"
+                        onclick="return confirm('Envoyer la proposition par email à ' + document.querySelector('[name=clientEmail]').value + ' ?')">
+                    Envoyer par email
+                </button>
+                <a href="{{ path('admin_propositions') }}" class="btn-outline">Annuler</a>
+            </div>
+
+        </form>
+    </div>
+
+    {# Sidebar infos #}
+    <div class="space-y-6">
+
+        {% if proposition %}
+            {# Statut #}
+            <div class="card p-6">
+                <h2 class="font-heading text-lg font-bold mb-3">Statut</h2>
+                {% if proposition.statut == 'brouillon' %}
+                    <span class="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-600">Brouillon</span>
+                {% elseif proposition.statut == 'envoyee' %}
+                    <span class="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-700">Envoyée</span>
+                {% elseif proposition.statut == 'acceptee' %}
+                    <span class="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-700">Acceptée</span>
+                {% elseif proposition.statut == 'payee' %}
+                    <span class="px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-700">Payée</span>
+                {% endif %}
+
+                {% if proposition.createdAt %}
+                    <p class="text-xs text-gray-500 mt-3">Créée le {{ proposition.createdAt|date('d/m/Y à H:i') }}</p>
+                {% endif %}
+                {% if proposition.updatedAt %}
+                    <p class="text-xs text-gray-500">Mise à jour le {{ proposition.updatedAt|date('d/m/Y à H:i') }}</p>
+                {% endif %}
+            </div>
+
+            {# Lien public #}
+            <div class="card p-6">
+                <h2 class="font-heading text-lg font-bold mb-3">Lien de validation</h2>
+                <p class="text-xs text-gray-500 mb-2">Page client pour accepter et payer :</p>
+                <input type="text" readonly class="form-input text-xs font-mono bg-gray-50"
+                       value="{{ url('proposition_view', {token: proposition.token}) }}"
+                       onclick="this.select()">
+                <p class="text-xs text-gray-400 mt-1">Cliquer pour sélectionner</p>
+            </div>
+
+            {% if proposition.commande %}
+                <div class="card p-6">
+                    <h2 class="font-heading text-lg font-bold mb-3">Commande associée</h2>
+                    <a href="{{ path('admin_commande_detail', {id: proposition.commande.id}) }}"
+                       class="text-primary hover:underline font-medium">
+                        {{ proposition.commande.numero }}
+                    </a>
+                    <p class="text-xs text-gray-500 mt-1">{{ proposition.commande.statut }}</p>
+                </div>
+            {% endif %}
+
+            {# Renvoyer l'email #}
+            {% if proposition.statut in ['envoyee', 'brouillon'] %}
+                <form method="post" action="{{ path('admin_propositions_send', {id: proposition.id}) }}"
+                      onsubmit="return confirm('Renvoyer la proposition par email ?')">
+                    <button type="submit" class="w-full btn-outline">
+                        {{ proposition.statut == 'envoyee' ? 'Renvoyer l\'email' : 'Envoyer l\'email' }}
+                    </button>
+                </form>
+            {% endif %}
+
+            {# Supprimer #}
+            <form method="post" action="{{ path('admin_propositions_delete', {id: proposition.id}) }}"
+                  onsubmit="window.confirmForm(event, this, 'Supprimer définitivement cette proposition ?')">
+                <button type="submit" class="w-full px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition text-sm">
+                    Supprimer
+                </button>
+            </form>
+        {% else %}
+            <div class="card p-6">
+                <h2 class="font-heading text-lg font-bold mb-2">Astuce</h2>
+                <p class="text-sm text-gray-600">
+                    Remplissez la description et le prix, puis choisissez d'enregistrer en brouillon ou d'envoyer directement l'email au client.
+                </p>
+                <p class="text-sm text-gray-600 mt-2">
+                    Le client recevra un lien unique pour visualiser et valider la proposition.
+                </p>
+            </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}

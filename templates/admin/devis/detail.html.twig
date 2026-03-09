@@ -101,6 +101,16 @@
                 </form>
             </div>
 
+            {# Proposition commerciale #}
+            <div class="card p-6">
+                <h2 class="font-heading text-xl font-bold mb-4">Proposition commerciale</h2>
+                <a href="{{ path('admin_propositions_new', {devis: devis.id}) }}"
+                   class="btn-primary w-full text-center block">
+                    Créer une proposition
+                </a>
+                <p class="text-xs text-gray-500 mt-2">Décrire le contenu, fixer le prix et envoyer par email au client.</p>
+            </div>
+
             {# Répondre #}
             <div class="card p-6">
                 <h2 class="font-heading text-xl font-bold mb-4">Répondre</h2>

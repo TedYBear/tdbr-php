@@ -1,0 +1,72 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% block title %}Propositions commerciales{% endblock %}
+{% block page_title %}Propositions commerciales{% endblock %}
+{% block page_subtitle %}
+    <p class="text-sm text-gray-500 mt-1">{{ propositions|length }} proposition{{ propositions|length != 1 ? 's' : '' }}</p>
+{% endblock %}
+
+{% block body %}
+    <div class="mb-6 flex justify-end">
+        <a href="{{ path('admin_propositions_new') }}" class="btn-primary">
+            + Nouvelle proposition
+        </a>
+    </div>
+
+    {% if propositions is empty %}
+        <div class="card p-12 text-center text-gray-400">
+            <p class="text-lg">Aucune proposition pour l'instant.</p>
+            <a href="{{ path('admin_propositions_new') }}" class="btn-primary mt-4 inline-block">Créer la première</a>
+        </div>
+    {% else %}
+        <div class="card overflow-hidden">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50 border-b">
+                    <tr>
+                        <th class="text-left px-4 py-3 font-semibold text-gray-700">Client</th>
+                        <th class="text-left px-4 py-3 font-semibold text-gray-700">Montant</th>
+                        <th class="text-left px-4 py-3 font-semibold text-gray-700">Statut</th>
+                        <th class="text-left px-4 py-3 font-semibold text-gray-700">Date</th>
+                        <th class="text-left px-4 py-3 font-semibold text-gray-700">Demande</th>
+                        <th class="px-4 py-3"></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y">
+                    {% for p in propositions %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3">
+                                <div class="font-medium">{{ p.clientNom ?: '—' }}</div>
+                                <div class="text-gray-500 text-xs">{{ p.clientEmail }}</div>
+                            </td>
+                            <td class="px-4 py-3 font-semibold">{{ p.prixTotal|number_format(2, ',', ' ') }} €</td>
+                            <td class="px-4 py-3">
+                                {% if p.statut == 'brouillon' %}
+                                    <span class="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">Brouillon</span>
+                                {% elseif p.statut == 'envoyee' %}
+                                    <span class="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">Envoyée</span>
+                                {% elseif p.statut == 'acceptee' %}
+                                    <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">Acceptée</span>
+                                {% elseif p.statut == 'payee' %}
+                                    <span class="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700">Payée</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-3 text-gray-500">{{ p.createdAt|date('d/m/Y') }}</td>
+                            <td class="px-4 py-3">
+                                {% if p.demandeSurMesure %}
+                                    <a href="{{ path('admin_devis_detail', {id: p.demandeSurMesure.id}) }}"
+                                       class="text-primary hover:underline text-xs">#{{ p.demandeSurMesure.id }} {{ p.demandeSurMesure.nom }}</a>
+                                {% else %}
+                                    <span class="text-gray-400 text-xs">—</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-3 text-right">
+                                <a href="{{ path('admin_propositions_edit', {id: p.id}) }}"
+                                   class="text-primary hover:underline text-sm font-medium">Modifier</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+{% endblock %}

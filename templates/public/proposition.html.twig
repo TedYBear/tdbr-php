@@ -1,0 +1,79 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Proposition commerciale — TDBR{% endblock %}
+
+{% block body %}
+<div class="max-w-2xl mx-auto px-4 py-12">
+
+    {% if proposition.statut == 'acceptee' or proposition.statut == 'payee' %}
+        {# Déjà acceptée #}
+        <div class="card p-8 text-center">
+            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+            </div>
+            <h1 class="font-heading text-2xl font-bold mb-2">Proposition {{ proposition.statut == 'payee' ? 'payée' : 'acceptée' }}</h1>
+            <p class="text-gray-600">Merci ! Votre proposition a bien été validée. Nous vous contacterons très prochainement.</p>
+        </div>
+
+    {% else %}
+        {# Affichage de la proposition #}
+        <div class="mb-8 text-center">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-accent rounded-full mb-4">
+                <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+            </div>
+            <h1 class="font-heading text-3xl font-black text-dark">Proposition commerciale</h1>
+            {% if proposition.clientNom %}
+                <p class="text-gray-500 mt-1">À l'attention de {{ proposition.clientNom }}</p>
+            {% endif %}
+            <p class="text-gray-400 text-sm mt-1">Émise le {{ proposition.createdAt|date('d/m/Y') }}</p>
+        </div>
+
+        <div class="card p-8 space-y-6">
+
+            {# Description #}
+            <div>
+                <h2 class="font-heading text-xl font-bold mb-3 text-dark">Détail de la proposition</h2>
+                <div class="text-gray-700 leading-relaxed whitespace-pre-line bg-gray-50 rounded-lg p-4">{{ proposition.description }}</div>
+            </div>
+
+            {# Prix #}
+            <div class="border-t pt-6">
+                <div class="flex items-baseline justify-between">
+                    <span class="text-gray-600 font-medium">Total</span>
+                    <span class="font-heading text-3xl font-black text-primary">
+                        {{ proposition.prixTotal|number_format(2, ',', ' ') }} €
+                    </span>
+                </div>
+                <p class="text-xs text-gray-400 mt-1 text-right">TVA non applicable – art. 293 B du CGI</p>
+            </div>
+
+            {# Bouton valider #}
+            <div class="border-t pt-6">
+                <form method="post" action="{{ path('proposition_accept', {token: proposition.token}) }}">
+                    <button type="submit"
+                            onclick="return confirm('Confirmer votre accord sur cette proposition ?')"
+                            class="w-full btn-primary text-lg py-4 rounded-xl font-bold">
+                        Valider la proposition
+                    </button>
+                </form>
+                <p class="text-center text-xs text-gray-400 mt-3">
+                    En validant, vous confirmez votre accord sur le contenu et le prix.<br>
+                    Les modalités de paiement vous seront communiquées par email.
+                </p>
+            </div>
+
+        </div>
+
+        <p class="text-center text-sm text-gray-400 mt-6">
+            Une question ? <a href="mailto:contact@tdbr.fr" class="text-primary hover:underline">Contactez-nous</a>
+        </p>
+
+    {% endif %}
+
+</div>
+{% endblock %}
