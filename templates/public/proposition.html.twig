@@ -5,16 +5,26 @@
 {% block body %}
 <div class="max-w-2xl mx-auto px-4 py-12">
 
-    {% if proposition.statut == 'acceptee' or proposition.statut == 'payee' %}
-        {# Déjà acceptée #}
+    {% if proposition.statut == 'payee' %}
+        {# Payée #}
         <div class="card p-8 text-center">
             <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                 </svg>
             </div>
-            <h1 class="font-heading text-2xl font-bold mb-2">Proposition {{ proposition.statut == 'payee' ? 'payée' : 'acceptée' }}</h1>
-            <p class="text-gray-600">Merci ! Votre proposition a bien été validée. Nous vous contacterons très prochainement.</p>
+            <h1 class="font-heading text-2xl font-bold mb-2">Paiement confirmé</h1>
+            <p class="text-gray-600">Merci ! Votre paiement a bien été reçu. Vous recevrez une confirmation par email.</p>
+        </div>
+
+    {% elseif proposition.statut == 'acceptee' and proposition.commande %}
+        {# Acceptée mais paiement non finalisé → rediriger vers paiement #}
+        <div class="card p-8 text-center">
+            <h1 class="font-heading text-2xl font-bold mb-3">Paiement en cours</h1>
+            <p class="text-gray-600 mb-6">Votre proposition a été validée. Finalisez le paiement pour confirmer votre commande.</p>
+            <a href="{{ path('proposition_pay', {token: proposition.token}) }}" class="btn-primary text-lg px-8 py-3">
+                Procéder au paiement
+            </a>
         </div>
 
     {% else %}
@@ -56,14 +66,12 @@
             <div class="border-t pt-6">
                 <form method="post" action="{{ path('proposition_accept', {token: proposition.token}) }}">
                     <button type="submit"
-                            onclick="return confirm('Confirmer votre accord sur cette proposition ?')"
                             class="w-full btn-primary text-lg py-4 rounded-xl font-bold">
-                        Valider la proposition
+                        Valider et payer
                     </button>
                 </form>
                 <p class="text-center text-xs text-gray-400 mt-3">
-                    En validant, vous confirmez votre accord sur le contenu et le prix.<br>
-                    Les modalités de paiement vous seront communiquées par email.
+                    Vous serez redirigé vers la page de paiement sécurisé Stripe.
                 </p>
             </div>
 

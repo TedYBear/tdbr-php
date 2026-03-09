@@ -1174,6 +1174,9 @@ class PublicController extends AbstractController
         ]);
     }
 
+    /**
+     * Crée une Commande + PaymentIntent Stripe, puis redirige vers la page de paiement.
+     */
     #[Route('/proposition/{token}/valider', name: 'proposition_accept', methods: ['POST'])]
     public function propositionAccept(string $token): Response
     {
@@ -1186,9 +1189,92 @@ class PublicController extends AbstractController
             return $this->redirectToRoute('proposition_view', ['token' => $token]);
         }
 
+        // Créer la commande
+        $commande = new Commande();
+        $commande->setNumero('PROP-' . strtoupper(substr(uniqid(), -8)));
+        $commande->setClient([
+            'email'     => $proposition->getClientEmail(),
+            'nom'       => $proposition->getClientNom() ?? '',
+            'prenom'    => '',
+            'telephone' => '',
+        ]);
+        $commande->setAdresseLivraison([
+            'adresse'    => 'À coordonner',
+            'ville'      => '',
+            'codePostal' => '',
+            'pays'       => 'FR',
+        ]);
+        $commande->setArticles([[
+            'nom'      => 'Proposition commerciale #' . $proposition->getId(),
+            'quantity' => 1,
+            'prix'     => $proposition->getPrixTotal(),
+        ]]);
+        $commande->setTotal($proposition->getPrixTotal());
+        $commande->setModePaiement('stripe');
+        $commande->setModeLivraison(['type' => 'proposition', 'label' => 'À coordonner', 'prix' => 0]);
+        $commande->setStatut('en_attente');
+
+        // Créer le PaymentIntent Stripe
+        $intent = $this->stripeService->createPaymentIntent(
+            $proposition->getPrixTotal(),
+            $commande->getNumero()
+        );
+        $commande->setStripePaymentIntentId($intent->id);
+
+        $this->em->persist($commande);
+
         $proposition->setStatut('acceptee');
+        $proposition->setCommande($commande);
         $proposition->setUpdatedAt(new \DateTimeImmutable());
+
         $this->em->flush();
+
+        return $this->redirectToRoute('proposition_pay', ['token' => $token]);
+    }
+
+    #[Route('/proposition/{token}/payer', name: 'proposition_pay')]
+    public function propositionPay(string $token): Response
+    {
+        $proposition = $this->propositionRepo->findByToken($token);
+        if (!$proposition || !$proposition->getCommande()) {
+            return $this->redirectToRoute('proposition_view', ['token' => $token]);
+        }
+
+        if ($proposition->getStatut() === 'payee') {
+            return $this->redirectToRoute('proposition_view', ['token' => $token]);
+        }
+
+        $commande = $proposition->getCommande();
+        $intent   = $this->stripeService->retrievePaymentIntent($commande->getStripePaymentIntentId());
+
+        return $this->render('public/proposition_payer.html.twig', [
+            'proposition'      => $proposition,
+            'clientSecret'     => $intent->client_secret,
+            'stripePublicKey'  => $_ENV['STRIPE_PUBLIC_KEY'] ?? '',
+        ]);
+    }
+
+    #[Route('/proposition/{token}/confirmer', name: 'proposition_confirm', methods: ['POST'])]
+    public function propositionConfirm(string $token, Request $request): Response
+    {
+        $proposition = $this->propositionRepo->findByToken($token);
+        if (!$proposition || !$proposition->getCommande()) {
+            throw $this->createNotFoundException();
+        }
+
+        $commande = $proposition->getCommande();
+        $paymentIntentId = $request->request->get('stripePaymentIntentId');
+
+        if ($paymentIntentId && $commande->getStripePaymentIntentId() === $paymentIntentId) {
+            $intent = $this->stripeService->retrievePaymentIntent($paymentIntentId);
+            if ($intent->status === 'succeeded') {
+                $commande->setStatut('payee');
+                $commande->setUpdatedAt(new \DateTimeImmutable());
+                $proposition->setStatut('payee');
+                $proposition->setUpdatedAt(new \DateTimeImmutable());
+                $this->em->flush();
+            }
+        }
 
         return $this->redirectToRoute('proposition_view', ['token' => $token]);
     }
