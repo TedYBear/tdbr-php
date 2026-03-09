@@ -1,0 +1,131 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Paiement — Proposition commerciale TDBR{% endblock %}
+
+{% block body %}
+<div class="max-w-lg mx-auto px-4 py-12" x-data="propPayApp()">
+
+    <div class="mb-8 text-center">
+        <h1 class="font-heading text-3xl font-black text-dark">Paiement sécurisé</h1>
+        <p class="text-gray-500 mt-1">Proposition commerciale — {{ proposition.clientNom ?: proposition.clientEmail }}</p>
+    </div>
+
+    {# Récap prix #}
+    <div class="card p-6 mb-6">
+        <div class="flex justify-between items-center">
+            <div>
+                <p class="font-semibold text-dark">Proposition sur-mesure</p>
+                <p class="text-sm text-gray-500 mt-0.5 line-clamp-2">{{ proposition.description|slice(0, 120) }}{% if proposition.description|length > 120 %}…{% endif %}</p>
+            </div>
+            <span class="font-heading text-2xl font-black text-primary ml-4 whitespace-nowrap">
+                {{ proposition.prixTotal|number_format(2, ',', ' ') }} €
+            </span>
+        </div>
+        <p class="text-xs text-gray-400 mt-2">TVA non applicable – art. 293 B du CGI</p>
+    </div>
+
+    {# Formulaire de paiement #}
+    <div class="card p-6 space-y-5">
+        <h2 class="font-heading text-lg font-bold flex items-center gap-2">
+            <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+            </svg>
+            Carte bancaire
+        </h2>
+
+        <div id="payment-element" class="mb-4"></div>
+        <div id="payment-message" class="hidden text-red-600 text-sm font-medium mt-2"></div>
+
+        {# Formulaire caché pour soumettre après Stripe #}
+        <form id="confirm-form" method="post" action="{{ path('proposition_confirm', {token: proposition.token}) }}">
+            <input type="hidden" name="stripePaymentIntentId" id="stripePaymentIntentId" value="">
+        </form>
+
+        <button type="button" @click="pay()"
+                :disabled="loading"
+                :class="loading ? 'opacity-60 cursor-wait' : ''"
+                class="w-full btn-primary text-lg py-4 rounded-xl font-bold">
+            <span x-show="!loading">Payer {{ proposition.prixTotal|number_format(2, ',', ' ') }} €</span>
+            <span x-show="loading" class="flex items-center justify-center gap-2">
+                <svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                </svg>
+                Traitement…
+            </span>
+        </button>
+
+        <div class="pt-4 border-t space-y-2">
+            <div class="flex items-center gap-2 text-xs text-gray-500">
+                <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+                Paiement 100% sécurisé via Stripe
+            </div>
+            <div class="flex items-center gap-2 text-xs text-gray-500">
+                <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                </svg>
+                Vos données bancaires ne sont jamais stockées
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+    (function() {
+        const pk = {{ stripePublicKey|json_encode|raw }};
+        const cs = {{ clientSecret|json_encode|raw }};
+        if (!pk || !cs) return;
+
+        window._stripeInstance = Stripe(pk);
+        window._stripeElements = window._stripeInstance.elements({ clientSecret: cs });
+
+        const paymentElement = window._stripeElements.create('payment', { layout: 'tabs' });
+        paymentElement.mount('#payment-element');
+    })();
+
+    function propPayApp() {
+        return {
+            loading: false,
+            async pay() {
+                this.loading = true;
+                const msgEl = document.getElementById('payment-message');
+                if (msgEl) { msgEl.classList.add('hidden'); msgEl.textContent = ''; }
+
+                if (!window._stripeInstance || !window._stripeElements) {
+                    if (msgEl) { msgEl.textContent = 'Service de paiement non initialisé.'; msgEl.classList.remove('hidden'); }
+                    this.loading = false;
+                    return;
+                }
+
+                const { error, paymentIntent } = await window._stripeInstance.confirmPayment({
+                    elements: window._stripeElements,
+                    confirmParams: {},
+                    redirect: 'if_required',
+                });
+
+                if (error) {
+                    if (msgEl) { msgEl.textContent = error.message; msgEl.classList.remove('hidden'); }
+                    this.loading = false;
+                    return;
+                }
+
+                if (paymentIntent && paymentIntent.status === 'succeeded') {
+                    document.getElementById('stripePaymentIntentId').value = paymentIntent.id;
+                    document.getElementById('confirm-form').submit();
+                } else {
+                    if (msgEl) { msgEl.textContent = 'Le paiement n\'a pas abouti. Veuillez réessayer.'; msgEl.classList.remove('hidden'); }
+                    this.loading = false;
+                }
+            }
+        };
+    }
+    </script>
+{% endblock %}
