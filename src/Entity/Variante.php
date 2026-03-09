@@ -37,6 +37,9 @@ class Variante
     #[ORM\Column(type: 'json', nullable: true)]
     private ?array $valeurs = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?int $printfulVariantId = null;
+
     #[ORM\Column]
     private bool $actif = true;
 
@@ -51,6 +54,9 @@ class Variante
     public function setDeltaPrix(?float $d): static { $this->deltaPrix = $d; return $this; }
     public function getValeurs(): ?array { return $this->valeurs; }
     public function setValeurs(?array $v): static { $this->valeurs = $v; return $this; }
+    public function getPrintfulVariantId(): ?int { return $this->printfulVariantId; }
+    public function setPrintfulVariantId(?int $id): static { $this->printfulVariantId = $id; return $this; }
+
     public function isActif(): bool { return $this->actif; }
     public function setActif(bool $a): static { $this->actif = $a; return $this; }
 }

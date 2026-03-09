@@ -11,11 +11,13 @@ use App\Repository\CategoryRepository;
 use App\Repository\BoutiqueRelaisRepository;
 use App\Repository\CodeReductionRepository;
 use App\Repository\CommandeRepository;
+use App\Repository\FournisseurRepository;
 use App\Repository\ProductCollectionRepository;
 use App\Repository\SiteConfigRepository;
 use App\Repository\UserRepository;
 use App\Service\CartService;
 use App\Service\MailerService;
+use App\Service\PrintfulService;
 use App\Service\StripeService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -60,8 +62,10 @@ class PublicController extends AbstractController
         private StripeService $stripeService,
         private CodeReductionRepository $codeReductionRepo,
         private BoutiqueRelaisRepository $boutiqueRelaisRepo,
+        private FournisseurRepository $fournisseurRepo,
         private MailerService $mailerService,
         private SiteConfigRepository $siteConfigRepo,
+        private PrintfulService $printfulService,
     ) {
     }
 
@@ -293,26 +297,32 @@ class PublicController extends AbstractController
         }
 
         $deltaPrix = 0.0;
+        $printfulVariantId = null;
         if ($variantId) {
             foreach ($article->getVariantes() as $v) {
-                if ($v->getId() == $variantId && $v->getDeltaPrix() !== null) {
-                    $deltaPrix = $v->getDeltaPrix();
+                if ($v->getId() == $variantId) {
+                    if ($v->getDeltaPrix() !== null) {
+                        $deltaPrix = $v->getDeltaPrix();
+                    }
+                    $printfulVariantId = $v->getPrintfulVariantId();
                     break;
                 }
             }
         }
 
         $articleArray = [
-            'id'             => $article->getId(),
-            'nom'            => $article->getNom(),
-            'slug'           => $article->getSlug(),
-            'prix'           => $prixVente1 + $deltaPrix,
-            'deltaPrix'      => $deltaPrix,
-            'image'          => $article->getFirstImageUrl(),
-            'paliers'        => $article->getGrillePrix() ? $article->getGrillePrix()->getPaliers() : [],
-            'lignes'         => $article->getGrillePrix() ? $article->getGrillePrix()->getLignes() : [],
-            'grilleId'       => $article->getGrillePrix() ? $article->getGrillePrix()->getId() : null,
-            'fournisseurNom' => $article->getFournisseur()?->getNom(),
+            'id'                => $article->getId(),
+            'nom'               => $article->getNom(),
+            'slug'              => $article->getSlug(),
+            'prix'              => $prixVente1 + $deltaPrix,
+            'deltaPrix'         => $deltaPrix,
+            'image'             => $article->getFirstImageUrl(),
+            'paliers'           => $article->getGrillePrix() ? $article->getGrillePrix()->getPaliers() : [],
+            'lignes'            => $article->getGrillePrix() ? $article->getGrillePrix()->getLignes() : [],
+            'grilleId'          => $article->getGrillePrix() ? $article->getGrillePrix()->getId() : null,
+            'fournisseurNom'    => $article->getFournisseur()?->getNom(),
+            'fournisseurId'     => $article->getFournisseur()?->getId(),
+            'printfulVariantId' => $printfulVariantId,
         ];
 
         $this->cartService->addItem($articleArray, $quantity, is_array($choices) ? $choices : []);
@@ -518,12 +528,14 @@ class PublicController extends AbstractController
             $orderItems = [];
             foreach ($this->cartService->getCart() as $itemId => $item) {
                 $orderItems[] = [
-                    'articleId' => $item['article']['id'],
-                    'nom'       => $item['article']['nom'],
-                    'prix'      => $item['article']['prix'],
-                    'quantity'  => $item['quantity'],
-                    'choices'   => $item['choices'] ?? [],
-                    'image'     => $item['article']['image'] ?? null,
+                    'articleId'         => $item['article']['id'],
+                    'nom'               => $item['article']['nom'],
+                    'prix'              => $item['article']['prix'],
+                    'quantity'          => $item['quantity'],
+                    'choices'           => $item['choices'] ?? [],
+                    'image'             => $item['article']['image'] ?? null,
+                    'fournisseurId'     => $item['article']['fournisseurId'] ?? null,
+                    'printfulVariantId' => $item['article']['printfulVariantId'] ?? null,
                 ];
             }
 
@@ -562,6 +574,30 @@ class PublicController extends AbstractController
             }
 
             $this->cartService->clear();
+
+            // Envoi en brouillon à Printful (uniquement pour livraison à domicile)
+            if ($modeLivraison === 'domicile') {
+                $printfulItems = array_filter($orderItems, fn($i) => !empty($i['printfulVariantId']));
+                if (!empty($printfulItems)) {
+                    // Regrouper par fournisseur (on prend la clé du premier fournisseur Printful trouvé)
+                    $fournisseurId = current($printfulItems)['fournisseurId'] ?? null;
+                    $fournisseur   = $fournisseurId ? $this->fournisseurRepo->find($fournisseurId) : null;
+                    $apiKey        = $fournisseur?->getPrintfulApiKey();
+                    if ($apiKey) {
+                        try {
+                            $printfulOrderId = $this->printfulService->createDraftOrder(
+                                $commande,
+                                array_values($printfulItems),
+                                $apiKey
+                            );
+                            $commande->setPrintfulOrderId($printfulOrderId);
+                            $this->em->flush();
+                        } catch (\Throwable $e) {
+                            // Non-bloquant : la commande est déjà enregistrée
+                        }
+                    }
+                }
+            }
 
             // Envoyer l'email de confirmation au client
             try {

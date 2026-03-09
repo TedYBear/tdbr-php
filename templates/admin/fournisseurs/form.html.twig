@@ -22,6 +22,21 @@
             </div>
 
             <div class="form-group">
+                <label>Clé API Printful</label>
+                <input type="password" name="printfulApiKey"
+                       value="{{ fournisseur and fournisseur.printfulApiKey ? fournisseur.printfulApiKey : '' }}"
+                       class="form-input font-mono text-sm"
+                       placeholder="Laisser vide si ce fournisseur n'est pas Printful"
+                       autocomplete="off">
+                <p class="text-xs text-gray-500 mt-1">
+                    Trouvable dans votre dashboard Printful → Settings → API.
+                    {% if fournisseur and fournisseur.printfulApiKey %}
+                        <span class="text-green-600 font-medium">Clé configurée.</span>
+                    {% endif %}
+                </p>
+            </div>
+
+            <div class="form-group">
                 <label>Logo</label>
                 {% if fournisseur and fournisseur.logoFilename %}
                     <div class="mb-3 p-3 bg-gray-50 rounded-lg inline-flex items-center gap-3">
