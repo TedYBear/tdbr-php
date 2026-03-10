@@ -76,4 +76,56 @@ class PrintfulService
 
         return (int) ($data['result']['id'] ?? throw new \RuntimeException('Printful order ID manquant dans la réponse'));
     }
+
+    /**
+     * Retourne tous les produits synchronisés avec leurs variantes.
+     * Utile pour récupérer les sync_variant_id corrects.
+     */
+    public function getSyncProducts(): array
+    {
+        $response = $this->httpClient->request('GET', self::API_BASE . '/store/products?limit=100', [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $this->apiKey,
+                'X-PF-Store-Id' => $this->storeId,
+            ],
+        ]);
+
+        $data = $response->toArray(false);
+
+        if (($data['code'] ?? 0) !== 200) {
+            throw new \RuntimeException(
+                'Printful API error: ' . ($data['error']['message'] ?? 'code ' . ($data['code'] ?? '?'))
+            );
+        }
+
+        $products = [];
+        foreach ($data['result'] as $item) {
+            $product = $item['sync_product'];
+
+            // Récupérer les variantes du produit
+            $varResp = $this->httpClient->request('GET', self::API_BASE . '/store/products/' . $product['id'], [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $this->apiKey,
+                    'X-PF-Store-Id' => $this->storeId,
+                ],
+            ]);
+            $varData = $varResp->toArray(false);
+            $variants = [];
+            foreach ($varData['result']['sync_variants'] ?? [] as $v) {
+                $variants[] = [
+                    'id'   => $v['id'],
+                    'name' => $v['name'],
+                    'sku'  => $v['sku'] ?? '',
+                ];
+            }
+
+            $products[] = [
+                'id'       => $product['id'],
+                'name'     => $product['name'],
+                'variants' => $variants,
+            ];
+        }
+
+        return $products;
+    }
 }
