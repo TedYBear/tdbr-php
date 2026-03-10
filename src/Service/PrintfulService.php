@@ -111,9 +111,10 @@ class PrintfulService
             $variants = [];
             foreach ($varData['result']['sync_variants'] ?? [] as $v) {
                 $variants[] = [
-                    'id'   => $v['id'],
-                    'name' => $v['name'],
-                    'sku'  => $v['sku'] ?? '',
+                    'id'     => $v['id'],
+                    'name'   => $v['name'],
+                    'sku'    => $v['sku'] ?? '',
+                    'synced' => $v['synced'] ?? false,
                 ];
             }
 
