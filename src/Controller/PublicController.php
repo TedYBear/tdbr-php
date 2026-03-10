@@ -802,9 +802,12 @@ class PublicController extends AbstractController
                     $printfulOrderId = $this->printfulService->createDraftOrder($commande, array_values($printfulItems));
                     $commande->setPrintfulOrderId($printfulOrderId);
                     $this->em->flush();
+                    $this->addFlash('success', 'Commande envoyée à Printful (brouillon #' . $printfulOrderId . ')');
                 } catch (\Throwable $e) {
-                    // Non-bloquant
+                    $this->addFlash('warning', 'Printful : ' . $e->getMessage());
                 }
+            } else {
+                $this->addFlash('info', 'Aucun article Printful dans la commande (printfulVariantId non renseigné).');
             }
         }
 
