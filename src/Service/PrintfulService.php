@@ -107,8 +107,10 @@ class PrintfulService
                     'X-PF-Store-Id' => $this->storeId,
                 ],
             ]);
-            $varData = $varResp->toArray(false);
-            $variants = [];
+            $varData    = $varResp->toArray(false);
+            $variants   = [];
+            $mockupUrls = [];
+
             foreach ($varData['result']['sync_variants'] ?? [] as $v) {
                 $variants[] = [
                     'id'     => $v['id'],
@@ -116,12 +118,20 @@ class PrintfulService
                     'sku'    => $v['sku'] ?? '',
                     'synced' => $v['synced'] ?? false,
                 ];
+                // Collecter les preview_url de maquettes (dédoublonnées)
+                foreach ($v['files'] ?? [] as $file) {
+                    $url = $file['preview_url'] ?? null;
+                    if ($url && !in_array($url, $mockupUrls, true)) {
+                        $mockupUrls[] = $url;
+                    }
+                }
             }
 
             $products[] = [
                 'id'        => $product['id'],
                 'name'      => $product['name'],
                 'thumbnail' => $product['thumbnail_url'] ?? null,
+                'mockups'   => $mockupUrls,
                 'variants'  => $variants,
             ];
         }
