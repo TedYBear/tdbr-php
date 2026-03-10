@@ -86,6 +86,8 @@
                     {% set totalCount     = product.variants|length %}
                     {% set invalidCount   = syncedVariants|filter(v => not v.valid)|length %}
                     {% set mockupCount    = product.mockups|length %}
+                    {% set linkedNom      = product.linkedNom %}
+                    {% set linkedByIdFlag = product.linkedByPfId %}
 
                     <div class="card overflow-hidden transition"
                          :class="selected.includes({{ product.id }}) ? 'ring-2 ring-primary' : ''">
@@ -110,7 +112,20 @@
 
                             <div class="flex-1 min-w-0">
                                 <p class="font-semibold text-gray-900 truncate">{{ product.name }}</p>
-                                <p class="text-xs text-gray-400 font-mono mt-0.5">ID #{{ product.id }}</p>
+                                <div class="flex items-center gap-2 mt-0.5">
+                                    <p class="text-xs text-gray-400 font-mono">ID #{{ product.id }}</p>
+                                    {% if linkedNom %}
+                                        {% if linkedByIdFlag %}
+                                            <span class="text-xs px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700 font-medium" title="Lié par printfulProductId">
+                                                → {{ linkedNom }}
+                                            </span>
+                                        {% else %}
+                                            <span class="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-600" title="Correspondance par slug — l'ID Printful sera associé automatiquement">
+                                                → {{ linkedNom }} <span class="text-gray-400">(slug)</span>
+                                            </span>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
 
                                 {# Badges statut #}
                                 <div class="flex flex-wrap items-center gap-2 mt-2">

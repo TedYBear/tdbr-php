@@ -374,6 +374,18 @@
                     </div>
 
                     <div class="form-group mt-4">
+                        <label class="flex items-center gap-2">
+                            ID Produit Printful
+                            <span class="text-xs font-normal text-gray-400">sync_product_id</span>
+                        </label>
+                        <input type="number" name="printfulProductId" min="1" step="1"
+                               value="{{ article and article.printfulProductId ? article.printfulProductId : '' }}"
+                               placeholder="ex. 123456789"
+                               class="form-input">
+                        <p class="text-xs text-gray-400 mt-1">Associe cet article à un produit Printful pour la mise à jour automatique des variantes, indépendamment du nom/slug.</p>
+                    </div>
+
+                    <div class="form-group mt-4">
                         <label>Fournisseur</label>
                         <select name="fournisseur" class="form-select">
                             <option value="">Aucun</option>

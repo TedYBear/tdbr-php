@@ -57,6 +57,10 @@ class Article
     #[ORM\OneToMany(mappedBy: 'article', targetEntity: Variante::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $variantes;
 
+    /** ID du sync_product Printful associé — permet la mise à jour indépendante du slug */
+    #[ORM\Column(type: 'bigint', nullable: true, unique: true)]
+    private ?string $printfulProductId = null;
+
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
@@ -99,6 +103,8 @@ class Article
     public function getVariantes(): Collection { return $this->variantes; }
     public function addVariante(Variante $v): static { if (!$this->variantes->contains($v)) { $this->variantes->add($v); $v->setArticle($this); } return $this; }
     public function removeVariante(Variante $v): static { if ($this->variantes->removeElement($v)) { if ($v->getArticle() === $this) { $v->setArticle(null); } } return $this; }
+    public function getPrintfulProductId(): ?int { return $this->printfulProductId !== null ? (int)$this->printfulProductId : null; }
+    public function setPrintfulProductId(?int $id): static { $this->printfulProductId = $id !== null ? (string)$id : null; return $this; }
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
     public function getUpdatedAt(): ?\DateTimeImmutable { return $this->updatedAt; }
     public function setUpdatedAt(?\DateTimeImmutable $u): static { $this->updatedAt = $u; return $this; }

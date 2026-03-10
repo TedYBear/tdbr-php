@@ -157,6 +157,9 @@ class ArticleAdminController extends AbstractController
             $grille = !empty($data['grillePrix']) ? $this->grillePrixRepo->find((int)$data['grillePrix']) : null;
             $article->setGrillePrix($grille);
 
+            $pfProductId = trim($data['printfulProductId'] ?? '');
+            $article->setPrintfulProductId($pfProductId !== '' ? (int)$pfProductId : null);
+
             // Images
             if (!empty($data['images'])) {
                 $rawImages = is_array($data['images']) ? implode("\n", $data['images']) : $data['images'];
@@ -221,6 +224,9 @@ class ArticleAdminController extends AbstractController
 
             $grille = !empty($data['grillePrix']) ? $this->grillePrixRepo->find((int)$data['grillePrix']) : null;
             $article->setGrillePrix($grille);
+
+            $pfProductId = trim($data['printfulProductId'] ?? '');
+            $article->setPrintfulProductId($pfProductId !== '' ? (int)$pfProductId : null);
 
             // Images : remplacer si nouvelles fournies
             if (!empty($data['images'])) {

@@ -100,13 +100,20 @@ class PrintfulAdminController extends AbstractController
                     continue;
                 }
 
-                $slug            = $slugify->slugify($product['name']);
-                $syncedVariants  = array_filter($product['variants'], fn($v) => $v['synced'] ?? false);
-                $existingArticle = $articleRepo->findOneBy(['slug' => $slug]);
+                $pfProductId    = (int)$product['id'];
+                $slug           = $slugify->slugify($product['name']);
+                $syncedVariants = array_filter($product['variants'], fn($v) => $v['synced'] ?? false);
+
+                // Matching : 1) par printfulProductId  2) par slug (fallback)
+                $existingArticle = $articleRepo->findOneBy(['printfulProductId' => (string)$pfProductId])
+                    ?? $articleRepo->findOneBy(['slug' => $slug]);
 
                 if ($existingArticle) {
-                    // Article existant : mettre à jour les variantes uniquement
+                    // Article existant : variantes + association Printful si manquante
                     $this->syncVariantesForArticle($existingArticle, $syncedVariants, $tailleValues, $couleurValues, $unknowns);
+                    if ($existingArticle->getPrintfulProductId() === null) {
+                        $existingArticle->setPrintfulProductId($pfProductId);
+                    }
                     $existingArticle->setUpdatedAt(new \DateTimeImmutable());
                     $updated++;
                     continue;
@@ -120,6 +127,7 @@ class PrintfulAdminController extends AbstractController
                 $article->setCollection($collection);
                 $article->setGrillePrix($grillePrix);
                 $article->setFournisseur($printfulFournisseur);
+                $article->setPrintfulProductId($pfProductId);
 
                 // Maquettes (nouvel article uniquement)
                 if ($withMockups) {
@@ -162,7 +170,20 @@ class PrintfulAdminController extends AbstractController
             return $this->redirectToRoute('admin_articles');
         }
 
-        $productsWithParsing = $this->enrichProductsWithParsing($products, $tailleValues, $couleurValues);
+        // Indexer les articles existants par printfulProductId et par slug
+        $byPfIdIndex  = [];
+        $bySlugIndex  = [];
+        foreach ($articleRepo->findAll() as $art) {
+            if ($art->getPrintfulProductId() !== null) {
+                $byPfIdIndex[$art->getPrintfulProductId()] = $art->getNom();
+            }
+            $bySlugIndex[$art->getSlug()] = $art->getNom();
+        }
+
+        // Enrichir les produits avec info parsing + article existant lié
+        $productsWithParsing = $this->enrichProductsWithParsing(
+            $products, $tailleValues, $couleurValues, $byPfIdIndex, $bySlugIndex, $slugify
+        );
 
         return $this->render('admin/printful/import.html.twig', [
             'products'           => $productsWithParsing,
@@ -283,9 +304,15 @@ class PrintfulAdminController extends AbstractController
         }
     }
 
-    private function enrichProductsWithParsing(array $products, ?array $tailleValues, ?array $couleurValues): array
-    {
-        return array_map(function (array $product) use ($tailleValues, $couleurValues) {
+    private function enrichProductsWithParsing(
+        array $products,
+        ?array $tailleValues,
+        ?array $couleurValues,
+        array $byPfIdIndex = [],
+        array $bySlugIndex = [],
+        ?SlugifyService $slugify = null,
+    ): array {
+        return array_map(function (array $product) use ($tailleValues, $couleurValues, $byPfIdIndex, $bySlugIndex, $slugify) {
             $product['variants'] = array_map(function (array $v) use ($tailleValues, $couleurValues) {
                 $parsed    = $this->parseVariantName($v['name']);
                 $couleur   = $parsed['couleur'];
@@ -302,6 +329,23 @@ class PrintfulAdminController extends AbstractController
                     'delta'     => $delta,
                 ];
             }, $product['variants']);
+
+            // Détecter si un article local est déjà lié à ce produit Printful
+            $pfId          = (int)$product['id'];
+            $linkedNom     = null;
+            $linkedByPfId  = false;
+            if (isset($byPfIdIndex[$pfId])) {
+                $linkedNom    = $byPfIdIndex[$pfId];
+                $linkedByPfId = true;
+            } elseif ($slugify !== null) {
+                $slug = $slugify->slugify($product['name']);
+                if (isset($bySlugIndex[$slug])) {
+                    $linkedNom = $bySlugIndex[$slug];
+                }
+            }
+
+            $product['linkedNom']    = $linkedNom;
+            $product['linkedByPfId'] = $linkedByPfId;
 
             return $product;
         }, $products);
