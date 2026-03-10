@@ -119,9 +119,10 @@ class PrintfulService
             }
 
             $products[] = [
-                'id'       => $product['id'],
-                'name'     => $product['name'],
-                'variants' => $variants,
+                'id'        => $product['id'],
+                'name'      => $product['name'],
+                'thumbnail' => $product['thumbnail_url'] ?? null,
+                'variants'  => $variants,
             ];
         }
 
