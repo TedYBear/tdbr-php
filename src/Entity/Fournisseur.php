@@ -22,9 +22,6 @@ class Fournisseur
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $logoFilename = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $printfulApiKey = null;
-
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
@@ -43,9 +40,6 @@ class Fournisseur
 
     public function getLogoFilename(): ?string { return $this->logoFilename; }
     public function setLogoFilename(?string $logoFilename): static { $this->logoFilename = $logoFilename; return $this; }
-
-    public function getPrintfulApiKey(): ?string { return $this->printfulApiKey; }
-    public function setPrintfulApiKey(?string $key): static { $this->printfulApiKey = $key; return $this; }
 
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
 }
