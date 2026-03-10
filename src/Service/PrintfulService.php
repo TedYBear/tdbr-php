@@ -99,9 +99,7 @@ class PrintfulService
         }
 
         $products = [];
-        foreach ($data['result'] as $item) {
-            $product = $item['sync_product'];
-
+        foreach ($data['result'] as $product) {
             // Récupérer les variantes du produit
             $varResp = $this->httpClient->request('GET', self::API_BASE . '/store/products/' . $product['id'], [
                 'headers' => [
