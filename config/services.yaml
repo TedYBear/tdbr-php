@@ -44,3 +44,8 @@ services:
         arguments:
             $secretKey:     '%env(STRIPE_SECRET_KEY)%'
             $webhookSecret: '%env(STRIPE_WEBHOOK_SECRET)%'
+
+    # Printful Service
+    App\Service\PrintfulService:
+        arguments:
+            $apiKey: '%env(PRINTFUL_API_KEY)%'

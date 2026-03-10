@@ -11,6 +11,7 @@ class PrintfulService
 
     public function __construct(
         private HttpClientInterface $httpClient,
+        private string $apiKey,
     ) {}
 
     /**
@@ -20,7 +21,7 @@ class PrintfulService
      * @param array $items Items filtrés ayant un printfulVariantId non nul,
      *                     chacun avec les clés : printfulVariantId, quantity, prix
      */
-    public function createDraftOrder(Commande $commande, array $items, string $apiKey): int
+    public function createDraftOrder(Commande $commande, array $items): int
     {
         $adresse = $commande->getAdresseLivraison();
         $client  = $commande->getClient();
@@ -53,7 +54,7 @@ class PrintfulService
 
         $response = $this->httpClient->request('POST', self::API_BASE . '/orders', [
             'headers' => [
-                'Authorization' => 'Bearer ' . $apiKey,
+                'Authorization' => 'Bearer ' . $this->apiKey,
                 'Content-Type'  => 'application/json',
             ],
             'json' => [

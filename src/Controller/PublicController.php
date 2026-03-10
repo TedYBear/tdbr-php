@@ -581,22 +581,12 @@ class PublicController extends AbstractController
             if ($modeLivraison === 'domicile') {
                 $printfulItems = array_filter($orderItems, fn($i) => !empty($i['printfulVariantId']));
                 if (!empty($printfulItems)) {
-                    // Regrouper par fournisseur (on prend la clé du premier fournisseur Printful trouvé)
-                    $fournisseurId = current($printfulItems)['fournisseurId'] ?? null;
-                    $fournisseur   = $fournisseurId ? $this->fournisseurRepo->find($fournisseurId) : null;
-                    $apiKey        = $fournisseur?->getPrintfulApiKey();
-                    if ($apiKey) {
-                        try {
-                            $printfulOrderId = $this->printfulService->createDraftOrder(
-                                $commande,
-                                array_values($printfulItems),
-                                $apiKey
-                            );
-                            $commande->setPrintfulOrderId($printfulOrderId);
-                            $this->em->flush();
-                        } catch (\Throwable $e) {
-                            // Non-bloquant : la commande est déjà enregistrée
-                        }
+                    try {
+                        $printfulOrderId = $this->printfulService->createDraftOrder($commande, array_values($printfulItems));
+                        $commande->setPrintfulOrderId($printfulOrderId);
+                        $this->em->flush();
+                    } catch (\Throwable $e) {
+                        // Non-bloquant : la commande est déjà enregistrée
                     }
                 }
             }
@@ -808,19 +798,13 @@ class PublicController extends AbstractController
         if ($modeLivraison === 'domicile') {
             $printfulItems = array_filter($orderItems, fn($i) => !empty($i['printfulVariantId']));
             if (!empty($printfulItems)) {
-                $fournisseurId = current($printfulItems)['fournisseurId'] ?? null;
-                $fournisseur   = $fournisseurId ? $this->fournisseurRepo->find($fournisseurId) : null;
-                $apiKey        = $fournisseur?->getPrintfulApiKey();
-                if ($apiKey) {
-                    try {
-                        $printfulOrderId = $this->printfulService->createDraftOrder($commande, array_values($printfulItems), $apiKey);
-                        $commande->setPrintfulOrderId($printfulOrderId);
-                        $this->em->flush();
-                    } catch (\Throwable $e) {
-                        // Non-bloquant
-                    }
+                try {
+                    $printfulOrderId = $this->printfulService->createDraftOrder($commande, array_values($printfulItems));
+                    $commande->setPrintfulOrderId($printfulOrderId);
+                    $this->em->flush();
+                } catch (\Throwable $e) {
+                    // Non-bloquant
                 }
-            }
         }
 
         // Email de confirmation
