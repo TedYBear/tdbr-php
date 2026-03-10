@@ -92,7 +92,7 @@ class PrintfulAdminController extends AbstractController
             $withMockups = (bool)$request->request->get('withMockups');
 
             $created  = 0;
-            $skipped  = 0;
+            $updated  = 0;
             $unknowns = [];
 
             foreach ($products as $product) {
@@ -100,10 +100,15 @@ class PrintfulAdminController extends AbstractController
                     continue;
                 }
 
-                $slug = $slugify->slugify($product['name']);
+                $slug            = $slugify->slugify($product['name']);
+                $syncedVariants  = array_filter($product['variants'], fn($v) => $v['synced'] ?? false);
+                $existingArticle = $articleRepo->findOneBy(['slug' => $slug]);
 
-                if ($articleRepo->findOneBy(['slug' => $slug])) {
-                    $skipped++;
+                if ($existingArticle) {
+                    // Article existant : mettre à jour les variantes uniquement
+                    $this->syncVariantesForArticle($existingArticle, $syncedVariants, $tailleValues, $couleurValues, $unknowns);
+                    $existingArticle->setUpdatedAt(new \DateTimeImmutable());
+                    $updated++;
                     continue;
                 }
 
@@ -116,7 +121,7 @@ class PrintfulAdminController extends AbstractController
                 $article->setGrillePrix($grillePrix);
                 $article->setFournisseur($printfulFournisseur);
 
-                // Maquettes
+                // Maquettes (nouvel article uniquement)
                 if ($withMockups) {
                     foreach ($product['mockups'] as $idx => $url) {
                         $img = new ArticleImage();
@@ -127,41 +132,7 @@ class PrintfulAdminController extends AbstractController
                     }
                 }
 
-                // Variantes (synced uniquement)
-                foreach ($product['variants'] as $v) {
-                    if (!($v['synced'] ?? false)) {
-                        continue;
-                    }
-
-                    $parsed  = $this->parseVariantName($v['name']);
-                    $couleur = $parsed['couleur'];
-                    $taille  = $parsed['taille'];
-
-                    if ($couleurValues && !in_array($couleur, $couleurValues, true)) {
-                        $unknowns[] = "Couleur «$couleur»";
-                    }
-                    if ($tailleValues && $taille && !in_array($taille, $tailleValues, true)) {
-                        $unknowns[] = "Taille «$taille»";
-                    }
-
-                    $valeurs = ['Couleur' => $couleur];
-                    if ($taille !== null) {
-                        $valeurs['Taille'] = $taille;
-                    }
-
-                    $delta = $taille !== null
-                        ? (self::TAILLE_DELTA[strtoupper(trim($taille))] ?? null)
-                        : null;
-
-                    $variante = new Variante();
-                    $variante->setNom($parsed['label']);
-                    $variante->setPrintfulVariantId((int)$v['id']);
-                    $variante->setValeurs($valeurs);
-                    $variante->setDeltaPrix($delta);
-                    $variante->setSku($v['sku'] ?: null);
-                    $variante->setActif(true);
-                    $article->addVariante($variante);
-                }
+                $this->syncVariantesForArticle($article, $syncedVariants, $tailleValues, $couleurValues, $unknowns);
 
                 $em->persist($article);
                 $created++;
@@ -169,14 +140,15 @@ class PrintfulAdminController extends AbstractController
 
             $em->flush();
 
+            $parts = [];
             if ($created > 0) {
-                $msg = "$created article(s) importé(s) avec succès.";
-                if ($skipped > 0) {
-                    $msg .= " $skipped ignoré(s) (slug déjà existant).";
-                }
-                $this->addFlash('success', $msg);
-            } elseif ($skipped > 0) {
-                $this->addFlash('warning', "Tous les articles sélectionnés existent déjà ($skipped ignoré(s)).");
+                $parts[] = "$created article(s) créé(s)";
+            }
+            if ($updated > 0) {
+                $parts[] = "$updated article(s) mis à jour (variantes)";
+            }
+            if ($parts) {
+                $this->addFlash('success', implode(', ', $parts) . '.');
             } else {
                 $this->addFlash('warning', 'Aucun article importé — aucun produit sélectionné.');
             }
@@ -243,6 +215,72 @@ class PrintfulAdminController extends AbstractController
         }
 
         return [$tailleValues, $couleurValues];
+    }
+
+    /**
+     * Synchronise les variantes d'un article avec une liste de sync_variants Printful.
+     * - Variante déjà présente (par printfulVariantId ou par nom) → mise à jour
+     * - Variante absente → création
+     * Les variantes existantes non présentes dans Printful sont laissées intactes.
+     */
+    private function syncVariantesForArticle(
+        Article $article,
+        array $syncedVariants,
+        ?array $tailleValues,
+        ?array $couleurValues,
+        array &$unknowns,
+    ): void {
+        // Index des variantes existantes : par printfulVariantId et par nom
+        $byPfId = [];
+        $byNom  = [];
+        foreach ($article->getVariantes() as $existing) {
+            if ($existing->getPrintfulVariantId()) {
+                $byPfId[$existing->getPrintfulVariantId()] = $existing;
+            }
+            $byNom[$existing->getNom()] = $existing;
+        }
+
+        foreach ($syncedVariants as $v) {
+            $parsed  = $this->parseVariantName($v['name']);
+            $couleur = $parsed['couleur'];
+            $taille  = $parsed['taille'];
+            $pfId    = (int)$v['id'];
+
+            if ($couleurValues && !in_array($couleur, $couleurValues, true)) {
+                $unknowns[] = "Couleur «$couleur»";
+            }
+            if ($tailleValues && $taille && !in_array($taille, $tailleValues, true)) {
+                $unknowns[] = "Taille «$taille»";
+            }
+
+            $valeurs = ['Couleur' => $couleur];
+            if ($taille !== null) {
+                $valeurs['Taille'] = $taille;
+            }
+            $delta = $taille !== null
+                ? (self::TAILLE_DELTA[strtoupper(trim($taille))] ?? null)
+                : null;
+
+            // Trouver une variante existante à mettre à jour
+            $variante = $byPfId[$pfId] ?? $byNom[$parsed['label']] ?? null;
+
+            if ($variante) {
+                $variante->setNom($parsed['label']);
+                $variante->setPrintfulVariantId($pfId);
+                $variante->setValeurs($valeurs);
+                $variante->setDeltaPrix($delta);
+                $variante->setSku($v['sku'] ?: null);
+            } else {
+                $variante = new Variante();
+                $variante->setNom($parsed['label']);
+                $variante->setPrintfulVariantId($pfId);
+                $variante->setValeurs($valeurs);
+                $variante->setDeltaPrix($delta);
+                $variante->setSku($v['sku'] ?: null);
+                $variante->setActif(true);
+                $article->addVariante($variante);
+            }
+        }
     }
 
     private function enrichProductsWithParsing(array $products, ?array $tailleValues, ?array $couleurValues): array
