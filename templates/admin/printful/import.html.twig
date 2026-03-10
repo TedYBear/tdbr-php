@@ -3,7 +3,10 @@
 {% block title %}Import Printful{% endblock %}
 {% block page_title %}Import articles Printful{% endblock %}
 {% block page_subtitle %}
-    <p class="text-sm text-gray-500 mt-1">Sélectionnez les produits à importer. Chaque produit devient un article avec ses variantes (Taille + Couleur) automatiquement créées.</p>
+    <p class="text-sm text-gray-500 mt-1">
+        Sélectionnez les produits à importer. Les variantes sont parsées au format <code>titre/couleur/taille</code>.
+        Les valeurs sont validées contre vos <a href="{{ path('admin_caracteristiques') }}" class="underline text-primary">Caractéristiques</a>.
+    </p>
 {% endblock %}
 
 {% block body %}
@@ -22,9 +25,30 @@
 
 {% else %}
 
-<div x-data="importApp()" class="space-y-6">
+{# Résumé des valeurs connues #}
+<div class="flex gap-4 mb-4 text-xs">
+    {% if couleurValues is not empty %}
+        <div class="card px-3 py-2 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-green-400 inline-block"></span>
+            <span class="text-gray-600">Couleurs reconnues :</span>
+            <span class="font-mono text-gray-800">{{ couleurValues|join(', ') }}</span>
+        </div>
+    {% else %}
+        <div class="card px-3 py-2 text-amber-600">Aucune caractéristique "Couleur" — toutes les valeurs seront acceptées.</div>
+    {% endif %}
+    {% if tailleValues is not empty %}
+        <div class="card px-3 py-2 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-green-400 inline-block"></span>
+            <span class="text-gray-600">Tailles reconnues :</span>
+            <span class="font-mono text-gray-800">{{ tailleValues|join(', ') }}</span>
+        </div>
+    {% else %}
+        <div class="card px-3 py-2 text-amber-600">Aucune caractéristique "Taille" — toutes les valeurs seront acceptées.</div>
+    {% endif %}
+</div>
 
-    <form method="post" action="{{ path('admin_printful_import') }}" @submit.prevent="submitImport($event)">
+<div x-data="importApp()" class="space-y-6">
+    <form method="post" action="{{ path('admin_printful_import') }}">
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
@@ -49,16 +73,19 @@
 
                 {# Liste des produits #}
                 {% for product in products %}
-                    {% set syncedCount = product.variants|filter(v => v.synced)|length %}
-                    {% set totalCount  = product.variants|length %}
-                    <div class="card overflow-hidden"
+                    {% set syncedVariants = product.variants|filter(v => v.synced) %}
+                    {% set syncedCount    = syncedVariants|length %}
+                    {% set totalCount     = product.variants|length %}
+                    {% set invalidCount   = syncedVariants|filter(v => not v.valid)|length %}
+
+                    <div class="card overflow-hidden transition"
                          :class="selected.includes({{ product.id }}) ? 'ring-2 ring-primary' : ''">
+
                         <label class="flex items-start gap-4 p-4 cursor-pointer hover:bg-gray-50 transition">
                             <input type="checkbox"
                                    name="productIds[]"
-                                   value="{{ product.id }}"
-                                   x-model="selected"
                                    :value="{{ product.id }}"
+                                   x-model="selected"
                                    class="mt-1 w-4 h-4 rounded border-gray-300 text-primary flex-shrink-0">
 
                             {% if product.thumbnail %}
@@ -75,29 +102,65 @@
                             <div class="flex-1 min-w-0">
                                 <p class="font-semibold text-gray-900 truncate">{{ product.name }}</p>
                                 <p class="text-xs text-gray-400 font-mono mt-0.5">ID #{{ product.id }}</p>
-                                <div class="flex items-center gap-3 mt-2">
+
+                                {# Badges statut #}
+                                <div class="flex flex-wrap items-center gap-2 mt-2">
                                     {% if syncedCount > 0 %}
                                         <span class="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">
                                             <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                                            {{ syncedCount }} variante{{ syncedCount > 1 ? 's' : '' }} synchronisée{{ syncedCount > 1 ? 's' : '' }}
+                                            {{ syncedCount }} sync.
                                         </span>
                                     {% endif %}
                                     {% if totalCount - syncedCount > 0 %}
-                                        <span class="text-xs text-red-400">{{ totalCount - syncedCount }} non sync.</span>
+                                        <span class="text-xs text-gray-400">{{ totalCount - syncedCount }} non sync. (ignorées)</span>
+                                    {% endif %}
+                                    {% if invalidCount > 0 %}
+                                        <span class="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">
+                                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                                            {{ invalidCount }} valeur(s) inconnue(s)
+                                        </span>
                                     {% endif %}
                                 </div>
 
-                                {# Aperçu des variantes #}
-                                <div class="mt-2 flex flex-wrap gap-1">
-                                    {% for v in product.variants|slice(0, 8) %}
-                                        <span class="text-xs px-1.5 py-0.5 rounded {{ v.synced ? 'bg-gray-100 text-gray-600' : 'bg-red-50 text-red-400 line-through' }}">
-                                            {{ v.name|replace({(product.name ~ ' - '): ''}) }}
-                                        </span>
-                                    {% endfor %}
-                                    {% if product.variants|length > 8 %}
-                                        <span class="text-xs text-gray-400">+{{ product.variants|length - 8 }}</span>
-                                    {% endif %}
-                                </div>
+                                {# Tableau des variantes parsées (synced uniquement) #}
+                                {% if syncedVariants is not empty %}
+                                    <div class="mt-3 overflow-x-auto">
+                                        <table class="text-xs w-full">
+                                            <thead>
+                                                <tr class="text-gray-400 border-b">
+                                                    <th class="text-left pb-1 pr-4 font-medium">Variante Printful</th>
+                                                    <th class="text-left pb-1 pr-4 font-medium">Couleur</th>
+                                                    <th class="text-left pb-1 font-medium">Taille</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-gray-50">
+                                                {% for v in syncedVariants %}
+                                                    <tr class="{{ v.valid ? '' : 'bg-amber-50' }}">
+                                                        <td class="py-1 pr-4 font-mono text-gray-500 max-w-xs truncate">{{ v.name }}</td>
+                                                        <td class="py-1 pr-4">
+                                                            {% if v.couleurOk %}
+                                                                <span class="px-1.5 py-0.5 rounded bg-green-100 text-green-700">{{ v.parsed.couleur }}</span>
+                                                            {% else %}
+                                                                <span class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700" title="Valeur inconnue dans Caractéristiques">{{ v.parsed.couleur }} ?</span>
+                                                            {% endif %}
+                                                        </td>
+                                                        <td class="py-1">
+                                                            {% if v.parsed.taille %}
+                                                                {% if v.tailleOk %}
+                                                                    <span class="px-1.5 py-0.5 rounded bg-green-100 text-green-700">{{ v.parsed.taille }}</span>
+                                                                {% else %}
+                                                                    <span class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700" title="Valeur inconnue dans Caractéristiques">{{ v.parsed.taille }} ?</span>
+                                                                {% endif %}
+                                                            {% else %}
+                                                                <span class="text-gray-300">—</span>
+                                                            {% endif %}
+                                                        </td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                {% endif %}
                             </div>
                         </label>
                     </div>
@@ -143,18 +206,18 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">Prix de base (€)</label>
                         <input type="number" name="prixBase" step="0.01" min="0" value="0"
                                class="input-field w-full">
-                        <p class="text-xs text-gray-400 mt-1">Appliqué à tous les articles importés. Modifiable ensuite dans chaque fiche article.</p>
+                        <p class="text-xs text-gray-400 mt-1">Modifiable ensuite dans chaque fiche article.</p>
                     </div>
 
-                    <div class="pt-3 border-t">
-                        <p class="text-xs text-gray-500 mb-3">
-                            Les articles sont créés <strong>inactifs</strong> — vous devez les activer manuellement après avoir ajouté les images et vérifié les prix.
+                    <div class="pt-3 border-t space-y-3">
+                        <p class="text-xs text-gray-500">
+                            Les articles sont créés <strong>inactifs</strong>. Les valeurs marquées <span class="px-1 rounded bg-amber-100 text-amber-700 text-xs">? inconnues</span> sont tout de même importées mais un avertissement sera affiché.
                         </p>
                         <button type="submit"
                                 :disabled="selected.length === 0"
                                 :class="selected.length === 0 ? 'opacity-40 cursor-not-allowed' : ''"
                                 class="w-full btn-primary py-3 rounded-lg font-bold">
-                            Importer <span x-text="selected.length"></span> produit<span x-show="selected.length > 1">s</span>
+                            Importer <span x-text="selected.length"></span> produit<span x-show="selected.length !== 1">s</span>
                         </button>
                     </div>
                 </div>
@@ -173,15 +236,7 @@ function importApp() {
             return this.selected.length === {{ products|length }};
         },
         toggleAll(checked) {
-            if (checked) {
-                this.selected = {{ products|map(p => p.id)|json_encode|raw }};
-            } else {
-                this.selected = [];
-            }
-        },
-        submitImport(e) {
-            if (this.selected.length === 0) return;
-            e.target.submit();
+            this.selected = checked ? {{ products|map(p => p.id)|json_encode|raw }} : [];
         },
     };
 }
