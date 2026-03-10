@@ -12,6 +12,7 @@ class PrintfulService
     public function __construct(
         private HttpClientInterface $httpClient,
         private string $apiKey,
+        private string $storeId,
     ) {}
 
     /**
@@ -54,8 +55,9 @@ class PrintfulService
 
         $response = $this->httpClient->request('POST', self::API_BASE . '/orders', [
             'headers' => [
-                'Authorization' => 'Bearer ' . $this->apiKey,
-                'Content-Type'  => 'application/json',
+                'Authorization'  => 'Bearer ' . $this->apiKey,
+                'Content-Type'   => 'application/json',
+                'X-PF-Store-Id'  => $this->storeId,
             ],
             'json' => [
                 'recipient' => $recipient,

@@ -48,4 +48,5 @@ services:
     # Printful Service
     App\Service\PrintfulService:
         arguments:
-            $apiKey: '%env(PRINTFUL_API_KEY)%'
+            $apiKey:     '%env(PRINTFUL_API_KEY)%'
+            $storeId:    '%env(PRINTFUL_STORE_ID)%'
