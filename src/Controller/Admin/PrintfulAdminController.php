@@ -18,6 +18,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 
 #[Route('/admin/printful')]
 #[IsGranted('ROLE_ADMIN')]
@@ -29,10 +31,14 @@ class PrintfulAdminController extends AbstractController
         '3XL' => 2.0,
     ];
 
+    private const CACHE_KEY = 'printful_sync_products';
+    private const CACHE_TTL = 3600; // 1 heure
+
     public function __construct(
         private PrintfulService $printfulService,
         private CaracteristiqueRepository $caracteristiqueRepo,
         private FournisseurRepository $fournisseurRepo,
+        private CacheInterface $cache,
     ) {}
 
     #[Route('/sync-variants', name: 'admin_printful_sync_variants')]
@@ -53,6 +59,13 @@ class PrintfulAdminController extends AbstractController
         ]);
     }
 
+    #[Route('/import/refresh', name: 'admin_printful_import_refresh', methods: ['POST'])]
+    public function refreshCache(): Response
+    {
+        $this->cache->delete(self::CACHE_KEY);
+        return $this->redirectToRoute('admin_printful_import');
+    }
+
     #[Route('/import', name: 'admin_printful_import', methods: ['GET', 'POST'])]
     public function import(
         Request $request,
@@ -64,9 +77,18 @@ class PrintfulAdminController extends AbstractController
     ): Response {
         $error    = null;
         $products = [];
+        $cachedAt = null;
 
         try {
-            $products = $this->printfulService->getSyncProducts();
+            $cached = $this->cache->get(self::CACHE_KEY, function (ItemInterface $item) {
+                $item->expiresAfter(self::CACHE_TTL);
+                return [
+                    'products' => $this->printfulService->getSyncProducts(),
+                    'cachedAt' => time(),
+                ];
+            });
+            $products = $cached['products'];
+            $cachedAt = $cached['cachedAt'];
         } catch (\Throwable $e) {
             $error = $e->getMessage();
         }
@@ -109,7 +131,6 @@ class PrintfulAdminController extends AbstractController
                     ?? $articleRepo->findOneBy(['slug' => $slug]);
 
                 if ($existingArticle) {
-                    // Article existant : variantes + association Printful si manquante
                     $this->syncVariantesForArticle($existingArticle, $syncedVariants, $tailleValues, $couleurValues, $unknowns);
                     if ($existingArticle->getPrintfulProductId() === null) {
                         $existingArticle->setPrintfulProductId($pfProductId);
@@ -129,7 +150,6 @@ class PrintfulAdminController extends AbstractController
                 $article->setFournisseur($printfulFournisseur);
                 $article->setPrintfulProductId($pfProductId);
 
-                // Maquettes (nouvel article uniquement)
                 if ($withMockups) {
                     foreach ($product['mockups'] as $idx => $url) {
                         $img = new ArticleImage();
@@ -147,6 +167,9 @@ class PrintfulAdminController extends AbstractController
             }
 
             $em->flush();
+
+            // Invalider le cache après un import pour forcer la mise à jour
+            $this->cache->delete(self::CACHE_KEY);
 
             $parts = [];
             if ($created > 0) {
@@ -171,8 +194,8 @@ class PrintfulAdminController extends AbstractController
         }
 
         // Indexer les articles existants par printfulProductId et par slug
-        $byPfIdIndex  = [];
-        $bySlugIndex  = [];
+        $byPfIdIndex = [];
+        $bySlugIndex = [];
         foreach ($articleRepo->findAll() as $art) {
             if ($art->getPrintfulProductId() !== null) {
                 $byPfIdIndex[$art->getPrintfulProductId()] = $art->getNom();
@@ -180,20 +203,22 @@ class PrintfulAdminController extends AbstractController
             $bySlugIndex[$art->getSlug()] = $art->getNom();
         }
 
-        // Enrichir les produits avec info parsing + article existant lié
         $productsWithParsing = $this->enrichProductsWithParsing(
             $products, $tailleValues, $couleurValues, $byPfIdIndex, $bySlugIndex, $slugify
         );
 
         return $this->render('admin/printful/import.html.twig', [
-            'products'           => $productsWithParsing,
-            'error'              => $error,
-            'collections'        => $collectionRepo->findBy(['actif' => true], ['nom' => 'ASC']),
-            'grilles'            => $grillePrixRepo->findBy([], ['nom' => 'ASC']),
-            'printfulFournisseur'=> $printfulFournisseur,
-            'tailleValues'       => $tailleValues,
-            'couleurValues'      => $couleurValues,
-            'tailleDelta'        => self::TAILLE_DELTA,
+            'products'            => $productsWithParsing,
+            'error'               => $error,
+            'cachedAt'            => $cachedAt,
+            'cacheAge'            => $cachedAt !== null ? (time() - $cachedAt) : null,
+            'cacheTtl'            => self::CACHE_TTL,
+            'collections'         => $collectionRepo->findBy(['actif' => true], ['nom' => 'ASC']),
+            'grilles'             => $grillePrixRepo->findBy([], ['nom' => 'ASC']),
+            'printfulFournisseur' => $printfulFournisseur,
+            'tailleValues'        => $tailleValues,
+            'couleurValues'       => $couleurValues,
+            'tailleDelta'         => self::TAILLE_DELTA,
         ]);
     }
 
@@ -240,9 +265,6 @@ class PrintfulAdminController extends AbstractController
 
     /**
      * Synchronise les variantes d'un article avec une liste de sync_variants Printful.
-     * - Variante déjà présente (par printfulVariantId ou par nom) → mise à jour
-     * - Variante absente → création
-     * Les variantes existantes non présentes dans Printful sont laissées intactes.
      */
     private function syncVariantesForArticle(
         Article $article,
@@ -251,7 +273,6 @@ class PrintfulAdminController extends AbstractController
         ?array $couleurValues,
         array &$unknowns,
     ): void {
-        // Index des variantes existantes : par printfulVariantId et par nom
         $byPfId = [];
         $byNom  = [];
         foreach ($article->getVariantes() as $existing) {
@@ -282,7 +303,6 @@ class PrintfulAdminController extends AbstractController
                 ? (self::TAILLE_DELTA[strtoupper(trim($taille))] ?? null)
                 : null;
 
-            // Trouver une variante existante à mettre à jour
             $variante = $byPfId[$pfId] ?? $byNom[$parsed['label']] ?? null;
 
             if ($variante) {
@@ -330,10 +350,9 @@ class PrintfulAdminController extends AbstractController
                 ];
             }, $product['variants']);
 
-            // Détecter si un article local est déjà lié à ce produit Printful
-            $pfId          = (int)$product['id'];
-            $linkedNom     = null;
-            $linkedByPfId  = false;
+            $pfId         = (int)$product['id'];
+            $linkedNom    = null;
+            $linkedByPfId = false;
             if (isset($byPfIdIndex[$pfId])) {
                 $linkedNom    = $byPfIdIndex[$pfId];
                 $linkedByPfId = true;
