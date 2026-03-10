@@ -5,6 +5,7 @@ namespace App\Controller\Admin;
 use App\Entity\Article;
 use App\Entity\Variante;
 use App\Repository\ArticleRepository;
+use App\Repository\CaracteristiqueRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\GrillePrixRepository;
 use App\Repository\ProductCollectionRepository;
@@ -23,6 +24,7 @@ class PrintfulAdminController extends AbstractController
 {
     public function __construct(
         private PrintfulService $printfulService,
+        private CaracteristiqueRepository $caracteristiqueRepo,
     ) {}
 
     #[Route('/sync-variants', name: 'admin_printful_sync_variants')]
@@ -62,6 +64,9 @@ class PrintfulAdminController extends AbstractController
             $error = $e->getMessage();
         }
 
+        // Charger les valeurs connues Taille et Couleur depuis les Caracteristiques
+        [$tailleValues, $couleurValues] = $this->loadKnownValues();
+
         if ($request->isMethod('POST') && !$error) {
             $selectedIds = array_map('intval', (array)($request->request->all()['productIds'] ?? []));
             $grillePrix  = !empty($request->request->get('grillePrix'))
@@ -72,8 +77,9 @@ class PrintfulAdminController extends AbstractController
                 ? $fournisseurRepo->find((int)$request->request->get('fournisseur')) : null;
             $prixBase    = (float)($request->request->get('prixBase') ?? 0);
 
-            $created = 0;
-            $skipped = 0;
+            $created  = 0;
+            $skipped  = 0;
+            $unknowns = [];
 
             foreach ($products as $product) {
                 if (!in_array((int)$product['id'], $selectedIds, true)) {
@@ -100,10 +106,28 @@ class PrintfulAdminController extends AbstractController
                     if (!($v['synced'] ?? false)) {
                         continue;
                     }
+
+                    $parsed   = $this->parseVariantName($v['name']);
+                    $couleur  = $parsed['couleur'];
+                    $taille   = $parsed['taille'];
+
+                    // Collecter les valeurs inconnues pour avertissement
+                    if ($couleurValues && !in_array($couleur, $couleurValues, true)) {
+                        $unknowns[] = "Couleur «$couleur»";
+                    }
+                    if ($tailleValues && $taille && !in_array($taille, $tailleValues, true)) {
+                        $unknowns[] = "Taille «$taille»";
+                    }
+
+                    $valeurs = ['Couleur' => $couleur];
+                    if ($taille !== null) {
+                        $valeurs['Taille'] = $taille;
+                    }
+
                     $variante = new Variante();
-                    $variante->setNom($this->parseVariantLabel($v['name'], $product['name']));
+                    $variante->setNom($parsed['label']);
                     $variante->setPrintfulVariantId((int)$v['id']);
-                    $variante->setValeurs($this->parseVariantAttributes($v['name'], $product['name']));
+                    $variante->setValeurs($valeurs);
                     $variante->setSku($v['sku'] ?: null);
                     $variante->setActif(true);
                     $article->addVariante($variante);
@@ -127,34 +151,102 @@ class PrintfulAdminController extends AbstractController
                 $this->addFlash('warning', 'Aucun article importé — aucun produit sélectionné.');
             }
 
+            if (!empty($unknowns)) {
+                $unique = array_unique($unknowns);
+                $this->addFlash('warning',
+                    'Valeurs inconnues dans les Caractéristiques : ' . implode(', ', $unique) . '. Pensez à les ajouter si nécessaire.'
+                );
+            }
+
             return $this->redirectToRoute('admin_articles');
         }
 
+        // Enrichir les produits avec le parsing des variantes pour la prévisualisation
+        $productsWithParsing = $this->enrichProductsWithParsing($products, $tailleValues, $couleurValues);
+
         return $this->render('admin/printful/import.html.twig', [
-            'products'     => $products,
-            'error'        => $error,
-            'collections'  => $collectionRepo->findBy(['actif' => true], ['nom' => 'ASC']),
-            'grilles'      => $grillePrixRepo->findBy([], ['nom' => 'ASC']),
-            'fournisseurs' => $fournisseurRepo->findBy([], ['nom' => 'ASC']),
+            'products'      => $productsWithParsing,
+            'error'         => $error,
+            'collections'   => $collectionRepo->findBy(['actif' => true], ['nom' => 'ASC']),
+            'grilles'       => $grillePrixRepo->findBy([], ['nom' => 'ASC']),
+            'fournisseurs'  => $fournisseurRepo->findBy([], ['nom' => 'ASC']),
+            'tailleValues'  => $tailleValues,
+            'couleurValues' => $couleurValues,
         ]);
     }
 
-    private function parseVariantLabel(string $variantName, string $productName): string
+    /**
+     * Parse un nom de variante Printful au format "titre/couleur/taille"
+     * Retourne ['label' => 'Blanc / S', 'couleur' => 'Blanc', 'taille' => 'S']
+     */
+    private function parseVariantName(string $variantName): array
     {
-        $prefix = $productName . ' - ';
-        if (str_starts_with($variantName, $prefix)) {
-            return substr($variantName, strlen($prefix));
+        $parts = array_map('trim', explode('/', $variantName));
+
+        if (count($parts) >= 3) {
+            // titre/couleur/taille
+            $couleur = $parts[count($parts) - 2];
+            $taille  = $parts[count($parts) - 1];
+            $label   = $couleur . ' / ' . $taille;
+        } elseif (count($parts) === 2) {
+            // couleur/taille
+            $couleur = $parts[0];
+            $taille  = $parts[1];
+            $label   = $couleur . ' / ' . $taille;
+        } else {
+            // nom brut
+            $couleur = $parts[0];
+            $taille  = null;
+            $label   = $couleur;
         }
-        return $variantName;
+
+        return ['label' => $label, 'couleur' => $couleur, 'taille' => $taille];
     }
 
-    private function parseVariantAttributes(string $variantName, string $productName): array
+    /**
+     * Charge les valeurs connues pour les caractéristiques Taille et Couleur.
+     * Retourne [$tailleValues, $couleurValues] (tableaux de strings, ou null si la carac n'existe pas).
+     */
+    private function loadKnownValues(): array
     {
-        $part = $this->parseVariantLabel($variantName, $productName);
-        if (str_contains($part, ' / ')) {
-            [$couleur, $taille] = explode(' / ', $part, 2);
-            return ['Couleur' => trim($couleur), 'Taille' => trim($taille)];
+        $tailleValues  = null;
+        $couleurValues = null;
+
+        foreach ($this->caracteristiqueRepo->findAll() as $carac) {
+            $nom = mb_strtolower(trim($carac->getNom()));
+            if ($nom === 'taille') {
+                $tailleValues = $carac->getValeursArray();
+            } elseif ($nom === 'couleur') {
+                $couleurValues = $carac->getValeursArray();
+            }
         }
-        return ['Couleur' => trim($part)];
+
+        return [$tailleValues, $couleurValues];
+    }
+
+    /**
+     * Enrichit chaque produit/variante avec les données de parsing pour la prévisualisation.
+     */
+    private function enrichProductsWithParsing(array $products, ?array $tailleValues, ?array $couleurValues): array
+    {
+        return array_map(function (array $product) use ($tailleValues, $couleurValues) {
+            $product['variants'] = array_map(function (array $v) use ($product, $tailleValues, $couleurValues) {
+                $parsed  = $this->parseVariantName($v['name']);
+                $couleur = $parsed['couleur'];
+                $taille  = $parsed['taille'];
+
+                $couleurOk = !$couleurValues || in_array($couleur, $couleurValues, true);
+                $tailleOk  = !$tailleValues  || $taille === null || in_array($taille, $tailleValues, true);
+
+                return $v + [
+                    'parsed'    => $parsed,
+                    'couleurOk' => $couleurOk,
+                    'tailleOk'  => $tailleOk,
+                    'valid'     => $couleurOk && $tailleOk,
+                ];
+            }, $product['variants']);
+
+            return $product;
+        }, $products);
     }
 }
