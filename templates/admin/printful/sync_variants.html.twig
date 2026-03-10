@@ -39,18 +39,26 @@
                         </thead>
                         <tbody class="divide-y">
                             {% for v in product.variants %}
-                                <tr class="hover:bg-gray-50">
+                                <tr class="{{ v.synced ? 'hover:bg-gray-50' : 'bg-red-50 hover:bg-red-100' }}">
                                     <td class="px-6 py-3">{{ v.name }}</td>
                                     <td class="px-6 py-3 font-mono text-xs text-gray-500">{{ v.sku ?: '—' }}</td>
                                     <td class="px-6 py-3">
-                                        <span class="font-mono font-bold text-primary text-base">{{ v.id }}</span>
+                                        {% if v.synced %}
+                                            <span class="font-mono font-bold text-primary text-base">{{ v.id }}</span>
+                                        {% else %}
+                                            <span class="font-mono text-red-400 line-through text-base">{{ v.id }}</span>
+                                        {% endif %}
                                     </td>
                                     <td class="px-6 py-3">
-                                        <button type="button"
-                                                onclick="navigator.clipboard.writeText('{{ v.id }}'); this.textContent='Copié ✓'; setTimeout(() => this.textContent='Copier', 1500)"
-                                                class="text-xs px-3 py-1 border border-gray-300 rounded hover:bg-gray-100 transition">
-                                            Copier
-                                        </button>
+                                        {% if v.synced %}
+                                            <button type="button"
+                                                    onclick="navigator.clipboard.writeText('{{ v.id }}'); this.textContent='Copié ✓'; setTimeout(() => this.textContent='Copier', 1500)"
+                                                    class="text-xs px-3 py-1 border border-gray-300 rounded hover:bg-gray-100 transition">
+                                                Copier
+                                            </button>
+                                        {% else %}
+                                            <span class="text-xs text-red-500 font-medium">Non synchronisé — configurer dans Printful</span>
+                                        {% endif %}
                                     </td>
                                 </tr>
                             {% endfor %}
