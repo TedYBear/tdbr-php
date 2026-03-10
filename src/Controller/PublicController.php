@@ -805,6 +805,7 @@ class PublicController extends AbstractController
                 } catch (\Throwable $e) {
                     // Non-bloquant
                 }
+            }
         }
 
         // Email de confirmation
