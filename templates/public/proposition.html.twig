@@ -56,15 +56,37 @@
                 <div class="text-gray-700 leading-relaxed whitespace-pre-line bg-gray-50 rounded-lg p-4">{{ proposition.description }}</div>
             </div>
 
-            {# Prix #}
-            <div class="border-t pt-6">
-                <div class="flex items-baseline justify-between">
-                    <span class="text-gray-600 font-medium">Total</span>
+            {# Prix - détail des 4 lignes #}
+            <div class="border-t pt-6 space-y-2">
+                {% if proposition.coutDesign is not null and proposition.coutDesign > 0 %}
+                <div class="flex justify-between text-sm text-gray-600">
+                    <span>Création du design et adaptation aux supports</span>
+                    <span class="font-medium">{{ proposition.coutDesign|number_format(2, ',', ' ') }} €</span>
+                </div>
+                {% endif %}
+                <div class="flex justify-between text-sm text-gray-600">
+                    <span>Prix public</span>
+                    <span class="font-medium">{{ proposition.prixPublic|number_format(2, ',', ' ') }} €</span>
+                </div>
+                {% if proposition.fraisManutention is not null and proposition.fraisManutention > 0 %}
+                <div class="flex justify-between text-sm text-gray-600">
+                    <span>Frais de manutention</span>
+                    <span class="font-medium">{{ proposition.fraisManutention|number_format(2, ',', ' ') }} €</span>
+                </div>
+                {% endif %}
+                {% if proposition.ristourne is not null and proposition.ristourne > 0 %}
+                <div class="flex justify-between text-sm text-green-700">
+                    <span>Ristourne</span>
+                    <span class="font-medium">− {{ proposition.ristourne|number_format(2, ',', ' ') }} €</span>
+                </div>
+                {% endif %}
+                <div class="flex items-baseline justify-between border-t pt-3 mt-2">
+                    <span class="text-gray-700 font-semibold">Total TTC</span>
                     <span class="font-heading text-3xl font-black text-primary">
                         {{ proposition.prixTotal|number_format(2, ',', ' ') }} €
                     </span>
                 </div>
-                <p class="text-xs text-gray-400 mt-1 text-right">TVA non applicable – art. 293 B du CGI</p>
+                <p class="text-xs text-gray-400 text-right">TVA non applicable – art. 293 B du CGI</p>
             </div>
 
             {# Bouton valider #}
@@ -83,7 +105,7 @@
         </div>
 
         <p class="text-center text-sm text-gray-400 mt-6">
-            Une question ? <a href="mailto:contact@tdbr.fr" class="text-primary hover:underline">Contactez-nous</a>
+            Une question ? <a href="{{ path('contact') }}?sujet=À propos de la proposition commerciale {{ proposition.token|slice(0,12)|upper }}" class="text-primary hover:underline">Contactez-nous</a>
         </p>
 
     {% endif %}

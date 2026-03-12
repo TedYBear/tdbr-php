@@ -4,6 +4,8 @@ namespace App\Service;
 
 use App\Entity\Commande;
 use App\Entity\PropositionCommerciale;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -131,7 +133,7 @@ class MailerService
     }
 
     /**
-     * Envoie une proposition commerciale au client
+     * Envoie une proposition commerciale au client avec le PDF en pièce jointe
      */
     public function sendProposition(PropositionCommerciale $proposition): void
     {
@@ -141,9 +143,16 @@ class MailerService
             UrlGeneratorInterface::ABSOLUTE_URL
         );
 
+        $contactUrl = $this->urlGenerator->generate(
+            'contact',
+            ['sujet' => 'À propos de la proposition commerciale ' . strtoupper(substr($proposition->getToken(), 0, 12))],
+            UrlGeneratorInterface::ABSOLUTE_URL
+        );
+
         $html = $this->twig->render('emails/proposition.html.twig', [
             'proposition' => $proposition,
             'publicUrl'   => $publicUrl,
+            'contactUrl'  => $contactUrl,
         ]);
 
         $subject = 'Votre proposition commerciale TDBR';
@@ -151,13 +160,36 @@ class MailerService
             $subject .= ' — ' . $proposition->getClientNom();
         }
 
+        $pdfContent = $this->generatePropositionPdf($proposition);
+        $pdfFilename = 'proposition-tdbr-' . substr($proposition->getToken(), 0, 12) . '.pdf';
+
         $email = (new Email())
             ->from($this->fromEmail)
             ->to($proposition->getClientEmail())
             ->subject($subject)
-            ->html($html);
+            ->html($html)
+            ->attach($pdfContent, $pdfFilename, 'application/pdf');
 
         $this->mailer->send($email);
+    }
+
+    private function generatePropositionPdf(PropositionCommerciale $proposition): string
+    {
+        $html = $this->twig->render('propositions/pdf.html.twig', [
+            'proposition' => $proposition,
+        ]);
+
+        $options = new Options();
+        $options->set('defaultFont', 'Helvetica');
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('isRemoteEnabled', false);
+
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html, 'UTF-8');
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        return $dompdf->output();
     }
 
     /**
