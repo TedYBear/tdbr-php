@@ -3,6 +3,8 @@
 namespace App\Controller\Admin;
 
 use App\Repository\CommandeRepository;
+use App\Service\MailerService;
+use App\Service\PrintfulService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,6 +19,8 @@ class CommandeAdminController extends AbstractController
     public function __construct(
         private EntityManagerInterface $em,
         private CommandeRepository $commandeRepo,
+        private MailerService $mailer,
+        private PrintfulService $printfulService,
     ) {
     }
 
@@ -70,6 +74,45 @@ class CommandeAdminController extends AbstractController
         }
 
         $this->addFlash('success', 'Statut de la commande mis à jour');
+        return $this->redirectToRoute('admin_commandes_detail', ['id' => $id]);
+    }
+
+    #[Route('/{id}/marquer-payee', name: 'admin_commandes_marquer_payee', methods: ['POST'])]
+    public function marquerPayee(int $id): Response
+    {
+        $commande = $this->commandeRepo->find($id);
+
+        if (!$commande || $commande->getStatut() !== 'en_attente_virement') {
+            $this->addFlash('error', 'Cette commande ne peut pas être marquée comme payée.');
+            return $this->redirectToRoute('admin_commandes_detail', ['id' => $id]);
+        }
+
+        $commande->setStatut('payee');
+        $commande->setUpdatedAt(new \DateTimeImmutable());
+        $this->em->flush();
+
+        // Envoi en brouillon à Printful si livraison à domicile
+        $modeLivraison = $commande->getModeLivraison();
+        if (($modeLivraison['type'] ?? '') === 'domicile') {
+            $printfulItems = array_filter($commande->getArticles(), fn($i) => !empty($i['printfulVariantId']));
+            if (!empty($printfulItems)) {
+                try {
+                    $printfulOrderId = $this->printfulService->createDraftOrder($commande, array_values($printfulItems));
+                    $commande->setPrintfulOrderId($printfulOrderId);
+                    $this->em->flush();
+                } catch (\Throwable $e) {
+                    $this->addFlash('warning', 'Printful : ' . $e->getMessage());
+                }
+            }
+        }
+
+        try {
+            $this->mailer->sendOrderConfirmation($commande);
+        } catch (\Throwable $e) {
+            // non-bloquant
+        }
+
+        $this->addFlash('success', 'Commande marquée comme payée, confirmation envoyée au client.');
         return $this->redirectToRoute('admin_commandes_detail', ['id' => $id]);
     }
 

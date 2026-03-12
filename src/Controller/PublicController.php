@@ -820,6 +820,112 @@ class PublicController extends AbstractController
         return $this->redirectToRoute('confirmation', ['id' => $commande->getId()]);
     }
 
+    #[Route('/checkout/virement', name: 'checkout_virement', methods: ['POST'])]
+    public function checkoutVirement(Request $request): Response
+    {
+        if ($this->cartService->getTotalQuantity() === 0) {
+            return $this->redirectToRoute('panier');
+        }
+
+        $form = $this->createForm(\App\Form\CheckoutType::class);
+        $form->handleRequest($request);
+
+        if (!$form->isSubmitted() || !$form->isValid()) {
+            $this->addFlash('error', 'Formulaire invalide. Vérifiez les champs obligatoires.');
+            return $this->redirectToRoute('checkout');
+        }
+
+        $data            = $form->getData();
+        $modeLivraison   = $request->request->get('modeLivraison', 'domicile');
+        $livraisonOption = self::LIVRAISON_OPTIONS[$modeLivraison] ?? self::LIVRAISON_OPTIONS['domicile'];
+        $fraisVistaprint = $modeLivraison === 'domicile' ? $this->getFraisVistaprintDomicile() : 0.0;
+        $fraisLivraison  = $livraisonOption['prix'] + $fraisVistaprint;
+        $codeReductionId = (int) $request->request->get('codeReductionId') ?: null;
+        $reduction       = $this->getReductionFromCode($codeReductionId);
+        $cartTotal       = $this->cartService->getTotal();
+
+        $pointRelaisId = (int) $request->request->get('pointRelaisId');
+        if ($modeLivraison === 'relais') {
+            $relais = ($pointRelaisId ? $this->boutiqueRelaisRepo->find($pointRelaisId) : null)
+                ?? ($this->boutiqueRelaisRepo->findActives()[0] ?? null);
+            $adresseLivraison = [
+                'adresse'           => $relais?->getAdresse() ?? '',
+                'complementAdresse' => $relais?->getComplementAdresse() ?? '',
+                'codePostal'        => $relais?->getCodePostal() ?? '',
+                'ville'             => $relais?->getVille() ?? '',
+                'pays'              => 'FR',
+            ];
+        } else {
+            $adresseLivraison = [
+                'adresse'           => $request->request->get('adresse', ''),
+                'complementAdresse' => $request->request->get('complementAdresse', ''),
+                'codePostal'        => $request->request->get('codePostal', ''),
+                'ville'             => $request->request->get('ville', ''),
+                'pays'              => $request->request->get('pays', 'FR'),
+            ];
+        }
+
+        $modeLivraisonData = ['type' => $modeLivraison, 'label' => $livraisonOption['label'], 'prix' => $fraisLivraison];
+        if ($modeLivraison === 'relais') {
+            $modeLivraisonData['pointRelaisNom']     = $relais?->getNom() ?? '';
+            $modeLivraisonData['pointRelaisAdresse'] = ($relais?->getAdresse() ?? '') . ', ' . ($relais?->getCodePostal() ?? '') . ' ' . ($relais?->getVille() ?? '');
+        }
+
+        $orderItems = [];
+        foreach ($this->cartService->getCart() as $item) {
+            $orderItems[] = [
+                'articleId'         => $item['article']['id'],
+                'nom'               => $item['article']['nom'],
+                'prix'              => $item['article']['prix'],
+                'quantity'          => $item['quantity'],
+                'choices'           => $item['choices'] ?? [],
+                'image'             => $item['article']['image'] ?? null,
+                'fournisseurId'     => $item['article']['fournisseurId'] ?? null,
+                'printfulVariantId' => $item['article']['printfulVariantId'] ?? null,
+            ];
+        }
+
+        $commande = new Commande();
+        $commande->setNumero('CMD-' . strtoupper(uniqid()));
+        $commande->setClient([
+            'prenom'    => $data['prenom'],
+            'nom'       => $data['nom'],
+            'email'     => $data['email'],
+            'telephone' => $data['telephone'],
+        ]);
+        $commande->setAdresseLivraison($adresseLivraison);
+        $commande->setModeLivraison($modeLivraisonData);
+        $commande->setArticles($orderItems);
+        $commande->setReduction($reduction);
+        $commande->setTotal(max(0.01, $cartTotal + $fraisLivraison - $reduction));
+        $commande->setModePaiement('virement');
+        $commande->setNotes($data['notes'] ?? null);
+        $commande->setStatut('en_attente_virement');
+        if ($this->getUser() instanceof User) {
+            $commande->setUser($this->getUser());
+        }
+
+        $this->em->persist($commande);
+        $this->em->flush();
+
+        if ($codeReductionId) {
+            $codeReduction = $this->codeReductionRepo->find($codeReductionId);
+            if ($codeReduction && ($codeReduction->isGlobal() || $codeReduction->getUser() === $this->getUser())) {
+                $codeReduction->setStatut('utilise');
+                $codeReduction->setCommande($commande);
+                $this->em->flush();
+            }
+        }
+
+        $this->cartService->clear();
+
+        try {
+            $this->mailerService->sendVirementCommande($commande);
+        } catch (\Exception $e) {}
+
+        return $this->redirectToRoute('confirmation', ['id' => $commande->getId()]);
+    }
+
     #[Route('/confirmation/{id}', name: 'confirmation')]
     public function confirmation(int $id): Response
     {

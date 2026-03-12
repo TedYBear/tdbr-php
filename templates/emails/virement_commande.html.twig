@@ -1,0 +1,50 @@
+{% extends 'emails/base.html.twig' %}
+
+{% block header_title %}Instructions de virement{% endblock %}
+
+{% block content %}
+    <h2 style="color: #2C2416; margin-top: 0;">Votre commande est enregistrée</h2>
+
+    <p style="font-size: 16px; line-height: 1.6; color: #333;">
+        {% if commande.client.prenom %}Bonjour <strong>{{ commande.client.prenom }}</strong>,{% else %}Bonjour,{% endif %}
+    </p>
+
+    <p style="font-size: 16px; line-height: 1.6; color: #333;">
+        Nous avons bien reçu votre commande <strong>{{ commande.numero }}</strong> d'un montant de
+        <strong>{{ commande.total|number_format(2, ',', ' ') }} €</strong>.
+        Pour finaliser votre commande, merci d'effectuer un virement bancaire avec les informations ci-dessous.
+    </p>
+
+    <div style="background-color: #FEF3C7; border: 1px solid #F59E0B; border-radius: 12px; padding: 24px; margin: 24px 0;">
+        <h3 style="margin-top: 0; color: #92400E; font-size: 16px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em;">Coordonnées bancaires</h3>
+
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+            <tr>
+                <td style="padding: 8px 0; color: #92400E; font-weight: 600; width: 40%;">Bénéficiaire</td>
+                <td style="padding: 8px 0; color: #1a1a1a; font-weight: bold;">Emmanuel Chauveau — TDBR</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px 0; color: #92400E; font-weight: 600;">IBAN</td>
+                <td style="padding: 8px 0; color: #1a1a1a; font-family: monospace; font-weight: bold; font-size: 16px; letter-spacing: 0.05em;">FR76 1695 8000 0122 5925 2066 395</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px 0; color: #92400E; font-weight: 600;">Montant exact</td>
+                <td style="padding: 8px 0; color: #1a1a1a; font-weight: bold; font-size: 18px;">{{ commande.total|number_format(2, ',', ' ') }} €</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px 0; color: #92400E; font-weight: 600;">Référence à indiquer</td>
+                <td style="padding: 8px 0; color: #1a1a1a; font-family: monospace; font-weight: bold;">{{ commande.numero }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <p style="font-size: 14px; line-height: 1.6; color: #666; background: #f9f9f9; padding: 12px 16px; border-radius: 8px;">
+        Votre commande sera préparée et expédiée dès réception du virement.
+        Pensez à bien indiquer la référence <strong>{{ commande.numero }}</strong> dans le libellé du virement.
+    </p>
+
+    <p style="font-size: 16px; line-height: 1.6; color: #333; font-weight: 600; margin-top: 30px;">
+        À très bientôt !<br>
+        L'équipe TDBR
+    </p>
+{% endblock %}

@@ -66,6 +66,26 @@ class MailerService
     }
 
     /**
+     * Envoie les instructions de virement pour une commande classique
+     */
+    public function sendVirementCommande(Commande $commande): void
+    {
+        $client = $commande->getClient();
+
+        $html = $this->twig->render('emails/virement_commande.html.twig', [
+            'commande' => $commande,
+        ]);
+
+        $email = (new Email())
+            ->from($this->fromEmail)
+            ->to($client['email'])
+            ->subject('Instructions de virement — Commande ' . $commande->getNumero())
+            ->html($html);
+
+        $this->mailer->send($email);
+    }
+
+    /**
      * Envoie une notification de changement de statut de commande
      */
     public function sendOrderStatusUpdate(array $commande, string $newStatus): void
