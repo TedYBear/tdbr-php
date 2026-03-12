@@ -17,6 +17,7 @@ class MailerService
         private MailerInterface $mailer,
         private Environment $twig,
         private UrlGeneratorInterface $urlGenerator,
+        private string $projectDir,
         private string $fromEmail = 'noreply@tdbr.fr',
         private string $fromName = 'TDBR'
     ) {
@@ -150,9 +151,10 @@ class MailerService
         );
 
         $html = $this->twig->render('emails/proposition.html.twig', [
-            'proposition' => $proposition,
-            'publicUrl'   => $publicUrl,
-            'contactUrl'  => $contactUrl,
+            'proposition'      => $proposition,
+            'publicUrl'        => $publicUrl,
+            'contactUrl'       => $contactUrl,
+            'messagePersonnel' => $proposition->getMessagePersonnel(),
         ]);
 
         $subject = 'Votre proposition commerciale TDBR';
@@ -175,8 +177,14 @@ class MailerService
 
     private function generatePropositionPdf(PropositionCommerciale $proposition): string
     {
+        $logoPath = $this->projectDir . '/public/build/images/TDBR.png';
+        $logoBase64 = file_exists($logoPath)
+            ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath))
+            : null;
+
         $html = $this->twig->render('propositions/pdf.html.twig', [
             'proposition' => $proposition,
+            'logoBase64'  => $logoBase64,
         ]);
 
         $options = new Options();

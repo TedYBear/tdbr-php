@@ -39,6 +39,11 @@ services:
         arguments:
             $uploadsDirectory: '%kernel.project_dir%/public/uploads'
 
+    # Mailer Service
+    App\Service\MailerService:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+
     # Stripe Service
     App\Service\StripeService:
         arguments:
