@@ -448,8 +448,30 @@
                             </span>
                         </button>
 
+                        {# Séparateur virement #}
+                        <div class="relative my-6">
+                            <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-200"></div></div>
+                            <div class="relative flex justify-center"><span class="bg-white px-3 text-sm text-gray-400">ou</span></div>
+                        </div>
+
+                        <button type="button"
+                                @click="
+                                    const f = $el.closest('form');
+                                    if (!f.checkValidity()) { f.reportValidity(); return; }
+                                    if (!confirm('Payer par virement bancaire ? Vous recevrez les coordonnées bancaires par email.')) return;
+                                    f.action = '{{ path('checkout_virement') }}';
+                                    f.submit();
+                                "
+                                class="w-full btn-outline text-base py-3 rounded-xl font-bold flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"/>
+                            </svg>
+                            Payer par virement bancaire
+                        </button>
+                        <p class="text-center text-xs text-gray-400 mt-1">IBAN communiqué par email après confirmation</p>
+
                         {# Sécurité #}
-                        <div class="mt-8 pt-8 border-t space-y-3">
+                        <div class="mt-6 pt-6 border-t space-y-3">
                             <div class="flex items-center gap-2 text-sm text-gray-600">
                                 <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
