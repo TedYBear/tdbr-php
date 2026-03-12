@@ -5,9 +5,11 @@ namespace App\Controller\Admin;
 use App\Entity\PropositionCommerciale;
 use App\Repository\DemandeSurMesureRepository;
 use App\Repository\PropositionCommercialeRepository;
+use App\Repository\UserRepository;
 use App\Service\MailerService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -22,6 +24,7 @@ class PropositionCommercialeAdminController extends AbstractController
         private PropositionCommercialeRepository $propositionRepo,
         private DemandeSurMesureRepository $devisRepo,
         private MailerService $mailer,
+        private UserRepository $userRepo,
     ) {}
 
     #[Route('', name: 'admin_propositions')]
@@ -32,6 +35,31 @@ class PropositionCommercialeAdminController extends AbstractController
         return $this->render('admin/propositions/index.html.twig', [
             'propositions' => $propositions,
         ]);
+    }
+
+    #[Route('/clients/search', name: 'admin_propositions_clients_search', methods: ['GET'])]
+    public function clientsSearch(Request $request): JsonResponse
+    {
+        $q = trim($request->query->get('q', ''));
+        if (strlen($q) < 2) {
+            return $this->json([]);
+        }
+
+        $users = $this->userRepo->createQueryBuilder('u')
+            ->where('LOWER(u.email) LIKE :q OR LOWER(u.nom) LIKE :q OR LOWER(u.prenom) LIKE :q')
+            ->setParameter('q', '%' . strtolower($q) . '%')
+            ->setMaxResults(10)
+            ->orderBy('u.nom', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        return $this->json(array_map(fn($u) => [
+            'id'       => $u->getId(),
+            'email'    => $u->getEmail(),
+            'nom'      => $u->getNom() ?? '',
+            'prenom'   => $u->getPrenom() ?? '',
+            'fullName' => trim(($u->getPrenom() ?? '') . ' ' . ($u->getNom() ?? '')),
+        ], $users));
     }
 
     #[Route('/new', name: 'admin_propositions_new')]
@@ -86,6 +114,38 @@ class PropositionCommercialeAdminController extends AbstractController
             $this->addFlash('error', 'Erreur lors de l\'envoi : ' . $e->getMessage());
         }
 
+        return $this->redirectToRoute('admin_propositions_edit', ['id' => $id]);
+    }
+
+    #[Route('/{id}/marquer-payee', name: 'admin_propositions_marquer_payee', methods: ['POST'])]
+    public function marquerPayee(int $id): Response
+    {
+        $proposition = $this->propositionRepo->find($id);
+        if (!$proposition || $proposition->getStatut() !== 'en_attente_virement') {
+            $this->addFlash('error', 'Cette proposition ne peut pas être marquée comme payée.');
+            return $this->redirectToRoute('admin_propositions_edit', ['id' => $id]);
+        }
+
+        $proposition->setStatut('payee');
+        $proposition->setUpdatedAt(new \DateTimeImmutable());
+
+        $commande = $proposition->getCommande();
+        if ($commande) {
+            $commande->setStatut('payee');
+            $commande->setUpdatedAt(new \DateTimeImmutable());
+        }
+
+        $this->em->flush();
+
+        if ($commande) {
+            try {
+                $this->mailer->sendOrderConfirmation($commande);
+            } catch (\Throwable $e) {
+                // non-bloquant
+            }
+        }
+
+        $this->addFlash('success', 'Proposition marquée comme payée, confirmation envoyée au client.');
         return $this->redirectToRoute('admin_propositions_edit', ['id' => $id]);
     }
 
