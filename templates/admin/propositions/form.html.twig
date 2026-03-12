@@ -171,7 +171,7 @@
                 </button>
                 <button type="submit" name="action" value="send"
                         class="btn-primary"
-                        onclick="return confirm('Envoyer la proposition par email à ' + document.querySelector('[name=clientEmail]').value + ' ?')">
+                        onclick="event.preventDefault(); window.showConfirm('Envoyer la proposition par email à ' + document.querySelector('[name=clientEmail]').value + ' ?', () => { this.closest('form').requestSubmit(this); })">
                     Envoyer par email
                 </button>
                 <a href="{{ path('admin_propositions') }}" class="btn-outline">Annuler</a>
@@ -261,7 +261,7 @@
                         Ref : <span class="font-mono">{{ proposition.token|slice(0,12)|upper }}</span>
                     </p>
                     <form method="post" action="{{ path('admin_propositions_marquer_payee', {id: proposition.id}) }}"
-                          onsubmit="return confirm('Confirmer la réception du virement et marquer comme payée ?')">
+                          onsubmit="window.confirmForm(event, this, 'Confirmer la réception du virement et marquer comme payée ?')">
                         <button type="submit" class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold text-sm">
                             Virement reçu — Marquer payée
                         </button>
@@ -272,7 +272,7 @@
             {# Renvoyer l'email #}
             {% if proposition.statut in ['envoyee', 'brouillon'] %}
                 <form method="post" action="{{ path('admin_propositions_send', {id: proposition.id}) }}"
-                      onsubmit="return confirm('Renvoyer la proposition par email ?')">
+                      onsubmit="window.confirmForm(event, this, 'Renvoyer la proposition par email ?')">
                     <button type="submit" class="w-full btn-outline">
                         {{ proposition.statut == 'envoyee' ? 'Renvoyer l\'email' : 'Envoyer l\'email' }}
                     </button>

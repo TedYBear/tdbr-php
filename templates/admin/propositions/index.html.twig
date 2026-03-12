@@ -83,7 +83,7 @@
                                     {% endif %}
                                     {# Supprimer #}
                                     <form method="post" action="{{ path('admin_propositions_delete', {id: p.id}) }}"
-                                          onsubmit="return confirm('Supprimer définitivement cette proposition ?')">
+                                          onsubmit="window.confirmForm(event, this, 'Supprimer définitivement cette proposition ?')">
                                         <button type="submit" class="text-xs px-2 py-1 text-red-600 border border-red-200 rounded hover:bg-red-50">
                                             Supprimer
                                         </button>
