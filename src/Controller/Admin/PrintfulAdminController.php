@@ -135,6 +135,24 @@ class PrintfulAdminController extends AbstractController
                     if ($existingArticle->getPrintfulProductId() === null) {
                         $existingArticle->setPrintfulProductId($pfProductId);
                     }
+
+                    if ($withMockups && !empty($product['mockups'])) {
+                        $existingUrls = array_map(
+                            fn($img) => $img->getUrl(),
+                            $existingArticle->getImages()->toArray()
+                        );
+                        $nextOrdre = count($existingUrls);
+                        foreach ($product['mockups'] as $url) {
+                            if (!in_array($url, $existingUrls, true)) {
+                                $img = new ArticleImage();
+                                $img->setUrl($url);
+                                $img->setAlt($product['name']);
+                                $img->setOrdre($nextOrdre++);
+                                $existingArticle->addImage($img);
+                            }
+                        }
+                    }
+
                     $existingArticle->setUpdatedAt(new \DateTimeImmutable());
                     $updated++;
                     continue;
