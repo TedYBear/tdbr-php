@@ -16,8 +16,20 @@ class PropositionCommerciale
     #[ORM\Column(type: 'text')]
     private string $description;
 
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2, nullable: true)]
+    private ?float $coutDesign = null;
+
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
-    private float $prixTotal;
+    private float $prixPublic = 0;
+
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2, nullable: true)]
+    private ?float $fraisManutention = null;
+
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2, nullable: true)]
+    private ?float $ristourne = null;
+
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
+    private float $prixTotal = 0;
 
     #[ORM\Column(length: 255)]
     private string $clientEmail;
@@ -55,8 +67,20 @@ class PropositionCommerciale
     public function getId(): ?int { return $this->id; }
     public function getDescription(): string { return $this->description; }
     public function setDescription(string $d): static { $this->description = $d; return $this; }
+    public function getCoutDesign(): ?float { return $this->coutDesign !== null ? (float)$this->coutDesign : null; }
+    public function setCoutDesign(?float $v): static { $this->coutDesign = $v; return $this; }
+    public function getPrixPublic(): float { return (float)$this->prixPublic; }
+    public function setPrixPublic(float $v): static { $this->prixPublic = $v; return $this; }
+    public function getFraisManutention(): ?float { return $this->fraisManutention !== null ? (float)$this->fraisManutention : null; }
+    public function setFraisManutention(?float $v): static { $this->fraisManutention = $v; return $this; }
+    public function getRistourne(): ?float { return $this->ristourne !== null ? (float)$this->ristourne : null; }
+    public function setRistourne(?float $v): static { $this->ristourne = $v; return $this; }
     public function getPrixTotal(): float { return (float)$this->prixTotal; }
     public function setPrixTotal(float $p): static { $this->prixTotal = $p; return $this; }
+    public function computePrixTotal(): float
+    {
+        return ($this->coutDesign ?? 0) + $this->prixPublic + ($this->fraisManutention ?? 0) - ($this->ristourne ?? 0);
+    }
     public function getClientEmail(): string { return $this->clientEmail; }
     public function setClientEmail(string $e): static { $this->clientEmail = $e; return $this; }
     public function getClientNom(): ?string { return $this->clientNom; }

@@ -135,7 +135,11 @@ class PropositionCommercialeAdminController extends AbstractController
         }
 
         $proposition->setDescription($data['description'] ?? '');
-        $proposition->setPrixTotal((float)($data['prixTotal'] ?? 0));
+        $proposition->setCoutDesign(!empty($data['coutDesign']) ? (float)$data['coutDesign'] : null);
+        $proposition->setPrixPublic((float)($data['prixPublic'] ?? 0));
+        $proposition->setFraisManutention(!empty($data['fraisManutention']) ? (float)$data['fraisManutention'] : null);
+        $proposition->setRistourne(!empty($data['ristourne']) ? (float)$data['ristourne'] : null);
+        $proposition->setPrixTotal($proposition->computePrixTotal());
         $proposition->setClientEmail(trim($data['clientEmail'] ?? ''));
         $proposition->setClientNom(!empty($data['clientNom']) ? trim($data['clientNom']) : null);
 

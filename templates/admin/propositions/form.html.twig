@@ -14,8 +14,11 @@
 <div class="grid lg:grid-cols-3 gap-8">
     {# Formulaire principal #}
     <div class="lg:col-span-2">
-        <form method="post" class="space-y-6">
+        <form method="post" class="space-y-6" x-data="propositionForm()">
+
+            {# Client #}
             <div class="card p-6 space-y-5">
+                <h2 class="font-heading text-base font-bold text-gray-700">Client</h2>
 
                 <div class="form-group">
                     <label>Email du client *</label>
@@ -30,22 +33,81 @@
                            value="{{ proposition ? proposition.clientNom : (devis ? devis.nom : '') }}"
                            placeholder="Prénom Nom">
                 </div>
+            </div>
 
-                <div class="form-group">
-                    <label>Description de la proposition *</label>
-                    <textarea name="description" required class="form-input font-mono text-sm" rows="10"
-                              placeholder="Décrivez en détail le contenu de la proposition : articles, quantités, personnalisations, délais...">{{ proposition ? proposition.description : '' }}</textarea>
-                    <p class="text-xs text-gray-500 mt-1">Ce texte sera affiché dans l'email et sur la page de validation.</p>
+            {# 1 - Coût de création du design (optionnel) #}
+            <div class="card p-6 space-y-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="font-heading text-base font-bold text-gray-700">
+                        1 — Coût de création du design
+                        <span class="text-xs font-normal text-gray-400 ml-1">(optionnel)</span>
+                    </h2>
                 </div>
-
                 <div class="form-group">
-                    <label>Prix total (€) *</label>
-                    <input type="number" name="prixTotal" required class="form-input" step="0.01" min="0"
-                           value="{{ proposition ? proposition.prixTotal : '' }}"
+                    <label>Montant (€)</label>
+                    <input type="number" name="coutDesign" class="form-input" step="0.01" min="0"
+                           x-model="coutDesign"
+                           value="{{ proposition and proposition.coutDesign is not null ? proposition.coutDesign : '' }}"
                            placeholder="0.00">
-                    <p class="text-xs text-gray-500 mt-1">TVA non applicable (franchise en base).</p>
+                    <p class="text-xs text-gray-500 mt-1">Création graphique et adaptation aux différents supports.</p>
                 </div>
+            </div>
 
+            {# 2 - Prix public (requis) #}
+            <div class="card p-6 space-y-4">
+                <h2 class="font-heading text-base font-bold text-gray-700">
+                    2 — Prix public
+                    <span class="text-xs font-normal text-red-400 ml-1">*</span>
+                </h2>
+                <div class="form-group">
+                    <label>Description du contenu *</label>
+                    <textarea name="description" required class="form-input font-mono text-sm" rows="8"
+                              placeholder="Articles, quantités, personnalisations, délais...">{{ proposition ? proposition.description : '' }}</textarea>
+                    <p class="text-xs text-gray-500 mt-1">Affiché dans l'email et sur la page client.</p>
+                </div>
+                <div class="form-group">
+                    <label>Montant (€) *</label>
+                    <input type="number" name="prixPublic" required class="form-input" step="0.01" min="0"
+                           x-model="prixPublic"
+                           value="{{ proposition ? proposition.prixPublic : '' }}"
+                           placeholder="0.00">
+                </div>
+            </div>
+
+            {# 3 - Frais de manutention (optionnel) #}
+            <div class="card p-6 space-y-4">
+                <h2 class="font-heading text-base font-bold text-gray-700">
+                    3 — Frais de manutention
+                    <span class="text-xs font-normal text-gray-400 ml-1">(optionnel)</span>
+                </h2>
+                <div class="form-group">
+                    <label>Montant (€)</label>
+                    <input type="number" name="fraisManutention" class="form-input" step="0.01" min="0"
+                           x-model="fraisManutention"
+                           value="{{ proposition and proposition.fraisManutention is not null ? proposition.fraisManutention : '' }}"
+                           placeholder="0.00">
+                </div>
+            </div>
+
+            {# 4 - Ristourne (optionnel) #}
+            <div class="card p-6 space-y-4">
+                <h2 class="font-heading text-base font-bold text-gray-700">
+                    4 — Ristourne
+                    <span class="text-xs font-normal text-gray-400 ml-1">(optionnel)</span>
+                </h2>
+                <div class="form-group">
+                    <label>Montant à déduire (€)</label>
+                    <input type="number" name="ristourne" class="form-input" step="0.01" min="0"
+                           x-model="ristourne"
+                           value="{{ proposition and proposition.ristourne is not null ? proposition.ristourne : '' }}"
+                           placeholder="0.00">
+                </div>
+            </div>
+
+            {# Total calculé #}
+            <div class="card p-5 bg-gray-50 flex items-center justify-between">
+                <span class="text-sm font-medium text-gray-600">Total TTC (calculé)</span>
+                <span class="text-2xl font-black text-gray-900" x-text="formatTotal()"></span>
             </div>
 
             <div class="flex gap-3 flex-wrap">
@@ -61,6 +123,23 @@
             </div>
 
         </form>
+
+        <script>
+        function propositionForm() {
+            return {
+                coutDesign: parseFloat(document.querySelector('[name=coutDesign]')?.value) || 0,
+                prixPublic: parseFloat(document.querySelector('[name=prixPublic]')?.value) || 0,
+                fraisManutention: parseFloat(document.querySelector('[name=fraisManutention]')?.value) || 0,
+                ristourne: parseFloat(document.querySelector('[name=ristourne]')?.value) || 0,
+                get total() {
+                    return (this.coutDesign || 0) + (this.prixPublic || 0) + (this.fraisManutention || 0) - (this.ristourne || 0);
+                },
+                formatTotal() {
+                    return this.total.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+                }
+            };
+        }
+        </script>
     </div>
 
     {# Sidebar infos #}

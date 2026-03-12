@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Proposition commerciale — TDBR</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Helvetica, Arial, sans-serif; font-size: 13px; color: #1a1a1a; background: #fff; line-height: 1.5; }
+
+        .page { max-width: 210mm; padding: 15mm 18mm 12mm 18mm; }
+
+        .header { display: table; width: 100%; padding-bottom: 8mm; border-bottom: 2px solid #1a1a1a; margin-bottom: 8mm; }
+        .header-left { display: table-cell; vertical-align: top; width: 60%; }
+        .header-right { display: table-cell; vertical-align: top; text-align: right; }
+
+        .brand-tagline { font-size: 11px; color: #666; margin-top: 2px; }
+        .brand-info { font-size: 11px; color: #555; margin-top: 6px; line-height: 1.6; }
+
+        .doc-label { font-size: 22px; font-weight: bold; color: #1a1a1a; letter-spacing: 1px; text-transform: uppercase; }
+        .doc-ref { font-size: 12px; color: #777; margin-top: 4px; }
+
+        .client-block { background: #f8f8f8; padding: 5mm; border-radius: 4px; margin-bottom: 8mm; display: inline-block; min-width: 60mm; }
+        .client-label { font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.8px; color: #999; margin-bottom: 2mm; }
+        .client-name { font-size: 14px; font-weight: bold; }
+        .client-detail { font-size: 12px; color: #555; }
+
+        .section-title { font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; color: #888; margin-bottom: 3mm; }
+
+        .description-box { background: #f8f8f8; padding: 4mm 5mm; border-left: 3px solid #1a1a1a; border-radius: 0 4px 4px 0; margin-bottom: 6mm; font-size: 12px; white-space: pre-wrap; }
+
+        table { width: 100%; border-collapse: collapse; margin-bottom: 6mm; }
+        thead tr { background: #1a1a1a; color: #fff; }
+        thead th { padding: 3mm 4mm; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+        thead th:first-child { text-align: left; }
+        thead th:last-child { text-align: right; }
+        tbody tr { border-bottom: 1px solid #e5e5e5; }
+        tbody tr:last-child { border-bottom: none; }
+        tbody td { padding: 3mm 4mm; font-size: 12px; vertical-align: top; }
+        tbody td.right { text-align: right; }
+        .item-name { font-weight: 600; }
+        .item-desc { font-size: 11px; color: #777; margin-top: 1px; white-space: pre-wrap; }
+        .item-optional { font-size: 10px; color: #aaa; font-style: italic; }
+        .item-discount { color: #15803d; }
+
+        .totals { text-align: right; margin-bottom: 8mm; }
+        .totals-box { display: inline-block; min-width: 60mm; }
+        .total-row { padding: 1.5mm 0; font-size: 12px; border-bottom: 1px solid #eee; }
+        .total-row:last-child { border-bottom: none; }
+        .total-grand { padding-top: 3mm; font-size: 16px; font-weight: bold; border-top: 2px solid #1a1a1a; margin-top: 1mm; }
+        .total-label { color: #555; }
+        .total-value { font-weight: 700; }
+        .discount-value { color: #15803d; }
+
+        .footer { padding-top: 6mm; border-top: 1px solid #ddd; font-size: 10px; color: #999; }
+        .footer-thanks { font-size: 13px; font-weight: bold; color: #1a1a1a; margin-bottom: 1mm; }
+        .footer-table { width: 100%; }
+        .footer-left { vertical-align: bottom; }
+        .footer-right { vertical-align: bottom; text-align: right; }
+        .tva-mention { font-size: 11px; color: #888; margin-bottom: 4mm; font-style: italic; }
+    </style>
+</head>
+<body>
+<div class="page">
+
+    <div class="header">
+        <div class="header-left">
+            <div class="brand-tagline">Créations de produits personnalisés</div>
+            <div class="brand-info">
+                <strong>Emmanuel Chauveau</strong><br>
+                39 Boulevard Victor Hugo, Rés. Léopoldine B36<br>
+                31770 Colomiers, France<br>
+                tedybear.fr — SIREN : 538 044 231
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="doc-label">Proposition commerciale</div>
+            <div class="doc-ref">Réf. {{ proposition.token|slice(0, 12)|upper }}</div>
+            <div class="doc-ref">Date : {{ proposition.createdAt|date('d/m/Y') }}</div>
+        </div>
+    </div>
+
+    <div class="client-block">
+        <div class="client-label">À l'attention de</div>
+        {% if proposition.clientNom %}
+            <div class="client-name">{{ proposition.clientNom }}</div>
+        {% endif %}
+        <div class="client-detail">{{ proposition.clientEmail }}</div>
+    </div>
+
+    <div class="section-title">Détail de la proposition</div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Désignation</th>
+                <th style="text-align:right; width:35mm;">Montant</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if proposition.coutDesign is not null and proposition.coutDesign > 0 %}
+            <tr>
+                <td>
+                    <div class="item-name">Création du design et adaptation aux supports</div>
+                    <div class="item-optional">Prestation de création graphique</div>
+                </td>
+                <td class="right">{{ proposition.coutDesign|number_format(2, ',', ' ') }} €</td>
+            </tr>
+            {% endif %}
+
+            <tr>
+                <td>
+                    <div class="item-name">Prix public</div>
+                    {% if proposition.description %}
+                        <div class="item-desc">{{ proposition.description }}</div>
+                    {% endif %}
+                </td>
+                <td class="right">{{ proposition.prixPublic|number_format(2, ',', ' ') }} €</td>
+            </tr>
+
+            {% if proposition.fraisManutention is not null and proposition.fraisManutention > 0 %}
+            <tr>
+                <td>
+                    <div class="item-name">Frais de manutention</div>
+                </td>
+                <td class="right">{{ proposition.fraisManutention|number_format(2, ',', ' ') }} €</td>
+            </tr>
+            {% endif %}
+
+            {% if proposition.ristourne is not null and proposition.ristourne > 0 %}
+            <tr>
+                <td>
+                    <div class="item-name item-discount">Ristourne</div>
+                </td>
+                <td class="right discount-value">- {{ proposition.ristourne|number_format(2, ',', ' ') }} €</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <p class="tva-mention">TVA non applicable — Art. 293 B du CGI</p>
+
+    <div class="totals">
+        <div class="totals-box">
+            <div class="total-grand">
+                <span class="total-label">Total TTC : </span>
+                <span class="total-value">{{ proposition.prixTotal|number_format(2, ',', ' ') }} €</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="footer-thanks">Merci pour votre confiance !</div>
+        <table class="footer-table">
+            <tr>
+                <td class="footer-left">
+                    TDBR – Emmanuel Chauveau · 39 Bd Victor Hugo, Rés. Léopoldine B36, 31770 Colomiers<br>
+                    tedybear.fr · SIREN : 538 044 231 · TVA non applicable – Art. 293 B du CGI
+                </td>
+                <td class="footer-right">
+                    Document généré le {{ "now"|date("d/m/Y") }}<br>
+                    Proposition du {{ proposition.createdAt|date('d/m/Y') }}
+                </td>
+            </tr>
+        </table>
+    </div>
+
+</div>
+</body>
+</html>

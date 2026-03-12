@@ -869,6 +869,9 @@ class PublicController extends AbstractController
             $form->get('nom')->setData(trim(($user->getPrenom() ?? '') . ' ' . ($user->getNom() ?? '')));
             $form->get('email')->setData($user->getEmail());
         }
+        if ($sujetDefault = $request->query->get('sujet')) {
+            $form->get('sujet')->setData($sujetDefault);
+        }
 
         $form->handleRequest($request);
 
