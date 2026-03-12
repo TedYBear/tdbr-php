@@ -51,9 +51,8 @@
             "symfony/runtime": true
         },
         "sort-packages": true,
-        "secure-http": true,
-        "disable-tls": false,
-        "cafile": "C:\\Users\\Manu\\cacert.pem"
+        "secure-http": false,
+        "disable-tls": true
     },
     "autoload": {
         "psr-4": {
