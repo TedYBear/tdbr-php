@@ -74,6 +74,13 @@
                                         </select>
                                         <button type="submit" class="text-xs px-2 py-1 border border-gray-300 rounded hover:bg-gray-100">OK</button>
                                     </form>
+                                    {# Modifier (brouillon uniquement) #}
+                                    {% if p.statut == 'brouillon' %}
+                                        <a href="{{ path('admin_propositions_edit', {id: p.id}) }}"
+                                           class="text-xs px-2 py-1 text-primary border border-primary rounded hover:bg-accent">
+                                            Modifier
+                                        </a>
+                                    {% endif %}
                                     {# Supprimer #}
                                     <form method="post" action="{{ path('admin_propositions_delete', {id: p.id}) }}"
                                           onsubmit="return confirm('Supprimer définitivement cette proposition ?')">
