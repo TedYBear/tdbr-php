@@ -94,7 +94,6 @@
                     <label>Montant (€)</label>
                     <input type="number" name="coutDesign" class="form-input" step="0.01" min="0"
                            x-model="coutDesign"
-                           value="{{ proposition and proposition.coutDesign is not null ? proposition.coutDesign : '' }}"
                            placeholder="0.00">
                     <p class="text-xs text-gray-500 mt-1">Création graphique et adaptation aux différents supports.</p>
                 </div>
@@ -116,7 +115,6 @@
                     <label>Montant (€) *</label>
                     <input type="number" name="prixPublic" required class="form-input" step="0.01" min="0"
                            x-model="prixPublic"
-                           value="{{ proposition ? proposition.prixPublic : '' }}"
                            placeholder="0.00">
                 </div>
             </div>
@@ -131,7 +129,6 @@
                     <label>Montant (€)</label>
                     <input type="number" name="fraisManutention" class="form-input" step="0.01" min="0"
                            x-model="fraisManutention"
-                           value="{{ proposition and proposition.fraisManutention is not null ? proposition.fraisManutention : '' }}"
                            placeholder="0.00">
                 </div>
             </div>
@@ -146,7 +143,6 @@
                     <label>Montant à déduire (€)</label>
                     <input type="number" name="ristourne" class="form-input" step="0.01" min="0"
                            x-model="ristourne"
-                           value="{{ proposition and proposition.ristourne is not null ? proposition.ristourne : '' }}"
                            placeholder="0.00">
                 </div>
             </div>
@@ -174,12 +170,12 @@
         <script>
         function propositionForm() {
             return {
-                coutDesign: parseFloat(document.querySelector('[name=coutDesign]')?.value) || 0,
-                prixPublic: parseFloat(document.querySelector('[name=prixPublic]')?.value) || 0,
-                fraisManutention: parseFloat(document.querySelector('[name=fraisManutention]')?.value) || 0,
-                ristourne: parseFloat(document.querySelector('[name=ristourne]')?.value) || 0,
+                coutDesign: {{ proposition and proposition.coutDesign is not null ? proposition.coutDesign : 0 }},
+                prixPublic: {{ proposition ? proposition.prixPublic : 0 }},
+                fraisManutention: {{ proposition and proposition.fraisManutention is not null ? proposition.fraisManutention : 0 }},
+                ristourne: {{ proposition and proposition.ristourne is not null ? proposition.ristourne : 0 }},
                 get total() {
-                    return (this.coutDesign || 0) + (this.prixPublic || 0) + (this.fraisManutention || 0) - (this.ristourne || 0);
+                    return (parseFloat(this.coutDesign) || 0) + (parseFloat(this.prixPublic) || 0) + (parseFloat(this.fraisManutention) || 0) - (parseFloat(this.ristourne) || 0);
                 },
                 formatTotal() {
                     return this.total.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
