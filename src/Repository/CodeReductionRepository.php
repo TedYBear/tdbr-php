@@ -59,6 +59,15 @@ class CodeReductionRepository extends ServiceEntityRepository
         return (int) $qb->getQuery()->getSingleScalarResult();
     }
 
+    public function findCampaignGifts(): array
+    {
+        return $this->createQueryBuilder('c')
+            ->where('c.isCampaignGift = true')
+            ->orderBy('c.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
     public function hasCampaignGiftForEmail(string $email, ?\DateTimeImmutable $since = null): bool
     {
         $qb = $this->createQueryBuilder('c')
