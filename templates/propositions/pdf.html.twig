@@ -64,6 +64,11 @@
 
     <div class="header">
         <div class="header-left">
+            {% if logoBase64 %}
+                <img src="{{ logoBase64 }}" alt="TDBR" style="height:50px; margin-bottom:4px; display:block;">
+            {% else %}
+                <div style="font-size:22px; font-weight:bold; letter-spacing:2px;">TDBR</div>
+            {% endif %}
             <div class="brand-tagline">Créations de produits personnalisés</div>
             <div class="brand-info">
                 <strong>Emmanuel Chauveau</strong><br>

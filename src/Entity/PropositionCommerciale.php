@@ -37,7 +37,10 @@ class PropositionCommerciale
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $clientNom = null;
 
-    /** brouillon | envoyee | acceptee | payee */
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $messagePersonnel = null;
+
+    /** brouillon | envoyee | acceptee | en_attente_virement | payee */
     #[ORM\Column(length: 50)]
     private string $statut = 'brouillon';
 
@@ -81,6 +84,8 @@ class PropositionCommerciale
     {
         return ($this->coutDesign ?? 0) + $this->prixPublic + ($this->fraisManutention ?? 0) - ($this->ristourne ?? 0);
     }
+    public function getMessagePersonnel(): ?string { return $this->messagePersonnel; }
+    public function setMessagePersonnel(?string $m): static { $this->messagePersonnel = $m; return $this; }
     public function getClientEmail(): string { return $this->clientEmail; }
     public function setClientEmail(string $e): static { $this->clientEmail = $e; return $this; }
     public function getClientNom(): ?string { return $this->clientNom; }

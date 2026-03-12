@@ -61,17 +61,27 @@
                                     <span class="text-gray-400 text-xs">—</span>
                                 {% endif %}
                             </td>
-                            <td class="px-4 py-3 text-right flex items-center justify-end gap-3">
-                                {% if p.statut == 'en_attente_virement' %}
-                                    <form method="post" action="{{ path('admin_propositions_marquer_payee', {id: p.id}) }}"
-                                          onsubmit="return confirm('Confirmer la réception du virement et marquer cette proposition comme payée ?')">
-                                        <button type="submit" class="text-xs px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold">
-                                            Virement reçu ✓
+                            <td class="px-4 py-3">
+                                <div class="flex items-center gap-2 justify-end flex-wrap">
+                                    {# Changement de statut direct #}
+                                    <form method="post" action="{{ path('admin_propositions_statut', {id: p.id}) }}" class="flex items-center gap-1">
+                                        <select name="statut" class="text-xs border border-gray-200 rounded px-2 py-1 bg-white">
+                                            <option value="brouillon" {% if p.statut == 'brouillon' %}selected{% endif %}>Brouillon</option>
+                                            <option value="envoyee" {% if p.statut == 'envoyee' %}selected{% endif %}>Envoyée</option>
+                                            <option value="acceptee" {% if p.statut == 'acceptee' %}selected{% endif %}>Acceptée</option>
+                                            <option value="en_attente_virement" {% if p.statut == 'en_attente_virement' %}selected{% endif %}>Virement en attente</option>
+                                            <option value="payee" {% if p.statut == 'payee' %}selected{% endif %}>Payée</option>
+                                        </select>
+                                        <button type="submit" class="text-xs px-2 py-1 border border-gray-300 rounded hover:bg-gray-100">OK</button>
+                                    </form>
+                                    {# Supprimer #}
+                                    <form method="post" action="{{ path('admin_propositions_delete', {id: p.id}) }}"
+                                          onsubmit="return confirm('Supprimer définitivement cette proposition ?')">
+                                        <button type="submit" class="text-xs px-2 py-1 text-red-600 border border-red-200 rounded hover:bg-red-50">
+                                            Supprimer
                                         </button>
                                     </form>
-                                {% endif %}
-                                <a href="{{ path('admin_propositions_edit', {id: p.id}) }}"
-                                   class="text-primary hover:underline text-sm font-medium">Modifier</a>
+                                </div>
                             </td>
                         </tr>
                     {% endfor %}

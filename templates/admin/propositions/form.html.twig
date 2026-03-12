@@ -82,6 +82,18 @@
             }
             </script>
 
+            {# Message personnel (email uniquement) #}
+            <div class="card p-6 space-y-4 border-l-4 border-primary">
+                <h2 class="font-heading text-base font-bold text-gray-700">
+                    Message personnel
+                    <span class="text-xs font-normal text-gray-400 ml-1">(email uniquement — pas dans le PDF)</span>
+                </h2>
+                <div class="form-group">
+                    <textarea name="messagePersonnel" class="form-input text-sm" rows="4"
+                              placeholder="Bonjour Prénom, suite à notre échange...">{{ proposition ? proposition.messagePersonnel : '' }}</textarea>
+                </div>
+            </div>
+
             {# 1 - Coût de création du design (optionnel) #}
             <div class="card p-6 space-y-4">
                 <div class="flex items-center justify-between">

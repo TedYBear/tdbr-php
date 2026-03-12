@@ -163,6 +163,27 @@ class PropositionCommercialeAdminController extends AbstractController
         ]);
     }
 
+    #[Route('/{id}/statut', name: 'admin_propositions_statut', methods: ['POST'])]
+    public function changeStatut(int $id, Request $request): Response
+    {
+        $proposition = $this->propositionRepo->find($id);
+        if (!$proposition) {
+            throw $this->createNotFoundException();
+        }
+
+        $statuts = ['brouillon', 'envoyee', 'acceptee', 'en_attente_virement', 'payee'];
+        $newStatut = $request->request->get('statut');
+
+        if (in_array($newStatut, $statuts)) {
+            $proposition->setStatut($newStatut);
+            $proposition->setUpdatedAt(new \DateTimeImmutable());
+            $this->em->flush();
+            $this->addFlash('success', 'Statut mis à jour.');
+        }
+
+        return $this->redirectToRoute('admin_propositions');
+    }
+
     #[Route('/{id}/delete', name: 'admin_propositions_delete', methods: ['POST'])]
     public function delete(int $id): Response
     {
@@ -195,6 +216,7 @@ class PropositionCommercialeAdminController extends AbstractController
         }
 
         $proposition->setDescription($data['description'] ?? '');
+        $proposition->setMessagePersonnel(!empty($data['messagePersonnel']) ? trim($data['messagePersonnel']) : null);
         $proposition->setCoutDesign(!empty($data['coutDesign']) ? (float)$data['coutDesign'] : null);
         $proposition->setPrixPublic((float)($data['prixPublic'] ?? 0));
         $proposition->setFraisManutention(!empty($data['fraisManutention']) ? (float)$data['fraisManutention'] : null);
