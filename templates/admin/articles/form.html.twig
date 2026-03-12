@@ -41,6 +41,16 @@
     removeImage(index) { this.images.splice(index, 1); },
     onDropImages(e) { e.preventDefault(); this.uploadFiles(e.dataTransfer.files); },
 
+    dragIndex: null,
+    dragStart(index) { this.dragIndex = index; },
+    dragOver(index) {
+        if (this.dragIndex === null || this.dragIndex === index) return;
+        const dragged = this.images.splice(this.dragIndex, 1)[0];
+        this.images.splice(index, 0, dragged);
+        this.dragIndex = index;
+    },
+    dragEnd() { this.dragIndex = null; },
+
     addVariante() {
         this.variantes.push({ id: Date.now(), nom: '', sku: '', deltaPrix: '', printfulVariantId: '', valeurs: null, actif: true });
     },
@@ -170,7 +180,7 @@
                         <span class="text-sm text-gray-500" x-text="images.length + ' image(s)'"></span>
                     </div>
 
-                    <template x-for="(img, i) in images" :key="i">
+                    <template x-for="(img, i) in images" :key="img">
                         <input type="hidden" name="images[]" :value="img">
                     </template>
 
@@ -189,15 +199,23 @@
 
                     <p x-show="uploadError" x-text="uploadError" class="text-sm text-red-600 mb-3"></p>
 
+                    <p x-show="images.length > 1" class="text-xs text-gray-400 mb-2">Glissez les images pour réordonner — la première est l'image principale.</p>
+
                     <div x-show="images.length > 0" class="grid grid-cols-3 gap-3">
-                        <template x-for="(img, index) in images" :key="index">
-                            <div class="relative aspect-square rounded-lg border border-gray-200" style="overflow:hidden">
-                                <img :src="img" :alt="'Image ' + (index+1)" class="w-full h-full object-cover">
+                        <template x-for="(img, index) in images" :key="img">
+                            <div class="relative aspect-square rounded-lg border border-gray-200"
+                                 draggable="true"
+                                 @dragstart="dragStart(index)"
+                                 @dragover.prevent="dragOver(index)"
+                                 @dragend="dragEnd()"
+                                 :style="'overflow:hidden; cursor:grab; transition:opacity .15s;' + (dragIndex === index ? 'opacity:.35;' : '')">
+                                <img :src="img" :alt="'Image ' + (index+1)" class="w-full h-full object-cover" style="pointer-events:none">
                                 <button type="button" @click.prevent="removeImage(index)"
                                         style="position:absolute;top:4px;right:4px;z-index:10;width:28px;height:28px;background:#ef4444;color:white;border-radius:50%;border:none;cursor:pointer;font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center;">
                                     &times;
                                 </button>
                                 <span x-show="index === 0" style="position:absolute;top:4px;left:4px;z-index:10" class="bg-primary text-white text-xs px-1.5 py-0.5 rounded">Principale</span>
+                                <span style="position:absolute;bottom:4px;right:6px;z-index:10;font-size:14px;opacity:.5;pointer-events:none">⠿</span>
                             </div>
                         </template>
                     </div>
