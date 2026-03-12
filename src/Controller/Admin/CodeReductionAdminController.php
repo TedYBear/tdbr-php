@@ -79,12 +79,10 @@ class CodeReductionAdminController extends AbstractController
     {
         $code = $this->codeRepo->find($id);
 
-        if ($code && $code->getStatut() === 'actif') {
+        if ($code) {
             $this->em->remove($code);
             $this->em->flush();
             $this->addFlash('success', 'Code supprimé');
-        } else {
-            $this->addFlash('error', 'Impossible de supprimer un code déjà utilisé');
         }
 
         return $this->redirectToRoute('admin_codes_reduction');

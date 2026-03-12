@@ -70,13 +70,11 @@
                             <td class="px-6 py-4 flex items-center gap-3">
                                 <a href="{{ path('admin_codes_reduction_edit', {id: code.id}) }}"
                                    class="text-primary hover:text-secondary text-sm">Modifier</a>
-                                {% if code.statut == 'actif' %}
-                                    <form method="post"
-                                          action="{{ path('admin_codes_reduction_delete', {id: code.id}) }}"
-                                          onsubmit="window.confirmForm(event, this, 'Supprimer ce code ?')">
-                                        <button type="submit" class="text-red-500 hover:text-red-700 text-sm">Supprimer</button>
-                                    </form>
-                                {% endif %}
+                                <form method="post"
+                                      action="{{ path('admin_codes_reduction_delete', {id: code.id}) }}"
+                                      onsubmit="window.confirmForm(event, this, 'Supprimer le code {{ code.code }} ?')">
+                                    <button type="submit" class="text-red-500 hover:text-red-700 text-sm">Supprimer</button>
+                                </form>
                             </td>
                         </tr>
                     {% endfor %}
