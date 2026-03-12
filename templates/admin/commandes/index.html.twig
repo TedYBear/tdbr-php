@@ -69,7 +69,15 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4">
-                                <a href="{{ path('admin_commandes_detail', {id: commande.id}) }}" class="text-primary hover:text-secondary">Voir détails →</a>
+                                <div class="flex items-center gap-3">
+                                    <a href="{{ path('admin_commandes_detail', {id: commande.id}) }}" class="text-primary hover:text-secondary text-sm">Voir détails →</a>
+                                    <form method="post" action="{{ path('admin_commandes_delete', {id: commande.id}) }}"
+                                          onsubmit="return confirm('Supprimer définitivement la commande {{ commande.numero }} ?')">
+                                        <button type="submit" class="text-xs px-2 py-1 text-red-600 border border-red-200 rounded hover:bg-red-50">
+                                            Supprimer
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     {% endfor %}
