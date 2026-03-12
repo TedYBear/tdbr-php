@@ -1276,6 +1276,50 @@ class PublicController extends AbstractController
         return $this->redirectToRoute('proposition_view', ['token' => $token]);
     }
 
+    #[Route('/proposition/{token}/virement', name: 'proposition_virement', methods: ['POST'])]
+    public function propositionVirement(string $token): Response
+    {
+        $proposition = $this->propositionRepo->findByToken($token);
+
+        if (!$proposition || !in_array($proposition->getStatut(), ['envoyee', 'brouillon'], true)) {
+            throw $this->createNotFoundException();
+        }
+
+        $commande = new Commande();
+        $commande->setNumero('PROP-' . strtoupper(substr(uniqid(), -8)));
+        $commande->setClient([
+            'email'     => $proposition->getClientEmail(),
+            'nom'       => $proposition->getClientNom() ?? '',
+            'prenom'    => '',
+            'telephone' => '',
+        ]);
+        $commande->setAdresseLivraison([
+            'adresse'    => 'À coordonner',
+            'ville'      => '',
+            'codePostal' => '',
+            'pays'       => 'FR',
+        ]);
+        $commande->setArticles([[
+            'nom'      => 'Proposition commerciale #' . $proposition->getId(),
+            'quantity' => 1,
+            'prix'     => $proposition->getPrixTotal(),
+        ]]);
+        $commande->setTotal($proposition->getPrixTotal());
+        $commande->setModePaiement('virement');
+        $commande->setModeLivraison(['type' => 'proposition', 'label' => 'À coordonner', 'prix' => 0]);
+        $commande->setStatut('en_attente');
+
+        $this->em->persist($commande);
+
+        $proposition->setStatut('en_attente_virement');
+        $proposition->setCommande($commande);
+        $proposition->setUpdatedAt(new \DateTimeImmutable());
+
+        $this->em->flush();
+
+        return $this->redirectToRoute('proposition_view', ['token' => $token]);
+    }
+
     #[Route('/proposition/{token}/facture', name: 'proposition_facture')]
     public function propositionFacture(string $token): Response
     {

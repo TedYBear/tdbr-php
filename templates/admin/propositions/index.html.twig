@@ -46,6 +46,8 @@
                                     <span class="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">Envoyée</span>
                                 {% elseif p.statut == 'acceptee' %}
                                     <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">Acceptée</span>
+                                {% elseif p.statut == 'en_attente_virement' %}
+                                    <span class="px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">Virement en attente</span>
                                 {% elseif p.statut == 'payee' %}
                                     <span class="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700">Payée</span>
                                 {% endif %}
@@ -59,7 +61,15 @@
                                     <span class="text-gray-400 text-xs">—</span>
                                 {% endif %}
                             </td>
-                            <td class="px-4 py-3 text-right">
+                            <td class="px-4 py-3 text-right flex items-center justify-end gap-3">
+                                {% if p.statut == 'en_attente_virement' %}
+                                    <form method="post" action="{{ path('admin_propositions_marquer_payee', {id: p.id}) }}"
+                                          onsubmit="return confirm('Confirmer la réception du virement et marquer cette proposition comme payée ?')">
+                                        <button type="submit" class="text-xs px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold">
+                                            Virement reçu ✓
+                                        </button>
+                                    </form>
+                                {% endif %}
                                 <a href="{{ path('admin_propositions_edit', {id: p.id}) }}"
                                    class="text-primary hover:underline text-sm font-medium">Modifier</a>
                             </td>
