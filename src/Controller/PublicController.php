@@ -1272,4 +1272,18 @@ class PublicController extends AbstractController
 
         return $this->redirectToRoute('proposition_view', ['token' => $token]);
     }
+
+    #[Route('/proposition/{token}/facture', name: 'proposition_facture')]
+    public function propositionFacture(string $token): Response
+    {
+        $proposition = $this->propositionRepo->findByToken($token);
+
+        if (!$proposition || $proposition->getStatut() !== 'payee' || !$proposition->getCommande()) {
+            throw $this->createNotFoundException('Facture non disponible');
+        }
+
+        return $this->render('commandes/facture.html.twig', [
+            'commande' => $proposition->getCommande(),
+        ]);
+    }
 }

@@ -89,6 +89,20 @@ class PropositionCommercialeAdminController extends AbstractController
         return $this->redirectToRoute('admin_propositions_edit', ['id' => $id]);
     }
 
+    #[Route('/{id}/facture', name: 'admin_propositions_facture')]
+    public function facture(int $id): Response
+    {
+        $proposition = $this->propositionRepo->find($id);
+
+        if (!$proposition || $proposition->getStatut() !== 'payee' || !$proposition->getCommande()) {
+            throw $this->createNotFoundException('Facture non disponible');
+        }
+
+        return $this->render('commandes/facture.html.twig', [
+            'commande' => $proposition->getCommande(),
+        ]);
+    }
+
     #[Route('/{id}/delete', name: 'admin_propositions_delete', methods: ['POST'])]
     public function delete(int $id): Response
     {
