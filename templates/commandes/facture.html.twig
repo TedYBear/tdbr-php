@@ -73,6 +73,12 @@
             border-bottom: 2px solid #1a1a1a;
             margin-bottom: 8mm;
         }
+        .brand-logo {
+            height: 56px;
+            width: auto;
+            display: block;
+            margin-bottom: 4px;
+        }
         .brand-name {
             font-size: 28px;
             font-weight: 900;
@@ -293,12 +299,13 @@
         {# En-tête #}
         <div class="header">
             <div>
-                <div class="brand-name">TDBR</div>
+                <img src="{{ asset('uploads/general/tdbr-logo.png') }}" alt="TDBR" class="brand-logo">
                 <div class="brand-tagline">Teddy Bears Artisanaux</div>
                 <div class="brand-info">
                     tedybear.fr<br>
                     contact@tedybear.fr<br>
-                    64300 Orthez, France
+                    64300 Orthez, France<br>
+                    SIREN : 538 044 231
                 </div>
             </div>
             <div class="invoice-meta">
@@ -441,6 +448,8 @@
                 <div class="footer-thanks">Merci pour votre commande !</div>
                 <div class="footer-legal">
                     TDBR · tedybear.fr · contact@tedybear.fr<br>
+                    SIREN : 538 044 231<br>
+                    TVA non applicable – Art. 293 B du CGI<br>
                     Pour toute question : utilisez le formulaire de contact sur le site
                 </div>
             </div>
