@@ -458,9 +458,7 @@
                                 @click="
                                     const f = $el.closest('form');
                                     if (!f.checkValidity()) { f.reportValidity(); return; }
-                                    if (!confirm('Payer par virement bancaire ? Vous recevrez les coordonnées bancaires par email.')) return;
-                                    f.action = '{{ path('checkout_virement') }}';
-                                    f.submit();
+                                    window.showConfirm('Payer par virement bancaire ? Vous recevrez les coordonnées bancaires par email.', () => { f.action = '{{ path('checkout_virement') }}'; f.submit(); });
                                 "
                                 class="w-full btn-outline text-base py-3 rounded-xl font-bold flex items-center justify-center gap-2">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
