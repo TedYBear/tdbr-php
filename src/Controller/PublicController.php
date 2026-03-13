@@ -107,6 +107,12 @@ class PublicController extends AbstractController
         return $this->render('public/presentation_tarifs.html.twig');
     }
 
+    #[Route('/presentation/reseaux-sociaux', name: 'presentation_reseaux')]
+    public function presentationReseaux(): Response
+    {
+        return $this->render('public/presentation_reseaux.html.twig');
+    }
+
     #[Route('/cgv', name: 'cgv')]
     public function cgv(): Response
     {
