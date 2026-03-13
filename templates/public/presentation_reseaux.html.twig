@@ -35,8 +35,13 @@
                 </div>
 
                 {# Feed Instagram via Behold.so #}
-                <div id="behold-widget-g5ChEaCKK1zs98xWwxZO"></div>
-                <script defer src="https://cdn.behold.so/widget.js"></script>
+                <behold-widget feed-id="g5ChEaCKK1zs98xWwxZO"></behold-widget>
+                <script>
+                    (() => {
+                        const d=document,s=d.createElement("script");s.type="module";
+                        s.src="https://w.behold.so/widget.js";d.head.append(s);
+                    })();
+                </script>
 
             </div>
         </div>
