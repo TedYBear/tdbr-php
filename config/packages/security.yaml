@@ -21,7 +21,7 @@ security:
             form_login:
                 login_path: connexion
                 check_path: connexion
-                default_target_path: home
+                default_target_path: post_login
                 enable_csrf: true
                 username_parameter: email
                 password_parameter: password
@@ -39,6 +39,7 @@ security:
     # Note: Only the *first* access control that matches will be used
     access_control:
         - { path: ^/admin, roles: ROLE_ADMIN }
+        - { path: ^/depot-vente, roles: ROLE_DEPOT_VENTE }
         - { path: ^/profil, roles: ROLE_USER }
         - { path: ^/connexion, roles: PUBLIC_ACCESS }
         - { path: ^/inscription, roles: PUBLIC_ACCESS }
