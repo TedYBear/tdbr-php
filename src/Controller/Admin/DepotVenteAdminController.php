@@ -110,6 +110,14 @@ class DepotVenteAdminController extends AbstractController
             $stockMap[$item->getVariante()->getId()] = $item;
         }
 
+        // Pré-calculer le prix unitaire (palier 1) pour chaque variante : varianteId => prix
+        $prixMap = [];
+        foreach ($articles as $article) {
+            foreach ($article->getVariantes() as $variante) {
+                $prixMap[$variante->getId()] = $this->resolveUnitPrice($article, $variante, 1);
+            }
+        }
+
         // Pour le mode consultation : ne garder que les articles qui ont ≥1 variante en stock
         $articlesAvecStock = [];
         if ($mode === 'consultation') {
@@ -129,6 +137,7 @@ class DepotVenteAdminController extends AbstractController
             'mode'              => $mode,
             'articles'          => $mode === 'reassort' ? $articles : $articlesAvecStock,
             'stockMap'          => $stockMap,
+            'prixMap'           => $prixMap,
             'transactions'      => $depot->getTransactions()->slice(0, 30),
         ]);
     }
