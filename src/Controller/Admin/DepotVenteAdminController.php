@@ -7,6 +7,7 @@ use App\Entity\DepotVenteStockItem;
 use App\Entity\DepotVenteTransaction;
 use App\Entity\DepotVenteTransactionLigne;
 use App\Repository\ArticleRepository;
+use App\Repository\CategoryRepository;
 use App\Repository\DepotVenteRepository;
 use App\Repository\DepotVenteStockItemRepository;
 use App\Repository\UserRepository;
@@ -26,6 +27,7 @@ class DepotVenteAdminController extends AbstractController
         private DepotVenteStockItemRepository $stockRepo,
         private EntityManagerInterface $em,
         private ArticleRepository $articleRepo,
+        private CategoryRepository $categoryRepo,
         private UserRepository $userRepo,
     ) {}
 
@@ -115,7 +117,7 @@ class DepotVenteAdminController extends AbstractController
             }
         }
 
-        // Articles ayant ≥1 variante en stock
+        // Articles ayant ≥1 variante en stock (qty > 0) — vue consultation
         $articlesAvecStock = [];
         foreach ($articles as $article) {
             foreach ($article->getVariantes() as $variante) {
@@ -127,13 +129,134 @@ class DepotVenteAdminController extends AbstractController
             }
         }
 
+        // Articles ayant ≥1 stock item (qté quelconque) — vue modification
+        $articlesAvecStockItems = [];
+        foreach ($articles as $article) {
+            foreach ($article->getVariantes() as $variante) {
+                if (isset($stockMap[$variante->getId()])) {
+                    $articlesAvecStockItems[] = $article;
+                    break;
+                }
+            }
+        }
+
+        // Catégories avec leurs collections (pour "Ajouter des articles")
+        $categories = $this->categoryRepo->findBy(['actif' => true], ['ordre' => 'ASC', 'nom' => 'ASC']);
+
         return $this->render('admin/depot_vente/detail.html.twig', [
-            'depot'        => $depot,
-            'articles'     => $articlesAvecStock,
-            'stockMap'     => $stockMap,
-            'prixMap'      => $prixMap,
-            'transactions' => $depot->getTransactions()->slice(0, 30),
+            'depot'                  => $depot,
+            'articles'               => $articlesAvecStock,
+            'articlesAvecStockItems' => $articlesAvecStockItems,
+            'categories'             => $categories,
+            'stockMap'               => $stockMap,
+            'prixMap'                => $prixMap,
+            'transactions'           => $depot->getTransactions()->slice(0, 30),
         ]);
+    }
+
+    // ─── Ajout d'articles au stock ────────────────────────────────────────────
+
+    #[Route('/{id}/ajout', name: '_ajout', methods: ['POST'])]
+    public function ajout(DepotVente $depot, Request $request): Response
+    {
+        $lignesData = $request->request->all('lignes'); // [varianteId => qty]
+        $note = trim($request->request->get('note', ''));
+
+        /** @var \App\Entity\User $admin */
+        $admin = $this->getUser();
+
+        $transaction = (new DepotVenteTransaction())
+            ->setDepotVente($depot)
+            ->setType(DepotVenteTransaction::TYPE_REASSORT)
+            ->setNote($note ?: null)
+            ->setCreatedBy($admin);
+
+        $hasLines = false;
+
+        foreach ($lignesData as $varianteId => $qty) {
+            $qty = (int)$qty;
+            if ($qty <= 0) continue;
+
+            $variante = $this->em->getReference(\App\Entity\Variante::class, (int)$varianteId);
+
+            $stockItem = $this->stockRepo->findOneByDepotAndVariante($depot, $variante);
+            if (!$stockItem) {
+                $stockItem = (new DepotVenteStockItem())
+                    ->setDepotVente($depot)
+                    ->setVariante($variante)
+                    ->setQuantite(0);
+                $this->em->persist($stockItem);
+            }
+            $stockItem->addQuantite($qty);
+
+            $label = $variante->getArticle()->getNom() . ' — ' . $variante->getNom();
+            $ligne = (new DepotVenteTransactionLigne())
+                ->setVariante($variante)
+                ->setVarianteLabel($label)
+                ->setQuantite($qty);
+            $transaction->addLigne($ligne);
+            $hasLines = true;
+        }
+
+        if ($hasLines) {
+            $this->em->persist($transaction);
+            $this->em->flush();
+            $this->addFlash('success', 'Articles ajoutés au stock.');
+        } else {
+            $this->addFlash('error', 'Aucune quantité saisie.');
+        }
+
+        return $this->redirectToRoute('admin_depot_ventes_detail', ['id' => $depot->getId()]);
+    }
+
+    // ─── Modification des stocks ───────────────────────────────────────────────
+
+    #[Route('/{id}/modifier-stock', name: '_modifier_stock', methods: ['POST'])]
+    public function modifierStock(DepotVente $depot, Request $request): Response
+    {
+        $lignesData = $request->request->all('lignes'); // [stockItemId => qty]
+        $note = trim($request->request->get('note', ''));
+
+        /** @var \App\Entity\User $admin */
+        $admin = $this->getUser();
+
+        $transaction = (new DepotVenteTransaction())
+            ->setDepotVente($depot)
+            ->setType(DepotVenteTransaction::TYPE_REASSORT)
+            ->setNote($note ?: null)
+            ->setCreatedBy($admin);
+
+        $hasChanges = false;
+
+        foreach ($lignesData as $stockItemId => $qty) {
+            $qty = max(0, (int)$qty);
+            $stockItem = $this->stockRepo->find((int)$stockItemId);
+            if (!$stockItem || $stockItem->getDepotVente() !== $depot) continue;
+
+            $ancien = $stockItem->getQuantite();
+            if ($ancien === $qty) continue;
+
+            $delta = $qty - $ancien;
+            $stockItem->setQuantite($qty);
+
+            $label = $stockItem->getVariante()->getArticle()->getNom() . ' — ' . $stockItem->getVariante()->getNom();
+            $ligne = (new DepotVenteTransactionLigne())
+                ->setVariante($stockItem->getVariante())
+                ->setVarianteLabel($label)
+                ->setQuantite($delta);
+            $transaction->addLigne($ligne);
+            $hasChanges = true;
+        }
+
+        if ($hasChanges) {
+            $this->em->persist($transaction);
+            $this->em->flush();
+            $this->addFlash('success', 'Stock mis à jour.');
+        } else {
+            $this->addFlash('success', 'Aucune modification.');
+        }
+
+        return $this->redirectToRoute('admin_depot_ventes_detail', ['id' => $depot->getId()]);
     }
 
     // ─── Vente ────────────────────────────────────────────────────────────────
