@@ -58,40 +58,51 @@
         {% else %}
             <div class="p-5 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                 {% for article in articles %}
-                    <div class="border border-gray-200 rounded-xl overflow-hidden">
-                        {% set imgUrl = article.firstImageUrl %}
-                        {% if imgUrl %}
-                            <img src="{{ imgUrl }}" alt="{{ article.nom }}" class="w-full h-36 object-cover">
-                        {% else %}
-                            <div class="w-full h-36 bg-gray-100 flex items-center justify-center">
-                                <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v13.5A1.5 1.5 0 003.75 21z"/>
-                                </svg>
-                            </div>
+                    {# Collecter uniquement les variantes avec stock > 0 #}
+                    {% set variantesEnStock = [] %}
+                    {% for variante in article.variantes %}
+                        {% if variante.actif %}
+                            {% set stockItem = stockMap[variante.id] ?? null %}
+                            {% if stockItem and stockItem.quantite > 0 %}
+                                {% set variantesEnStock = variantesEnStock|merge([{
+                                    'variante': variante,
+                                    'stockItem': stockItem,
+                                    'prix': prixMap[variante.id] ?? null
+                                }]) %}
+                            {% endif %}
                         {% endif %}
-                        <div class="p-3">
-                            <p class="font-semibold text-gray-900 text-sm mb-2">{{ article.nom }}</p>
-                            <div class="space-y-1.5">
-                                {% for variante in article.variantes %}
-                                    {% if variante.actif %}
-                                        {% set stockItem = stockMap[variante.id] ?? null %}
-                                        {% if stockItem and stockItem.quantite > 0 %}
-                                            {% set prix = prixMap[variante.id] ?? null %}
-                                            <div class="flex items-center gap-2">
-                                                <span class="flex-1 text-xs text-gray-600 truncate">{{ variante.nom }}</span>
-                                                {% if prix is not null %}
-                                                    <span class="text-xs font-medium text-gray-500">{{ prix|number_format(2, ',', ' ') }} €</span>
-                                                {% endif %}
-                                                <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-green-100 text-green-700 text-sm font-bold flex-shrink-0">
-                                                    {{ stockItem.quantite }}
-                                                </span>
-                                            </div>
-                                        {% endif %}
-                                    {% endif %}
-                                {% endfor %}
+                    {% endfor %}
+
+                    {% if variantesEnStock|length > 0 %}
+                        <div class="border border-gray-200 rounded-xl overflow-hidden">
+                            {% set imgUrl = article.firstImageUrl %}
+                            {% if imgUrl %}
+                                <img src="{{ imgUrl }}" alt="{{ article.nom }}" class="w-full h-36 object-cover">
+                            {% else %}
+                                <div class="w-full h-36 bg-gray-100 flex items-center justify-center">
+                                    <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v13.5A1.5 1.5 0 003.75 21z"/>
+                                    </svg>
+                                </div>
+                            {% endif %}
+                            <div class="p-3">
+                                <p class="font-semibold text-gray-900 text-sm mb-2">{{ article.nom }}</p>
+                                <div class="space-y-1.5">
+                                    {% for v in variantesEnStock %}
+                                        <div class="flex items-center gap-2">
+                                            <span class="flex-1 text-xs text-gray-600 truncate">{{ v.variante.nom }}</span>
+                                            {% if v.prix is not null %}
+                                                <span class="text-xs font-medium text-gray-500">{{ v.prix|number_format(2, ',', ' ') }} €</span>
+                                            {% endif %}
+                                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-green-100 text-green-700 text-sm font-bold flex-shrink-0">
+                                                {{ v.stockItem.quantite }}
+                                            </span>
+                                        </div>
+                                    {% endfor %}
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    {% endif %}
                 {% endfor %}
             </div>
         {% endif %}
