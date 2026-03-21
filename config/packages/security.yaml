@@ -4,6 +4,9 @@ security:
         App\Entity\User:
             algorithm: auto
 
+    role_hierarchy:
+        ROLE_ADMIN: [ROLE_DEPOT_VENTE]
+
     providers:
         app_user_provider:
             entity:
