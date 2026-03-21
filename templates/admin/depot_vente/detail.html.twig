@@ -3,7 +3,7 @@
 {% block page_title %}{{ depot.nom }}{% endblock %}
 
 {% block body %}
-<div x-data="depotVente()" x-init="init()">
+<div x-data="{ openFond: false, openVente: false, fondSens: 'ajout' }">
 
     {# ── En-tête ──────────────────────────────────────────────────────────── #}
     <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
@@ -13,24 +13,17 @@
                 <span>/</span>
                 <span class="text-gray-700 font-medium">{{ depot.nom }}</span>
             </div>
-            {% if depot.ville %}
-                <p class="text-sm text-gray-500">{{ depot.codePostal }} {{ depot.ville }}</p>
-            {% endif %}
-            {% if depot.user %}
-                <p class="text-xs text-gray-400 mt-0.5">Géré par {{ depot.user.prenom }} {{ depot.user.nom }}</p>
-            {% endif %}
+            {% if depot.ville %}<p class="text-sm text-gray-500">{{ depot.codePostal }} {{ depot.ville }}</p>{% endif %}
+            {% if depot.user %}<p class="text-xs text-gray-400 mt-0.5">Géré par {{ depot.user.prenom }} {{ depot.user.nom }}</p>{% endif %}
         </div>
-        <div class="flex items-center gap-2">
-            <a href="{{ path('admin_depot_ventes_edit', {id: depot.id}) }}"
-               class="px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition">
-                Modifier
-            </a>
-        </div>
+        <a href="{{ path('admin_depot_ventes_edit', {id: depot.id}) }}"
+           class="px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition">
+            Modifier
+        </a>
     </div>
 
     {# ── Cartes KPI ───────────────────────────────────────────────────────── #}
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        {# Fond de caisse #}
         <div class="card p-5">
             <div class="flex items-center justify-between mb-3">
                 <p class="text-sm text-gray-500">Fond de caisse</p>
@@ -42,118 +35,33 @@
             <p class="text-3xl font-bold text-gray-900">{{ depot.fondDeCaisse|number_format(2, ',', ' ') }} €</p>
         </div>
 
-        {# Stock #}
         <div class="card p-5">
             <p class="text-sm text-gray-500 mb-3">Articles en stock</p>
             <p class="text-3xl font-bold text-gray-900">{{ depot.totalStock }}</p>
         </div>
 
-        {# Actions rapides #}
-        <div class="card p-5 flex flex-col justify-center gap-2">
-            <button @click="openVente = true"
-                    class="btn-primary text-sm text-center w-full">
+        <div class="card p-5 flex flex-col justify-center">
+            <button @click="openVente = true" class="btn-primary text-sm text-center w-full">
                 Réaliser une vente
             </button>
-            <div class="flex gap-2">
-                <a href="{{ path('admin_depot_ventes_detail', {id: depot.id, mode: 'consultation'}) }}"
-                   class="flex-1 text-center px-3 py-1.5 rounded-lg text-xs font-medium transition
-                          {{ mode == 'consultation' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">
-                    Consultation
-                </a>
-                <a href="{{ path('admin_depot_ventes_detail', {id: depot.id, mode: 'reassort'}) }}"
-                   class="flex-1 text-center px-3 py-1.5 rounded-lg text-xs font-medium transition
-                          {{ mode == 'reassort' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">
-                    Réassort
-                </a>
-            </div>
         </div>
     </div>
 
     {# ── Stock ────────────────────────────────────────────────────────────── #}
     <div class="card overflow-hidden mb-6">
-        <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h2 class="font-semibold text-gray-800">
-                Stock
-                {% if mode == 'reassort' %}
-                    <span class="ml-2 text-xs font-normal text-amber-600 bg-amber-50 px-2 py-0.5 rounded">Mode réassort</span>
-                {% endif %}
-            </h2>
+        <div class="px-5 py-4 border-b border-gray-100">
+            <h2 class="font-semibold text-gray-800">Stock</h2>
         </div>
 
         {% if articles is empty %}
-            <div class="px-5 py-10 text-center text-gray-400 text-sm">
-                {% if mode == 'consultation' %}Aucun article en stock.
-                {% else %}Aucun article actif dans le catalogue.{% endif %}
-            </div>
+            <div class="px-5 py-10 text-center text-gray-400 text-sm">Aucun article en stock.</div>
         {% else %}
-            {% if mode == 'reassort' %}
-            {# ── Mode réassort : cartes avec toutes les variantes + saisie ── #}
-            <form method="post" action="{{ path('admin_depot_ventes_reassort', {id: depot.id}) }}">
-                <div class="p-5 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                    {% for article in articles %}
-                        {% set hasActif = false %}
-                        {% for v in article.variantes %}{% if v.actif %}{% set hasActif = true %}{% endif %}{% endfor %}
-                        {% if hasActif %}
-                        <div class="border border-gray-200 rounded-xl overflow-hidden">
-                            {# Image #}
-                            {% set imgUrl = article.firstImageUrl %}
-                            {% if imgUrl %}
-                                <img src="{{ imgUrl }}" alt="{{ article.nom }}"
-                                     class="w-full h-36 object-cover">
-                            {% else %}
-                                <div class="w-full h-36 bg-gray-100 flex items-center justify-center">
-                                    <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v13.5A1.5 1.5 0 003.75 21z"/>
-                                    </svg>
-                                </div>
-                            {% endif %}
-                            {# Contenu #}
-                            <div class="p-3">
-                                <p class="font-semibold text-gray-900 text-sm mb-2">{{ article.nom }}</p>
-                                <div class="space-y-1.5">
-                                    {% for variante in article.variantes %}
-                                        {% if variante.actif %}
-                                            {% set stockItem = stockMap[variante.id] ?? null %}
-                                            {% set qty = stockItem ? stockItem.quantite : 0 %}
-                                            {% set prix = prixMap[variante.id] ?? null %}
-                                            <div class="flex items-center gap-2">
-                                                <span class="flex-1 text-xs text-gray-600 truncate">{{ variante.nom }}</span>
-                                                <span class="text-xs text-gray-400 w-14 text-right">
-                                                    {% if prix is not null %}{{ prix|number_format(2, ',', ' ') }} €{% endif %}
-                                                </span>
-                                                <span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold flex-shrink-0
-                                                             {{ qty > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400' }}">
-                                                    {{ qty }}
-                                                </span>
-                                                <input type="number" name="lignes[{{ variante.id }}]"
-                                                       min="0" step="1" placeholder="+"
-                                                       class="w-14 border border-gray-300 rounded px-1.5 py-0.5 text-xs text-center focus:outline-none focus:ring-1 focus:ring-primary/50 flex-shrink-0">
-                                            </div>
-                                        {% endif %}
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-                        {% endif %}
-                    {% endfor %}
-                </div>
-                <div class="px-5 py-4 border-t border-gray-100 flex items-center gap-3">
-                    <input type="text" name="note" placeholder="Note (optionnel)"
-                           class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
-                    <button type="submit" class="btn-primary text-sm">Valider le réassort</button>
-                </div>
-            </form>
-
-            {% else %}
-            {# ── Mode consultation : cartes, stock > 0 uniquement ── #}
             <div class="p-5 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                 {% for article in articles %}
                     <div class="border border-gray-200 rounded-xl overflow-hidden">
-                        {# Image #}
                         {% set imgUrl = article.firstImageUrl %}
                         {% if imgUrl %}
-                            <img src="{{ imgUrl }}" alt="{{ article.nom }}"
-                                 class="w-full h-36 object-cover">
+                            <img src="{{ imgUrl }}" alt="{{ article.nom }}" class="w-full h-36 object-cover">
                         {% else %}
                             <div class="w-full h-36 bg-gray-100 flex items-center justify-center">
                                 <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
@@ -161,7 +69,6 @@
                                 </svg>
                             </div>
                         {% endif %}
-                        {# Contenu #}
                         <div class="p-3">
                             <p class="font-semibold text-gray-900 text-sm mb-2">{{ article.nom }}</p>
                             <div class="space-y-1.5">
@@ -187,11 +94,10 @@
                     </div>
                 {% endfor %}
             </div>
-            {% endif %}
         {% endif %}
     </div>
 
-    {# ── Historique des transactions ──────────────────────────────────────── #}
+    {# ── Historique ───────────────────────────────────────────────────────── #}
     <div class="card overflow-hidden">
         <div class="px-5 py-4 border-b border-gray-100">
             <h2 class="font-semibold text-gray-800">Historique</h2>
@@ -212,17 +118,15 @@
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                         {% for tx in transactions %}
+                            {% set colors = {
+                                'vente':        'bg-blue-100 text-blue-700',
+                                'reassort':     'bg-amber-100 text-amber-700',
+                                'fond_ajout':   'bg-green-100 text-green-700',
+                                'fond_retrait': 'bg-red-100 text-red-700',
+                            } %}
                             <tr class="hover:bg-gray-50">
-                                <td class="px-5 py-3 text-gray-400 text-xs whitespace-nowrap">
-                                    {{ tx.createdAt|date('d/m/Y H:i') }}
-                                </td>
+                                <td class="px-5 py-3 text-gray-400 text-xs whitespace-nowrap">{{ tx.createdAt|date('d/m/Y H:i') }}</td>
                                 <td class="px-4 py-3">
-                                    {% set colors = {
-                                        'vente':        'bg-blue-100 text-blue-700',
-                                        'reassort':     'bg-amber-100 text-amber-700',
-                                        'fond_ajout':   'bg-green-100 text-green-700',
-                                        'fond_retrait': 'bg-red-100 text-red-700',
-                                    } %}
                                     <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold {{ colors[tx.type] ?? 'bg-gray-100 text-gray-600' }}">
                                         {{ tx.typeLabel }}
                                     </span>
@@ -240,9 +144,7 @@
                                             {% endfor %}
                                         </ul>
                                     {% endif %}
-                                    {% if tx.note %}
-                                        <p class="text-xs text-gray-400 mt-0.5 italic">{{ tx.note }}</p>
-                                    {% endif %}
+                                    {% if tx.note %}<p class="text-xs text-gray-400 mt-0.5 italic">{{ tx.note }}</p>{% endif %}
                                 </td>
                                 <td class="px-4 py-3 text-right font-medium whitespace-nowrap">
                                     {% if tx.montantFond is not null %}
@@ -317,7 +219,7 @@
          style="position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:1rem;"
          @click.self="openVente = false">
         <div style="background:#fff;border-radius:1.25rem;padding:2rem;max-width:42rem;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-            <div style="display:flex;align-items:center;justify-content:between;margin-bottom:1.25rem;">
+            <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.25rem;">
                 <h3 style="font-size:1.1rem;font-weight:700;color:#111827;flex:1;margin:0;">Réaliser une vente</h3>
                 <button @click="openVente = false" style="background:none;border:none;cursor:pointer;padding:0.25rem;color:#6b7280;">
                     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -325,7 +227,6 @@
             </div>
 
             <form method="post" action="{{ path('admin_depot_ventes_vente', {id: depot.id}) }}">
-                {# Articles en stock #}
                 {% set hasStock = false %}
                 {% for article in articles %}
                     {% for variante in article.variantes %}
@@ -335,15 +236,13 @@
                                 {% set hasStock = true %}
                                 {% set prixUnit = prixMap[variante.id] ?? (article.prixBase + (variante.deltaPrix ?? 0)) %}
                                 <div style="border:1px solid #e5e7eb;border-radius:0.75rem;padding:0.875rem;margin-bottom:0.75rem;"
-                                     x-data="{ qty: 0, prixUnit: {{ prixUnit }} }">
+                                     x-data="{ qty: 0, prixUnit: {{ prixUnit|number_format(2, '.', '') }} }">
                                     <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.625rem;">
                                         <div style="flex:1;">
                                             <div style="font-weight:600;font-size:0.875rem;color:#111827;">{{ article.nom }}</div>
                                             <div style="font-size:0.75rem;color:#9ca3af;">{{ variante.nom }}</div>
                                         </div>
-                                        <div style="font-size:0.8rem;color:#6b7280;">
-                                            Stock : <strong>{{ stockItem.quantite }}</strong>
-                                        </div>
+                                        <div style="font-size:0.8rem;color:#6b7280;">Stock : <strong>{{ stockItem.quantite }}</strong></div>
                                     </div>
                                     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem;align-items:end;">
                                         <div>
@@ -358,8 +257,8 @@
                                             <input type="number" name="lignes[{{ stockItem.id }}][prixEstime]"
                                                    step="0.01" min="0"
                                                    value="{{ prixUnit|number_format(2, '.', '') }}"
-                                                   style="width:100%;border:1.5px solid #e5e7eb;border-radius:0.5rem;padding:0.4rem 0.5rem;font-size:0.875rem;font-family:inherit;box-sizing:border-box;text-align:center;background:#f9fafb;"
-                                                   readonly>
+                                                   readonly
+                                                   style="width:100%;border:1.5px solid #e5e7eb;border-radius:0.5rem;padding:0.4rem 0.5rem;font-size:0.875rem;font-family:inherit;box-sizing:border-box;text-align:center;background:#f9fafb;">
                                         </div>
                                         <div>
                                             <label style="display:block;font-size:0.75rem;font-weight:600;color:#374151;margin-bottom:0.25rem;">Prix réel/u (€)</label>
@@ -385,7 +284,6 @@
                            style="width:100%;border:1.5px solid #d1d5db;border-radius:0.5rem;padding:0.5rem 0.75rem;font-size:0.9rem;font-family:inherit;box-sizing:border-box;"
                            placeholder="Ex : vente samedi marché">
                 </div>
-
                 <div style="display:flex;gap:0.75rem;margin-top:1.5rem;">
                     <button type="button" @click="openVente = false"
                             style="flex:1;padding:0.6rem;border-radius:0.625rem;border:1.5px solid #d1d5db;background:#fff;font-weight:600;cursor:pointer;font-size:0.875rem;font-family:inherit;">
@@ -401,17 +299,4 @@
     </div>
 
 </div>
-
-<script>
-function depotVente() {
-    return {
-        openFond: false,
-        openVente: false,
-        fondSens: 'ajout',
-        init() {
-            // Ouvrir le modal vente si passage depuis le bouton de la liste
-        }
-    };
-}
-</script>
 {% endblock %}
