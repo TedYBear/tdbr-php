@@ -159,7 +159,24 @@
             <form method="post" action="{{ path('admin_depot_ventes_modifier_stock', {id: depot.id}) }}">
                 <div class="px-5 py-4 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
                     {% for article in articlesAvecStockItems %}
-                        <div class="border border-gray-200 rounded-xl overflow-hidden">
+                        <div x-data="{ confirmDelete: false }" class="border border-gray-200 rounded-xl overflow-hidden relative">
+                            {# Overlay de confirmation #}
+                            <div x-show="confirmDelete" x-cloak
+                                 style="position:absolute;inset:0;background:rgba(255,255,255,0.95);z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.75rem;padding:1rem;border-radius:0.75rem;">
+                                <p style="font-size:0.8rem;font-weight:600;color:#111827;text-align:center;">Retirer cet article du suivi ?</p>
+                                <div style="display:flex;gap:0.5rem;">
+                                    <button type="button" @click="confirmDelete = false"
+                                            style="padding:0.35rem 0.875rem;border:1.5px solid #d1d5db;border-radius:0.5rem;background:#fff;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:inherit;">
+                                        Non
+                                    </button>
+                                    <button type="button"
+                                            onclick="document.getElementById('del-{{ article.id }}').submit()"
+                                            style="padding:0.35rem 0.875rem;border:none;border-radius:0.5rem;background:#dc2626;color:#fff;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:inherit;">
+                                        Supprimer
+                                    </button>
+                                </div>
+                            </div>
+
                             {% set imgUrl = article.firstImageUrl %}
                             {% if imgUrl %}
                                 <img src="{{ imgUrl }}" alt="{{ article.nom }}" class="w-full h-9 object-cover">
@@ -167,7 +184,14 @@
                                 <div class="w-full h-9 bg-gray-100"></div>
                             {% endif %}
                             <div class="p-3">
-                                <p class="font-semibold text-gray-900 text-sm mb-2">{{ article.nom }}</p>
+                                <div class="flex items-center justify-between mb-2">
+                                    <p class="font-semibold text-gray-900 text-sm">{{ article.nom }}</p>
+                                    <button type="button" @click="confirmDelete = true"
+                                            style="padding:0.2rem 0.5rem;border:1px solid #fca5a5;border-radius:0.375rem;background:#fff;color:#dc2626;font-size:0.7rem;font-weight:600;cursor:pointer;font-family:inherit;flex-shrink:0;"
+                                            title="Retirer cet article">
+                                        ✕
+                                    </button>
+                                </div>
                                 <div class="space-y-1.5">
                                     {% for variante in article.variantes %}
                                         {% if variante.actif %}
@@ -189,6 +213,11 @@
                                     {% endfor %}
                                 </div>
                             </div>
+
+                            {# Formulaire caché pour la suppression #}
+                            <form id="del-{{ article.id }}" method="post"
+                                  action="{{ path('admin_depot_ventes_supprimer_article', {id: depot.id, articleId: article.id}) }}"
+                                  style="display:none;"></form>
                         </div>
                     {% endfor %}
                 </div>

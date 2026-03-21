@@ -191,6 +191,26 @@ class DepotVenteAdminController extends AbstractController
         return $this->redirectToRoute('admin_depot_ventes_detail', ['id' => $depot->getId()]);
     }
 
+    // ─── Suppression d'un article du suivi ───────────────────────────────────
+
+    #[Route('/{id}/supprimer-article/{articleId}', name: '_supprimer_article', methods: ['POST'])]
+    public function supprimerArticle(DepotVente $depot, int $articleId): Response
+    {
+        $article = $this->articleRepo->find($articleId);
+        if ($article) {
+            foreach ($article->getVariantes() as $variante) {
+                $stockItem = $this->stockRepo->findOneByDepotAndVariante($depot, $variante);
+                if ($stockItem) {
+                    $this->em->remove($stockItem);
+                }
+            }
+            $this->em->flush();
+            $this->addFlash('success', '« ' . $article->getNom() . ' » retiré du suivi.');
+        }
+
+        return $this->redirectToRoute('admin_depot_ventes_detail', ['id' => $depot->getId()]);
+    }
+
     // ─── Modification des stocks ───────────────────────────────────────────────
 
     #[Route('/{id}/modifier-stock', name: '_modifier_stock', methods: ['POST'])]
