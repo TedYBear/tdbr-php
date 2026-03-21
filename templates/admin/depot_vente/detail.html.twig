@@ -111,16 +111,16 @@
                                                 <div class="space-y-1.5">
                                                     {% for variante in article.variantes %}
                                                         {% if variante.actif %}
-                                                            {% set prix = prixMap[variante.id] ?? null %}
-                                                            <div class="flex items-center gap-2">
+                                                            {% set dejaDans = stockMap[variante.id] is defined %}
+                                                            <label class="flex items-center gap-2 cursor-pointer {{ dejaDans ? 'opacity-50' : '' }}">
+                                                                <input type="checkbox" name="variantes[]" value="{{ variante.id }}"
+                                                                       {{ dejaDans ? 'checked disabled' : '' }}
+                                                                       class="rounded border-gray-300 flex-shrink-0">
                                                                 <span class="flex-1 text-xs text-gray-600 truncate">{{ variante.nom }}</span>
-                                                                {% if prix is not null %}
-                                                                    <span class="text-xs text-gray-400">{{ prix|number_format(2, ',', ' ') }} €</span>
+                                                                {% if dejaDans %}
+                                                                    <span class="text-xs text-gray-400 italic">déjà ajouté</span>
                                                                 {% endif %}
-                                                                <input type="number" name="lignes[{{ variante.id }}]"
-                                                                       min="0" step="1" placeholder="0"
-                                                                       class="w-14 border border-gray-300 rounded px-1.5 py-0.5 text-xs text-center focus:outline-none focus:ring-1 focus:ring-primary/50 flex-shrink-0">
-                                                            </div>
+                                                            </label>
                                                         {% endif %}
                                                     {% endfor %}
                                                 </div>
@@ -134,12 +134,10 @@
                 {% endfor %}
             {% endfor %}
 
-            <div class="px-5 py-4 border-t border-gray-100 flex items-center gap-3">
-                <input type="text" name="note" placeholder="Note (optionnel)"
-                       class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+            <div class="px-5 py-4 border-t border-gray-100 flex justify-end">
                 <button type="submit"
                         style="background:#1e40af;color:#fff;border:none;border-radius:0.5rem;padding:0.5rem 1.25rem;font-size:0.875rem;font-weight:600;cursor:pointer;font-family:inherit;">
-                    Ajouter au stock
+                    Enregistrer la sélection
                 </button>
             </div>
         </form>
