@@ -97,20 +97,17 @@ class DepotVenteAdminController extends AbstractController
     // ─── Fiche détail ─────────────────────────────────────────────────────────
 
     #[Route('/{id}', name: '_detail', methods: ['GET'])]
-    public function detail(DepotVente $depot, Request $request): Response
+    public function detail(DepotVente $depot): Response
     {
-        $mode = $request->query->get('mode', 'consultation'); // consultation | reassort
-
-        // Charger tous les articles actifs avec leurs variantes (pour le mode réassort)
         $articles = $this->articleRepo->findBy(['actif' => true], ['nom' => 'ASC']);
 
-        // Construire une map varianteId => stockItem pour accès rapide
+        // Map varianteId => stockItem
         $stockMap = [];
         foreach ($depot->getStockItems() as $item) {
             $stockMap[$item->getVariante()->getId()] = $item;
         }
 
-        // Pré-calculer le prix unitaire (palier 1) pour chaque variante : varianteId => prix
+        // Map varianteId => prix unitaire (palier 1)
         $prixMap = [];
         foreach ($articles as $article) {
             foreach ($article->getVariantes() as $variante) {
@@ -118,85 +115,25 @@ class DepotVenteAdminController extends AbstractController
             }
         }
 
-        // Pour le mode consultation : ne garder que les articles qui ont ≥1 variante en stock
+        // Articles ayant ≥1 variante en stock
         $articlesAvecStock = [];
-        if ($mode === 'consultation') {
-            foreach ($articles as $article) {
-                foreach ($article->getVariantes() as $variante) {
-                    $item = $stockMap[$variante->getId()] ?? null;
-                    if ($item && $item->getQuantite() > 0) {
-                        $articlesAvecStock[] = $article;
-                        break;
-                    }
+        foreach ($articles as $article) {
+            foreach ($article->getVariantes() as $variante) {
+                $item = $stockMap[$variante->getId()] ?? null;
+                if ($item && $item->getQuantite() > 0) {
+                    $articlesAvecStock[] = $article;
+                    break;
                 }
             }
         }
 
         return $this->render('admin/depot_vente/detail.html.twig', [
-            'depot'             => $depot,
-            'mode'              => $mode,
-            'articles'          => $mode === 'reassort' ? $articles : $articlesAvecStock,
-            'stockMap'          => $stockMap,
-            'prixMap'           => $prixMap,
-            'transactions'      => $depot->getTransactions()->slice(0, 30),
+            'depot'        => $depot,
+            'articles'     => $articlesAvecStock,
+            'stockMap'     => $stockMap,
+            'prixMap'      => $prixMap,
+            'transactions' => $depot->getTransactions()->slice(0, 30),
         ]);
-    }
-
-    // ─── Réassort (ajout de stock) ────────────────────────────────────────────
-
-    #[Route('/{id}/reassort', name: '_reassort', methods: ['POST'])]
-    public function reassort(DepotVente $depot, Request $request): Response
-    {
-        $lignesData = $request->request->all('lignes'); // ['varianteId' => 'qty']
-        $note = trim($request->request->get('note', ''));
-
-        /** @var \App\Entity\User $admin */
-        $admin = $this->getUser();
-
-        $transaction = (new DepotVenteTransaction())
-            ->setDepotVente($depot)
-            ->setType(DepotVenteTransaction::TYPE_REASSORT)
-            ->setNote($note ?: null)
-            ->setCreatedBy($admin);
-
-        $hasLines = false;
-
-        foreach ($lignesData as $varianteId => $qty) {
-            $qty = (int)$qty;
-            if ($qty <= 0) continue;
-
-            $variante = $this->em->getReference(\App\Entity\Variante::class, (int)$varianteId);
-
-            // Mettre à jour le stock
-            $stockItem = $this->stockRepo->findOneByDepotAndVariante($depot, $variante);
-            if (!$stockItem) {
-                $stockItem = (new DepotVenteStockItem())
-                    ->setDepotVente($depot)
-                    ->setVariante($variante)
-                    ->setQuantite(0);
-                $this->em->persist($stockItem);
-            }
-            $stockItem->addQuantite($qty);
-
-            // Ligne de transaction
-            $label = $variante->getArticle()->getNom() . ' — ' . $variante->getNom();
-            $ligne = (new DepotVenteTransactionLigne())
-                ->setVariante($variante)
-                ->setVarianteLabel($label)
-                ->setQuantite($qty);
-            $transaction->addLigne($ligne);
-            $hasLines = true;
-        }
-
-        if ($hasLines) {
-            $this->em->persist($transaction);
-            $this->em->flush();
-            $this->addFlash('success', 'Réassort enregistré.');
-        } else {
-            $this->addFlash('error', 'Aucune quantité saisie.');
-        }
-
-        return $this->redirectToRoute('admin_depot_ventes_detail', ['id' => $depot->getId(), 'mode' => 'reassort']);
     }
 
     // ─── Vente ────────────────────────────────────────────────────────────────
