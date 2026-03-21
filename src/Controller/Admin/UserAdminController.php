@@ -56,33 +56,6 @@ class UserAdminController extends AbstractController
         return $this->redirectToRoute('admin_utilisateurs');
     }
 
-    #[Route('/{id}/toggle-depot-vente', name: '_toggle_depot_vente', methods: ['POST'])]
-    public function toggleDepotVente(int $id): Response
-    {
-        $user = $this->userRepo->find($id);
-        if (!$user) {
-            throw $this->createNotFoundException();
-        }
-
-        /** @var \App\Entity\User $me */
-        $me = $this->getUser();
-        if ($me->getId() === $user->getId()) {
-            $this->addFlash('error', 'Vous ne pouvez pas modifier votre propre rôle.');
-            return $this->redirectToRoute('admin_utilisateurs');
-        }
-
-        if (in_array('ROLE_DEPOT_VENTE', $user->getRoles())) {
-            $user->setRoles([]);
-            $this->addFlash('success', $user->getPrenom() . ' ' . $user->getNom() . ' n\'est plus dépôt-vente.');
-        } else {
-            $user->setRoles(['ROLE_DEPOT_VENTE']);
-            $this->addFlash('success', $user->getPrenom() . ' ' . $user->getNom() . ' est maintenant dépôt-vente.');
-        }
-
-        $this->em->flush();
-        return $this->redirectToRoute('admin_utilisateurs');
-    }
-
     #[Route('/{id}/delete', name: '_delete', methods: ['POST'])]
     public function delete(int $id): Response
     {
