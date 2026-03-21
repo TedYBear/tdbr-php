@@ -159,51 +159,28 @@ class DepotVenteAdminController extends AbstractController
     #[Route('/{id}/ajout', name: '_ajout', methods: ['POST'])]
     public function ajout(DepotVente $depot, Request $request): Response
     {
-        $lignesData = $request->request->all('lignes'); // [varianteId => qty]
-        $note = trim($request->request->get('note', ''));
+        $varianteIds = $request->request->all('variantes'); // [varianteId, ...]
 
-        /** @var \App\Entity\User $admin */
-        $admin = $this->getUser();
-
-        $transaction = (new DepotVenteTransaction())
-            ->setDepotVente($depot)
-            ->setType(DepotVenteTransaction::TYPE_REASSORT)
-            ->setNote($note ?: null)
-            ->setCreatedBy($admin);
-
-        $hasLines = false;
-
-        foreach ($lignesData as $varianteId => $qty) {
-            $qty = (int)$qty;
-            if ($qty <= 0) continue;
-
+        $added = 0;
+        foreach ($varianteIds as $varianteId) {
             $variante = $this->em->getReference(\App\Entity\Variante::class, (int)$varianteId);
 
-            $stockItem = $this->stockRepo->findOneByDepotAndVariante($depot, $variante);
-            if (!$stockItem) {
-                $stockItem = (new DepotVenteStockItem())
-                    ->setDepotVente($depot)
-                    ->setVariante($variante)
-                    ->setQuantite(0);
-                $this->em->persist($stockItem);
-            }
-            $stockItem->addQuantite($qty);
+            $existing = $this->stockRepo->findOneByDepotAndVariante($depot, $variante);
+            if ($existing) continue;
 
-            $label = $variante->getArticle()->getNom() . ' — ' . $variante->getNom();
-            $ligne = (new DepotVenteTransactionLigne())
+            $stockItem = (new DepotVenteStockItem())
+                ->setDepotVente($depot)
                 ->setVariante($variante)
-                ->setVarianteLabel($label)
-                ->setQuantite($qty);
-            $transaction->addLigne($ligne);
-            $hasLines = true;
+                ->setQuantite(0);
+            $this->em->persist($stockItem);
+            $added++;
         }
 
-        if ($hasLines) {
-            $this->em->persist($transaction);
+        if ($added > 0) {
             $this->em->flush();
-            $this->addFlash('success', 'Articles ajoutés au stock.');
+            $this->addFlash('success', $added . ' variante(s) ajoutée(s) au suivi.');
         } else {
-            $this->addFlash('error', 'Aucune quantité saisie.');
+            $this->addFlash('success', 'Aucune nouvelle variante à ajouter.');
         }
 
         return $this->redirectToRoute('admin_depot_ventes_detail', ['id' => $depot->getId()]);
