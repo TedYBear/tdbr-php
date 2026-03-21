@@ -1,0 +1,75 @@
+{% extends 'admin/base_admin.html.twig' %}
+{% block title %}{{ depot ? 'Modifier ' ~ depot.nom : 'Nouveau dépôt-vente' }}{% endblock %}
+{% block page_title %}{{ depot ? 'Modifier ' ~ depot.nom : 'Nouveau dépôt-vente' }}{% endblock %}
+
+{% block body %}
+    <div class="max-w-xl">
+        <form method="post" class="card p-6 space-y-5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="sm:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nom <span class="text-red-500">*</span></label>
+                    <input type="text" name="nom" value="{{ depot ? depot.nom : '' }}" required
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+                </div>
+
+                <div class="sm:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Adresse</label>
+                    <input type="text" name="adresse" value="{{ depot ? depot.adresse : '' }}"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Code postal</label>
+                    <input type="text" name="codePostal" value="{{ depot ? depot.codePostal : '' }}"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Ville</label>
+                    <input type="text" name="ville" value="{{ depot ? depot.ville : '' }}"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+                    <input type="text" name="telephone" value="{{ depot ? depot.telephone : '' }}"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" name="email" value="{{ depot ? depot.email : '' }}"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+                </div>
+
+                <div class="sm:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Compte utilisateur associé</label>
+                    <select name="userId"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+                        <option value="">— Aucun —</option>
+                        {% for user in users %}
+                            <option value="{{ user.id }}" {{ depot and depot.user and depot.user.id == user.id ? 'selected' : '' }}>
+                                {{ user.prenom }} {{ user.nom }} ({{ user.email }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="sm:col-span-2 flex items-center gap-2">
+                    <input type="checkbox" name="actif" id="actif" value="1"
+                           class="rounded border-gray-300 text-primary focus:ring-primary"
+                           {{ (depot is null or depot.actif) ? 'checked' : '' }}>
+                    <label for="actif" class="text-sm font-medium text-gray-700">Actif</label>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3 pt-2 border-t border-gray-100">
+                <button type="submit" class="btn-primary">
+                    {{ depot ? 'Enregistrer' : 'Créer' }}
+                </button>
+                <a href="{{ depot ? path('admin_depot_ventes_detail', {id: depot.id}) : path('admin_depot_ventes') }}"
+                   class="text-sm text-gray-500 hover:text-gray-800 transition">Annuler</a>
+            </div>
+        </form>
+    </div>
+{% endblock %}

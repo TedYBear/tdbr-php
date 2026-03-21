@@ -1,0 +1,407 @@
+{% extends 'admin/base_admin.html.twig' %}
+{% block title %}{{ depot.nom }}{% endblock %}
+{% block page_title %}{{ depot.nom }}{% endblock %}
+
+{% block body %}
+<div x-data="depotVente()" x-init="init()">
+
+    {# ── En-tête ──────────────────────────────────────────────────────────── #}
+    <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
+        <div>
+            <div class="flex items-center gap-2 text-sm text-gray-400 mb-1">
+                <a href="{{ path('admin_depot_ventes') }}" class="hover:text-gray-600 transition">Dépôts-vente</a>
+                <span>/</span>
+                <span class="text-gray-700 font-medium">{{ depot.nom }}</span>
+            </div>
+            {% if depot.ville %}
+                <p class="text-sm text-gray-500">{{ depot.codePostal }} {{ depot.ville }}</p>
+            {% endif %}
+            {% if depot.user %}
+                <p class="text-xs text-gray-400 mt-0.5">Géré par {{ depot.user.prenom }} {{ depot.user.nom }}</p>
+            {% endif %}
+        </div>
+        <div class="flex items-center gap-2">
+            <a href="{{ path('admin_depot_ventes_edit', {id: depot.id}) }}"
+               class="px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition">
+                Modifier
+            </a>
+        </div>
+    </div>
+
+    {# ── Cartes KPI ───────────────────────────────────────────────────────── #}
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        {# Fond de caisse #}
+        <div class="card p-5">
+            <div class="flex items-center justify-between mb-3">
+                <p class="text-sm text-gray-500">Fond de caisse</p>
+                <button @click="openFond = true"
+                        class="px-2 py-1 rounded text-xs font-medium bg-primary/10 text-primary hover:bg-primary hover:text-white transition">
+                    Ajuster
+                </button>
+            </div>
+            <p class="text-3xl font-bold text-gray-900">{{ depot.fondDeCaisse|number_format(2, ',', ' ') }} €</p>
+        </div>
+
+        {# Stock #}
+        <div class="card p-5">
+            <p class="text-sm text-gray-500 mb-3">Articles en stock</p>
+            <p class="text-3xl font-bold text-gray-900">{{ depot.totalStock }}</p>
+        </div>
+
+        {# Actions rapides #}
+        <div class="card p-5 flex flex-col justify-center gap-2">
+            <button @click="openVente = true"
+                    class="btn-primary text-sm text-center w-full">
+                Réaliser une vente
+            </button>
+            <div class="flex gap-2">
+                <a href="{{ path('admin_depot_ventes_detail', {id: depot.id, mode: 'consultation'}) }}"
+                   class="flex-1 text-center px-3 py-1.5 rounded-lg text-xs font-medium transition
+                          {{ mode == 'consultation' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">
+                    Consultation
+                </a>
+                <a href="{{ path('admin_depot_ventes_detail', {id: depot.id, mode: 'reassort'}) }}"
+                   class="flex-1 text-center px-3 py-1.5 rounded-lg text-xs font-medium transition
+                          {{ mode == 'reassort' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">
+                    Réassort
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {# ── Stock ────────────────────────────────────────────────────────────── #}
+    <div class="card overflow-hidden mb-6">
+        <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h2 class="font-semibold text-gray-800">
+                Stock
+                {% if mode == 'reassort' %}
+                    <span class="ml-2 text-xs font-normal text-amber-600 bg-amber-50 px-2 py-0.5 rounded">Mode réassort</span>
+                {% endif %}
+            </h2>
+        </div>
+
+        {% if articles is empty %}
+            <div class="px-5 py-10 text-center text-gray-400 text-sm">
+                {% if mode == 'consultation' %}
+                    Aucun article en stock.
+                {% else %}
+                    Aucun article actif dans le catalogue.
+                {% endif %}
+            </div>
+        {% else %}
+            {% if mode == 'reassort' %}
+                {# ── Mode réassort : formulaire avec toutes les variantes ── #}
+                <form method="post" action="{{ path('admin_depot_ventes_reassort', {id: depot.id}) }}">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-50 border-b">
+                                <tr>
+                                    <th class="text-left px-5 py-3 font-semibold text-gray-600">Article / Variante</th>
+                                    <th class="text-center px-4 py-3 font-semibold text-gray-600">En stock</th>
+                                    <th class="text-center px-4 py-3 font-semibold text-gray-600">Ajouter</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                {% for article in articles %}
+                                    {% for variante in article.variantes %}
+                                        {% if variante.actif %}
+                                            {% set stockItem = stockMap[variante.id] ?? null %}
+                                            {% set qty = stockItem ? stockItem.quantite : 0 %}
+                                            <tr class="hover:bg-gray-50">
+                                                <td class="px-5 py-2.5">
+                                                    <div class="font-medium text-gray-800">{{ article.nom }}</div>
+                                                    <div class="text-xs text-gray-400">{{ variante.nom }}</div>
+                                                </td>
+                                                <td class="px-4 py-2.5 text-center">
+                                                    <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold
+                                                                 {{ qty > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400' }}">
+                                                        {{ qty }}
+                                                    </span>
+                                                </td>
+                                                <td class="px-4 py-2.5 text-center">
+                                                    <input type="number" name="lignes[{{ variante.id }}]"
+                                                           min="0" step="1" value=""
+                                                           placeholder="0"
+                                                           class="w-20 border border-gray-300 rounded-lg px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                                </td>
+                                            </tr>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="px-5 py-4 border-t border-gray-100 flex items-center gap-3">
+                        <input type="text" name="note" placeholder="Note (optionnel)"
+                               class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+                        <button type="submit" class="btn-primary text-sm">Valider le réassort</button>
+                    </div>
+                </form>
+
+            {% else %}
+                {# ── Mode consultation : stock > 0 uniquement ── #}
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-gray-50 border-b">
+                            <tr>
+                                <th class="text-left px-5 py-3 font-semibold text-gray-600">Article / Variante</th>
+                                <th class="text-center px-4 py-3 font-semibold text-gray-600">Quantité</th>
+                                <th class="text-right px-4 py-3 font-semibold text-gray-600">Prix estimé</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            {% for article in articles %}
+                                {% for variante in article.variantes %}
+                                    {% if variante.actif %}
+                                        {% set stockItem = stockMap[variante.id] ?? null %}
+                                        {% if stockItem and stockItem.quantite > 0 %}
+                                            {% set prix = article.prixBase + (variante.deltaPrix ?? 0) %}
+                                            <tr class="hover:bg-gray-50">
+                                                <td class="px-5 py-2.5">
+                                                    <div class="font-medium text-gray-800">{{ article.nom }}</div>
+                                                    <div class="text-xs text-gray-400">{{ variante.nom }}</div>
+                                                </td>
+                                                <td class="px-4 py-2.5 text-center">
+                                                    <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-700 text-sm font-bold">
+                                                        {{ stockItem.quantite }}
+                                                    </span>
+                                                </td>
+                                                <td class="px-4 py-2.5 text-right text-gray-600">
+                                                    {{ prix|number_format(2, ',', ' ') }} €
+                                                </td>
+                                            </tr>
+                                        {% endif %}
+                                    {% endif %}
+                                {% endfor %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    {# ── Historique des transactions ──────────────────────────────────────── #}
+    <div class="card overflow-hidden">
+        <div class="px-5 py-4 border-b border-gray-100">
+            <h2 class="font-semibold text-gray-800">Historique</h2>
+        </div>
+        {% if transactions is empty %}
+            <div class="px-5 py-8 text-center text-gray-400 text-sm">Aucune transaction.</div>
+        {% else %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50 border-b">
+                        <tr>
+                            <th class="text-left px-5 py-3 font-semibold text-gray-600">Date</th>
+                            <th class="text-left px-4 py-3 font-semibold text-gray-600">Type</th>
+                            <th class="text-left px-4 py-3 font-semibold text-gray-600">Détail</th>
+                            <th class="text-right px-4 py-3 font-semibold text-gray-600">Montant</th>
+                            <th class="text-left px-4 py-3 font-semibold text-gray-600">Par</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        {% for tx in transactions %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-5 py-3 text-gray-400 text-xs whitespace-nowrap">
+                                    {{ tx.createdAt|date('d/m/Y H:i') }}
+                                </td>
+                                <td class="px-4 py-3">
+                                    {% set colors = {
+                                        'vente':        'bg-blue-100 text-blue-700',
+                                        'reassort':     'bg-amber-100 text-amber-700',
+                                        'fond_ajout':   'bg-green-100 text-green-700',
+                                        'fond_retrait': 'bg-red-100 text-red-700',
+                                    } %}
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold {{ colors[tx.type] ?? 'bg-gray-100 text-gray-600' }}">
+                                        {{ tx.typeLabel }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 text-gray-600 max-w-xs">
+                                    {% if tx.lignes is not empty %}
+                                        <ul class="space-y-0.5">
+                                            {% for ligne in tx.lignes %}
+                                                <li class="text-xs">
+                                                    {{ ligne.varianteLabel }} × {{ ligne.quantite }}
+                                                    {% if ligne.prixReel %}
+                                                        <span class="text-gray-400">({{ ligne.prixReel|number_format(2, ',', ' ') }} €)</span>
+                                                    {% endif %}
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% endif %}
+                                    {% if tx.note %}
+                                        <p class="text-xs text-gray-400 mt-0.5 italic">{{ tx.note }}</p>
+                                    {% endif %}
+                                </td>
+                                <td class="px-4 py-3 text-right font-medium whitespace-nowrap">
+                                    {% if tx.montantFond is not null %}
+                                        <span class="{{ tx.montantFond >= 0 ? 'text-green-600' : 'text-red-600' }}">
+                                            {{ tx.montantFond >= 0 ? '+' : '' }}{{ tx.montantFond|number_format(2, ',', ' ') }} €
+                                        </span>
+                                    {% else %}
+                                        <span class="text-gray-300">—</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-4 py-3 text-xs text-gray-400">
+                                    {{ tx.createdBy ? tx.createdBy.prenom ~ ' ' ~ tx.createdBy.nom : '—' }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+
+    {# ════════════════════════════════════════════════════════════════════════
+       Modal — Fond de caisse
+    ════════════════════════════════════════════════════════════════════════ #}
+    <div x-show="openFond" x-cloak
+         style="position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:1rem;"
+         @click.self="openFond = false">
+        <div style="background:#fff;border-radius:1.25rem;padding:2rem;max-width:22rem;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+            <h3 style="font-size:1.1rem;font-weight:700;color:#111827;margin:0 0 1.25rem;">Fond de caisse</h3>
+            <form method="post" action="{{ path('admin_depot_ventes_fond', {id: depot.id}) }}">
+                <div style="margin-bottom:1rem;">
+                    <label style="display:block;font-size:0.8rem;font-weight:600;color:#374151;margin-bottom:0.35rem;">Opération</label>
+                    <div style="display:flex;gap:0.5rem;">
+                        <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:0.5rem;padding:0.5rem;border:1.5px solid #d1d5db;border-radius:0.5rem;cursor:pointer;font-size:0.85rem;font-weight:600;">
+                            <input type="radio" name="sens" value="ajout" x-model="fondSens" style="accent-color:#16a34a;"> Ajout
+                        </label>
+                        <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:0.5rem;padding:0.5rem;border:1.5px solid #d1d5db;border-radius:0.5rem;cursor:pointer;font-size:0.85rem;font-weight:600;">
+                            <input type="radio" name="sens" value="retrait" x-model="fondSens" style="accent-color:#dc2626;"> Retrait
+                        </label>
+                    </div>
+                </div>
+                <div style="margin-bottom:1rem;">
+                    <label style="display:block;font-size:0.8rem;font-weight:600;color:#374151;margin-bottom:0.35rem;">Montant (€)</label>
+                    <input type="number" name="montant" min="0.01" step="0.01" required
+                           style="width:100%;border:1.5px solid #d1d5db;border-radius:0.5rem;padding:0.5rem 0.75rem;font-size:0.9rem;font-family:inherit;box-sizing:border-box;"
+                           placeholder="0.00">
+                </div>
+                <div style="margin-bottom:1.5rem;">
+                    <label style="display:block;font-size:0.8rem;font-weight:600;color:#374151;margin-bottom:0.35rem;">Note (optionnel)</label>
+                    <input type="text" name="note"
+                           style="width:100%;border:1.5px solid #d1d5db;border-radius:0.5rem;padding:0.5rem 0.75rem;font-size:0.9rem;font-family:inherit;box-sizing:border-box;"
+                           placeholder="Ex : versement Myriam">
+                </div>
+                <div style="display:flex;gap:0.75rem;">
+                    <button type="button" @click="openFond = false"
+                            style="flex:1;padding:0.6rem;border-radius:0.625rem;border:1.5px solid #d1d5db;background:#fff;font-weight:600;cursor:pointer;font-size:0.875rem;font-family:inherit;">
+                        Annuler
+                    </button>
+                    <button type="submit"
+                            style="flex:1;padding:0.6rem;border-radius:0.625rem;border:none;background:#111827;color:#fff;font-weight:600;cursor:pointer;font-size:0.875rem;font-family:inherit;">
+                        Confirmer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {# ════════════════════════════════════════════════════════════════════════
+       Modal — Réaliser une vente
+    ════════════════════════════════════════════════════════════════════════ #}
+    <div x-show="openVente" x-cloak
+         style="position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:1rem;"
+         @click.self="openVente = false">
+        <div style="background:#fff;border-radius:1.25rem;padding:2rem;max-width:42rem;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+            <div style="display:flex;align-items:center;justify-content:between;margin-bottom:1.25rem;">
+                <h3 style="font-size:1.1rem;font-weight:700;color:#111827;flex:1;margin:0;">Réaliser une vente</h3>
+                <button @click="openVente = false" style="background:none;border:none;cursor:pointer;padding:0.25rem;color:#6b7280;">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <form method="post" action="{{ path('admin_depot_ventes_vente', {id: depot.id}) }}">
+                {# Articles en stock #}
+                {% set hasStock = false %}
+                {% for article in articles %}
+                    {% for variante in article.variantes %}
+                        {% if variante.actif %}
+                            {% set stockItem = stockMap[variante.id] ?? null %}
+                            {% if stockItem and stockItem.quantite > 0 %}
+                                {% set hasStock = true %}
+                                {% set prixUnit = article.prixBase + (variante.deltaPrix ?? 0) %}
+                                <div style="border:1px solid #e5e7eb;border-radius:0.75rem;padding:0.875rem;margin-bottom:0.75rem;"
+                                     x-data="{ qty: 0, prixUnit: {{ prixUnit }} }">
+                                    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.625rem;">
+                                        <div style="flex:1;">
+                                            <div style="font-weight:600;font-size:0.875rem;color:#111827;">{{ article.nom }}</div>
+                                            <div style="font-size:0.75rem;color:#9ca3af;">{{ variante.nom }}</div>
+                                        </div>
+                                        <div style="font-size:0.8rem;color:#6b7280;">
+                                            Stock : <strong>{{ stockItem.quantite }}</strong>
+                                        </div>
+                                    </div>
+                                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem;align-items:end;">
+                                        <div>
+                                            <label style="display:block;font-size:0.75rem;font-weight:600;color:#374151;margin-bottom:0.25rem;">Qté vendue</label>
+                                            <input type="number" name="lignes[{{ stockItem.id }}][qty]"
+                                                   min="0" max="{{ stockItem.quantite }}" step="1"
+                                                   x-model.number="qty"
+                                                   style="width:100%;border:1.5px solid #d1d5db;border-radius:0.5rem;padding:0.4rem 0.5rem;font-size:0.875rem;font-family:inherit;box-sizing:border-box;text-align:center;">
+                                        </div>
+                                        <div>
+                                            <label style="display:block;font-size:0.75rem;font-weight:600;color:#374151;margin-bottom:0.25rem;">Prix estimé/u (€)</label>
+                                            <input type="number" name="lignes[{{ stockItem.id }}][prixEstime]"
+                                                   step="0.01" min="0"
+                                                   value="{{ prixUnit|number_format(2, '.', '') }}"
+                                                   style="width:100%;border:1.5px solid #e5e7eb;border-radius:0.5rem;padding:0.4rem 0.5rem;font-size:0.875rem;font-family:inherit;box-sizing:border-box;text-align:center;background:#f9fafb;"
+                                                   readonly>
+                                        </div>
+                                        <div>
+                                            <label style="display:block;font-size:0.75rem;font-weight:600;color:#374151;margin-bottom:0.25rem;">Prix réel/u (€)</label>
+                                            <input type="number" name="lignes[{{ stockItem.id }}][prixReel]"
+                                                   step="0.01" min="0"
+                                                   :value="qty > 0 ? prixUnit.toFixed(2) : ''"
+                                                   style="width:100%;border:1.5px solid #d1d5db;border-radius:0.5rem;padding:0.4rem 0.5rem;font-size:0.875rem;font-family:inherit;box-sizing:border-box;text-align:center;">
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                {% endfor %}
+
+                {% if not hasStock %}
+                    <p style="text-align:center;color:#9ca3af;padding:2rem 0;font-size:0.875rem;">Aucun article en stock.</p>
+                {% endif %}
+
+                <div style="margin-top:1rem;">
+                    <label style="display:block;font-size:0.8rem;font-weight:600;color:#374151;margin-bottom:0.35rem;">Note (optionnel)</label>
+                    <input type="text" name="note"
+                           style="width:100%;border:1.5px solid #d1d5db;border-radius:0.5rem;padding:0.5rem 0.75rem;font-size:0.9rem;font-family:inherit;box-sizing:border-box;"
+                           placeholder="Ex : vente samedi marché">
+                </div>
+
+                <div style="display:flex;gap:0.75rem;margin-top:1.5rem;">
+                    <button type="button" @click="openVente = false"
+                            style="flex:1;padding:0.6rem;border-radius:0.625rem;border:1.5px solid #d1d5db;background:#fff;font-weight:600;cursor:pointer;font-size:0.875rem;font-family:inherit;">
+                        Annuler
+                    </button>
+                    <button type="submit" {% if not hasStock %}disabled{% endif %}
+                            style="flex:1;padding:0.6rem;border-radius:0.625rem;border:none;background:#111827;color:#fff;font-weight:600;cursor:pointer;font-size:0.875rem;font-family:inherit;">
+                        Valider la vente
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<script>
+function depotVente() {
+    return {
+        openFond: false,
+        openVente: false,
+        fondSens: 'ajout',
+        init() {
+            // Ouvrir le modal vente si passage depuis le bouton de la liste
+        }
+    };
+}
+</script>
+{% endblock %}
