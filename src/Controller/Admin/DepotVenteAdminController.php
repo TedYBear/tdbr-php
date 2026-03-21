@@ -159,21 +159,26 @@ class DepotVenteAdminController extends AbstractController
     #[Route('/{id}/ajout', name: '_ajout', methods: ['POST'])]
     public function ajout(DepotVente $depot, Request $request): Response
     {
-        $varianteIds = $request->request->all('variantes'); // [varianteId, ...]
+        $articleIds = $request->request->all('articles'); // [articleId, ...]
 
         $added = 0;
-        foreach ($varianteIds as $varianteId) {
-            $variante = $this->em->getReference(\App\Entity\Variante::class, (int)$varianteId);
+        foreach ($articleIds as $articleId) {
+            $article = $this->articleRepo->find((int)$articleId);
+            if (!$article) continue;
 
-            $existing = $this->stockRepo->findOneByDepotAndVariante($depot, $variante);
-            if ($existing) continue;
+            foreach ($article->getVariantes() as $variante) {
+                if (!$variante->isActif()) continue;
 
-            $stockItem = (new DepotVenteStockItem())
-                ->setDepotVente($depot)
-                ->setVariante($variante)
-                ->setQuantite(0);
-            $this->em->persist($stockItem);
-            $added++;
+                $existing = $this->stockRepo->findOneByDepotAndVariante($depot, $variante);
+                if ($existing) continue;
+
+                $stockItem = (new DepotVenteStockItem())
+                    ->setDepotVente($depot)
+                    ->setVariante($variante)
+                    ->setQuantite(0);
+                $this->em->persist($stockItem);
+                $added++;
+            }
         }
 
         if ($added > 0) {
