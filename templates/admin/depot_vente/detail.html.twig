@@ -3,7 +3,14 @@
 {% block page_title %}{{ depot.nom }}{% endblock %}
 
 {% block body %}
-<div x-data="{ openFond: false, openVente: false, fondSens: 'ajout' }">
+<div x-data="{
+    openFond: false,
+    openVente: false,
+    fondSens: 'ajout',
+    panel: null,
+    collectionId: null,
+    togglePanel(name) { this.panel = this.panel === name ? null : name; }
+}">
 
     {# ── En-tête ──────────────────────────────────────────────────────────── #}
     <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
@@ -40,14 +47,165 @@
             <p class="text-3xl font-bold text-gray-900">{{ depot.totalStock }}</p>
         </div>
 
-        <div class="card p-5 flex flex-col justify-center">
-            <button @click="openVente = true" class="btn-primary text-sm text-center w-full">
+        <div class="card p-5 flex flex-col gap-2 justify-center">
+            <button @click="openVente = true"
+                    style="background:#111827;color:#fff;border:none;border-radius:0.5rem;padding:0.5rem 1rem;font-size:0.875rem;font-weight:600;cursor:pointer;font-family:inherit;width:100%;">
                 Réaliser une vente
+            </button>
+            <button @click="togglePanel('ajout')"
+                    :style="panel === 'ajout' ? 'background:#1e40af;color:#fff;border:none;border-radius:0.5rem;padding:0.5rem 1rem;font-size:0.875rem;font-weight:600;cursor:pointer;font-family:inherit;width:100%;' : 'background:#dbeafe;color:#1e40af;border:none;border-radius:0.5rem;padding:0.5rem 1rem;font-size:0.875rem;font-weight:600;cursor:pointer;font-family:inherit;width:100%;'">
+                Ajouter des articles
+            </button>
+            <button @click="togglePanel('modifier')"
+                    :style="panel === 'modifier' ? 'background:#92400e;color:#fff;border:none;border-radius:0.5rem;padding:0.5rem 1rem;font-size:0.875rem;font-weight:600;cursor:pointer;font-family:inherit;width:100%;' : 'background:#fef3c7;color:#92400e;border:none;border-radius:0.5rem;padding:0.5rem 1rem;font-size:0.875rem;font-weight:600;cursor:pointer;font-family:inherit;width:100%;'">
+                Modifier les stocks
             </button>
         </div>
     </div>
 
-    {# ── Stock ────────────────────────────────────────────────────────────── #}
+    {# ════════════════════════════════════════════════════════════════════════
+       Panel — Ajouter des articles
+    ════════════════════════════════════════════════════════════════════════ #}
+    <div x-show="panel === 'ajout'" x-cloak class="card overflow-hidden mb-6">
+        <div class="px-5 py-4 border-b border-gray-100">
+            <h2 class="font-semibold text-gray-800">Ajouter des articles</h2>
+        </div>
+
+        <form method="post" action="{{ path('admin_depot_ventes_ajout', {id: depot.id}) }}">
+            <div class="px-5 pt-4 pb-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Collection</label>
+                <select x-model="collectionId"
+                        class="w-full max-w-sm border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+                    <option value="">— Sélectionner une collection —</option>
+                    {% for categorie in categories %}
+                        {% if categorie.collections|length > 0 %}
+                            <optgroup label="{{ categorie.nom }}">
+                                {% for collection in categorie.collections %}
+                                    {% if collection.actif %}
+                                        <option value="{{ collection.id }}">{{ collection.nom }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </optgroup>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+
+            {# Articles par collection — affichés selon la sélection #}
+            {% for categorie in categories %}
+                {% for collection in categorie.collections %}
+                    {% if collection.actif %}
+                        <div x-show="collectionId == '{{ collection.id }}'" x-cloak>
+                            <div class="px-5 py-3 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                                {% for article in collection.articles %}
+                                    {% if article.actif %}
+                                        <div class="border border-gray-200 rounded-xl overflow-hidden">
+                                            {% set imgUrl = article.firstImageUrl %}
+                                            {% if imgUrl %}
+                                                <img src="{{ imgUrl }}" alt="{{ article.nom }}" class="w-full h-9 object-cover">
+                                            {% else %}
+                                                <div class="w-full h-9 bg-gray-100"></div>
+                                            {% endif %}
+                                            <div class="p-3">
+                                                <p class="font-semibold text-gray-900 text-sm mb-2">{{ article.nom }}</p>
+                                                <div class="space-y-1.5">
+                                                    {% for variante in article.variantes %}
+                                                        {% if variante.actif %}
+                                                            {% set prix = prixMap[variante.id] ?? null %}
+                                                            <div class="flex items-center gap-2">
+                                                                <span class="flex-1 text-xs text-gray-600 truncate">{{ variante.nom }}</span>
+                                                                {% if prix is not null %}
+                                                                    <span class="text-xs text-gray-400">{{ prix|number_format(2, ',', ' ') }} €</span>
+                                                                {% endif %}
+                                                                <input type="number" name="lignes[{{ variante.id }}]"
+                                                                       min="0" step="1" placeholder="0"
+                                                                       class="w-14 border border-gray-300 rounded px-1.5 py-0.5 text-xs text-center focus:outline-none focus:ring-1 focus:ring-primary/50 flex-shrink-0">
+                                                            </div>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            {% endfor %}
+
+            <div class="px-5 py-4 border-t border-gray-100 flex items-center gap-3">
+                <input type="text" name="note" placeholder="Note (optionnel)"
+                       class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+                <button type="submit"
+                        style="background:#1e40af;color:#fff;border:none;border-radius:0.5rem;padding:0.5rem 1.25rem;font-size:0.875rem;font-weight:600;cursor:pointer;font-family:inherit;">
+                    Ajouter au stock
+                </button>
+            </div>
+        </form>
+    </div>
+
+    {# ════════════════════════════════════════════════════════════════════════
+       Panel — Modifier les stocks
+    ════════════════════════════════════════════════════════════════════════ #}
+    <div x-show="panel === 'modifier'" x-cloak class="card overflow-hidden mb-6">
+        <div class="px-5 py-4 border-b border-gray-100">
+            <h2 class="font-semibold text-gray-800">Modifier les stocks</h2>
+        </div>
+
+        {% if articlesAvecStockItems is empty %}
+            <div class="px-5 py-8 text-center text-gray-400 text-sm">Aucun article en stock à modifier.</div>
+        {% else %}
+            <form method="post" action="{{ path('admin_depot_ventes_modifier_stock', {id: depot.id}) }}">
+                <div class="px-5 py-4 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                    {% for article in articlesAvecStockItems %}
+                        <div class="border border-gray-200 rounded-xl overflow-hidden">
+                            {% set imgUrl = article.firstImageUrl %}
+                            {% if imgUrl %}
+                                <img src="{{ imgUrl }}" alt="{{ article.nom }}" class="w-full h-9 object-cover">
+                            {% else %}
+                                <div class="w-full h-9 bg-gray-100"></div>
+                            {% endif %}
+                            <div class="p-3">
+                                <p class="font-semibold text-gray-900 text-sm mb-2">{{ article.nom }}</p>
+                                <div class="space-y-1.5">
+                                    {% for variante in article.variantes %}
+                                        {% if variante.actif %}
+                                            {% set stockItem = stockMap[variante.id] ?? null %}
+                                            {% if stockItem %}
+                                                {% set prix = prixMap[variante.id] ?? null %}
+                                                <div class="flex items-center gap-2">
+                                                    <span class="flex-1 text-xs text-gray-600 truncate">{{ variante.nom }}</span>
+                                                    {% if prix is not null %}
+                                                        <span class="text-xs text-gray-400">{{ prix|number_format(2, ',', ' ') }} €</span>
+                                                    {% endif %}
+                                                    <input type="number" name="lignes[{{ stockItem.id }}]"
+                                                           min="0" step="1"
+                                                           value="{{ stockItem.quantite }}"
+                                                           class="w-14 border border-gray-300 rounded px-1.5 py-0.5 text-xs text-center focus:outline-none focus:ring-1 focus:ring-amber-400 flex-shrink-0">
+                                                </div>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="px-5 py-4 border-t border-gray-100 flex items-center gap-3">
+                    <input type="text" name="note" placeholder="Note (optionnel)"
+                           class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+                    <button type="submit"
+                            style="background:#92400e;color:#fff;border:none;border-radius:0.5rem;padding:0.5rem 1.25rem;font-size:0.875rem;font-weight:600;cursor:pointer;font-family:inherit;">
+                        Enregistrer les modifications
+                    </button>
+                </div>
+            </form>
+        {% endif %}
+    </div>
+
+    {# ── Stock (consultation) ─────────────────────────────────────────────── #}
     <div class="card overflow-hidden mb-6">
         <div class="px-5 py-4 border-b border-gray-100">
             <h2 class="font-semibold text-gray-800">Stock</h2>
@@ -58,7 +216,6 @@
         {% else %}
             <div class="p-5 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                 {% for article in articles %}
-                    {# Collecter uniquement les variantes avec stock > 0 #}
                     {% set variantesEnStock = [] %}
                     {% for variante in article.variantes %}
                         {% if variante.actif %}
@@ -80,7 +237,7 @@
                                 <img src="{{ imgUrl }}" alt="{{ article.nom }}" class="w-full h-9 object-cover">
                             {% else %}
                                 <div class="w-full h-9 bg-gray-100 flex items-center justify-center">
-                                    <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                    <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v13.5A1.5 1.5 0 003.75 21z"/>
                                     </svg>
                                 </div>
