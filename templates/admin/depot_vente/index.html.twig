@@ -1,0 +1,65 @@
+{% extends 'admin/base_admin.html.twig' %}
+{% block title %}Dépôts-vente{% endblock %}
+{% block page_title %}Dépôts-vente{% endblock %}
+
+{% block body %}
+    <div class="mb-6 flex items-center justify-between">
+        <p class="text-gray-500 text-sm">{{ depots|length }} dépôt{{ depots|length > 1 ? 's' : '' }}</p>
+        <a href="{{ path('admin_depot_ventes_new') }}" class="btn-primary text-sm">+ Nouveau dépôt-vente</a>
+    </div>
+
+    {% if depots is empty %}
+        <div class="card p-12 text-center text-gray-400">
+            <p class="text-sm">Aucun dépôt-vente configuré.</p>
+        </div>
+    {% else %}
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {% for depot in depots %}
+                <div class="card p-5 flex flex-col gap-3">
+                    <div class="flex items-start justify-between gap-2">
+                        <div>
+                            <h2 class="font-semibold text-gray-900">{{ depot.nom }}</h2>
+                            {% if depot.ville %}
+                                <p class="text-xs text-gray-400 mt-0.5">{{ depot.codePostal }} {{ depot.ville }}</p>
+                            {% endif %}
+                        </div>
+                        <span class="flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold {{ depot.actif ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500' }}">
+                            {{ depot.actif ? 'Actif' : 'Inactif' }}
+                        </span>
+                    </div>
+
+                    <div class="flex items-center gap-4 text-sm">
+                        <div>
+                            <span class="text-gray-500">Fond de caisse</span>
+                            <span class="font-bold text-gray-900 ml-1">{{ depot.fondDeCaisse|number_format(2, ',', ' ') }} €</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500">Stock</span>
+                            <span class="font-bold text-gray-900 ml-1">{{ depot.totalStock }} art.</span>
+                        </div>
+                    </div>
+
+                    {% if depot.user %}
+                        <p class="text-xs text-gray-400">
+                            Géré par {{ depot.user.prenom }} {{ depot.user.nom }}
+                        </p>
+                    {% endif %}
+
+                    <div class="flex items-center gap-2 pt-1 border-t border-gray-100">
+                        <a href="{{ path('admin_depot_ventes_detail', {id: depot.id}) }}"
+                           class="flex-1 btn-primary text-xs text-center py-1.5">Ouvrir</a>
+                        <a href="{{ path('admin_depot_ventes_edit', {id: depot.id}) }}"
+                           class="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition">Modifier</a>
+                        <form method="post" action="{{ path('admin_depot_ventes_delete', {id: depot.id}) }}"
+                              onsubmit="window.confirmForm(event, this, 'Supprimer « {{ depot.nom }} » ? Toutes les données seront perdues.')">
+                            <button type="submit"
+                                    class="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-600 transition">
+                                Supprimer
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endblock %}
