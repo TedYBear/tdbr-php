@@ -82,101 +82,111 @@
 
         {% if articles is empty %}
             <div class="px-5 py-10 text-center text-gray-400 text-sm">
-                {% if mode == 'consultation' %}
-                    Aucun article en stock.
-                {% else %}
-                    Aucun article actif dans le catalogue.
-                {% endif %}
+                {% if mode == 'consultation' %}Aucun article en stock.
+                {% else %}Aucun article actif dans le catalogue.{% endif %}
             </div>
         {% else %}
             {% if mode == 'reassort' %}
-                {# ── Mode réassort : formulaire avec toutes les variantes ── #}
-                <form method="post" action="{{ path('admin_depot_ventes_reassort', {id: depot.id}) }}">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
-                            <thead class="bg-gray-50 border-b">
-                                <tr>
-                                    <th class="text-left px-5 py-3 font-semibold text-gray-600">Article / Variante</th>
-                                    <th class="text-center px-4 py-3 font-semibold text-gray-600">En stock</th>
-                                    <th class="text-center px-4 py-3 font-semibold text-gray-600">Ajouter</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-100">
-                                {% for article in articles %}
+            {# ── Mode réassort : cartes avec toutes les variantes + saisie ── #}
+            <form method="post" action="{{ path('admin_depot_ventes_reassort', {id: depot.id}) }}">
+                <div class="p-5 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {% for article in articles %}
+                        {% set hasActif = false %}
+                        {% for v in article.variantes %}{% if v.actif %}{% set hasActif = true %}{% endif %}{% endfor %}
+                        {% if hasActif %}
+                        <div class="border border-gray-200 rounded-xl overflow-hidden">
+                            {# Image #}
+                            {% set imgUrl = article.firstImageUrl %}
+                            {% if imgUrl %}
+                                <img src="{{ imgUrl }}" alt="{{ article.nom }}"
+                                     class="w-full h-36 object-cover">
+                            {% else %}
+                                <div class="w-full h-36 bg-gray-100 flex items-center justify-center">
+                                    <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v13.5A1.5 1.5 0 003.75 21z"/>
+                                    </svg>
+                                </div>
+                            {% endif %}
+                            {# Contenu #}
+                            <div class="p-3">
+                                <p class="font-semibold text-gray-900 text-sm mb-2">{{ article.nom }}</p>
+                                <div class="space-y-1.5">
                                     {% for variante in article.variantes %}
                                         {% if variante.actif %}
                                             {% set stockItem = stockMap[variante.id] ?? null %}
                                             {% set qty = stockItem ? stockItem.quantite : 0 %}
-                                            <tr class="hover:bg-gray-50">
-                                                <td class="px-5 py-2.5">
-                                                    <div class="font-medium text-gray-800">{{ article.nom }}</div>
-                                                    <div class="text-xs text-gray-400">{{ variante.nom }}</div>
-                                                </td>
-                                                <td class="px-4 py-2.5 text-center">
-                                                    <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold
-                                                                 {{ qty > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400' }}">
-                                                        {{ qty }}
-                                                    </span>
-                                                </td>
-                                                <td class="px-4 py-2.5 text-center">
-                                                    <input type="number" name="lignes[{{ variante.id }}]"
-                                                           min="0" step="1" value=""
-                                                           placeholder="0"
-                                                           class="w-20 border border-gray-300 rounded-lg px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary/50">
-                                                </td>
-                                            </tr>
+                                            {% set prix = prixMap[variante.id] ?? null %}
+                                            <div class="flex items-center gap-2">
+                                                <span class="flex-1 text-xs text-gray-600 truncate">{{ variante.nom }}</span>
+                                                <span class="text-xs text-gray-400 w-14 text-right">
+                                                    {% if prix is not null %}{{ prix|number_format(2, ',', ' ') }} €{% endif %}
+                                                </span>
+                                                <span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold flex-shrink-0
+                                                             {{ qty > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400' }}">
+                                                    {{ qty }}
+                                                </span>
+                                                <input type="number" name="lignes[{{ variante.id }}]"
+                                                       min="0" step="1" placeholder="+"
+                                                       class="w-14 border border-gray-300 rounded px-1.5 py-0.5 text-xs text-center focus:outline-none focus:ring-1 focus:ring-primary/50 flex-shrink-0">
+                                            </div>
                                         {% endif %}
                                     {% endfor %}
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="px-5 py-4 border-t border-gray-100 flex items-center gap-3">
-                        <input type="text" name="note" placeholder="Note (optionnel)"
-                               class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
-                        <button type="submit" class="btn-primary text-sm">Valider le réassort</button>
-                    </div>
-                </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="px-5 py-4 border-t border-gray-100 flex items-center gap-3">
+                    <input type="text" name="note" placeholder="Note (optionnel)"
+                           class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+                    <button type="submit" class="btn-primary text-sm">Valider le réassort</button>
+                </div>
+            </form>
 
             {% else %}
-                {# ── Mode consultation : stock > 0 uniquement ── #}
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm">
-                        <thead class="bg-gray-50 border-b">
-                            <tr>
-                                <th class="text-left px-5 py-3 font-semibold text-gray-600">Article / Variante</th>
-                                <th class="text-center px-4 py-3 font-semibold text-gray-600">Quantité</th>
-                                <th class="text-right px-4 py-3 font-semibold text-gray-600">Prix estimé</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100">
-                            {% for article in articles %}
+            {# ── Mode consultation : cartes, stock > 0 uniquement ── #}
+            <div class="p-5 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                {% for article in articles %}
+                    <div class="border border-gray-200 rounded-xl overflow-hidden">
+                        {# Image #}
+                        {% set imgUrl = article.firstImageUrl %}
+                        {% if imgUrl %}
+                            <img src="{{ imgUrl }}" alt="{{ article.nom }}"
+                                 class="w-full h-36 object-cover">
+                        {% else %}
+                            <div class="w-full h-36 bg-gray-100 flex items-center justify-center">
+                                <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v13.5A1.5 1.5 0 003.75 21z"/>
+                                </svg>
+                            </div>
+                        {% endif %}
+                        {# Contenu #}
+                        <div class="p-3">
+                            <p class="font-semibold text-gray-900 text-sm mb-2">{{ article.nom }}</p>
+                            <div class="space-y-1.5">
                                 {% for variante in article.variantes %}
                                     {% if variante.actif %}
                                         {% set stockItem = stockMap[variante.id] ?? null %}
                                         {% if stockItem and stockItem.quantite > 0 %}
-                                            {% set prix = article.prixBase + (variante.deltaPrix ?? 0) %}
-                                            <tr class="hover:bg-gray-50">
-                                                <td class="px-5 py-2.5">
-                                                    <div class="font-medium text-gray-800">{{ article.nom }}</div>
-                                                    <div class="text-xs text-gray-400">{{ variante.nom }}</div>
-                                                </td>
-                                                <td class="px-4 py-2.5 text-center">
-                                                    <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-700 text-sm font-bold">
-                                                        {{ stockItem.quantite }}
-                                                    </span>
-                                                </td>
-                                                <td class="px-4 py-2.5 text-right text-gray-600">
-                                                    {{ prix|number_format(2, ',', ' ') }} €
-                                                </td>
-                                            </tr>
+                                            {% set prix = prixMap[variante.id] ?? null %}
+                                            <div class="flex items-center gap-2">
+                                                <span class="flex-1 text-xs text-gray-600 truncate">{{ variante.nom }}</span>
+                                                {% if prix is not null %}
+                                                    <span class="text-xs font-medium text-gray-500">{{ prix|number_format(2, ',', ' ') }} €</span>
+                                                {% endif %}
+                                                <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-green-100 text-green-700 text-sm font-bold flex-shrink-0">
+                                                    {{ stockItem.quantite }}
+                                                </span>
+                                            </div>
                                         {% endif %}
                                     {% endif %}
                                 {% endfor %}
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
             {% endif %}
         {% endif %}
     </div>
@@ -323,7 +333,7 @@
                             {% set stockItem = stockMap[variante.id] ?? null %}
                             {% if stockItem and stockItem.quantite > 0 %}
                                 {% set hasStock = true %}
-                                {% set prixUnit = article.prixBase + (variante.deltaPrix ?? 0) %}
+                                {% set prixUnit = prixMap[variante.id] ?? (article.prixBase + (variante.deltaPrix ?? 0)) %}
                                 <div style="border:1px solid #e5e7eb;border-radius:0.75rem;padding:0.875rem;margin-bottom:0.75rem;"
                                      x-data="{ qty: 0, prixUnit: {{ prixUnit }} }">
                                     <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.625rem;">
