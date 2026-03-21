@@ -99,33 +99,30 @@
                             <div class="px-5 py-3 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
                                 {% for article in collection.articles %}
                                     {% if article.actif %}
-                                        <div class="border border-gray-200 rounded-xl overflow-hidden">
+                                        {# L'article est "déjà ajouté" si au moins une variante active a un stockItem #}
+                                        {% set dejaAjoute = false %}
+                                        {% for variante in article.variantes %}
+                                            {% if variante.actif and stockMap[variante.id] is defined %}
+                                                {% set dejaAjoute = true %}
+                                            {% endif %}
+                                        {% endfor %}
+                                        <label class="flex items-center gap-3 border border-gray-200 rounded-xl p-3 cursor-pointer {{ dejaAjoute ? 'opacity-50 cursor-default' : 'hover:border-blue-300' }}">
+                                            <input type="checkbox" name="articles[]" value="{{ article.id }}"
+                                                   {{ dejaAjoute ? 'checked disabled' : '' }}
+                                                   class="rounded border-gray-300 flex-shrink-0">
                                             {% set imgUrl = article.firstImageUrl %}
                                             {% if imgUrl %}
-                                                <img src="{{ imgUrl }}" alt="{{ article.nom }}" class="w-full h-9 object-cover">
+                                                <img src="{{ imgUrl }}" alt="{{ article.nom }}" class="w-9 h-9 object-cover rounded flex-shrink-0">
                                             {% else %}
-                                                <div class="w-full h-9 bg-gray-100"></div>
+                                                <div class="w-9 h-9 bg-gray-100 rounded flex-shrink-0"></div>
                                             {% endif %}
-                                            <div class="p-3">
-                                                <p class="font-semibold text-gray-900 text-sm mb-2">{{ article.nom }}</p>
-                                                <div class="space-y-1.5">
-                                                    {% for variante in article.variantes %}
-                                                        {% if variante.actif %}
-                                                            {% set dejaDans = stockMap[variante.id] is defined %}
-                                                            <label class="flex items-center gap-2 cursor-pointer {{ dejaDans ? 'opacity-50' : '' }}">
-                                                                <input type="checkbox" name="variantes[]" value="{{ variante.id }}"
-                                                                       {{ dejaDans ? 'checked disabled' : '' }}
-                                                                       class="rounded border-gray-300 flex-shrink-0">
-                                                                <span class="flex-1 text-xs text-gray-600 truncate">{{ variante.nom }}</span>
-                                                                {% if dejaDans %}
-                                                                    <span class="text-xs text-gray-400 italic">déjà ajouté</span>
-                                                                {% endif %}
-                                                            </label>
-                                                        {% endif %}
-                                                    {% endfor %}
-                                                </div>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-sm font-medium text-gray-900 truncate">{{ article.nom }}</p>
+                                                {% if dejaAjoute %}
+                                                    <p class="text-xs text-gray-400 italic">déjà ajouté</p>
+                                                {% endif %}
                                             </div>
-                                        </div>
+                                        </label>
                                     {% endif %}
                                 {% endfor %}
                             </div>
