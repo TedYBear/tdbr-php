@@ -99,28 +99,33 @@
                             <div class="px-5 py-3 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
                                 {% for article in collection.articles %}
                                     {% if article.actif %}
-                                        {# L'article est "déjà ajouté" si au moins une variante active a un stockItem #}
                                         {% set dejaAjoute = false %}
                                         {% for variante in article.variantes %}
                                             {% if variante.actif and stockMap[variante.id] is defined %}
                                                 {% set dejaAjoute = true %}
                                             {% endif %}
                                         {% endfor %}
-                                        <label class="flex items-center gap-3 border border-gray-200 rounded-xl p-3 cursor-pointer {{ dejaAjoute ? 'opacity-50 cursor-default' : 'hover:border-blue-300' }}">
-                                            <input type="checkbox" name="articles[]" value="{{ article.id }}"
-                                                   {{ dejaAjoute ? 'checked disabled' : '' }}
-                                                   class="rounded border-gray-300 flex-shrink-0">
+                                        <label class="flex border border-gray-200 rounded-xl overflow-hidden cursor-pointer {{ dejaAjoute ? 'opacity-50 cursor-default' : 'hover:border-blue-300 hover:shadow-sm' }}" style="transition:border-color .15s,box-shadow .15s;">
+                                            {# Image #}
                                             {% set imgUrl = article.firstImageUrl %}
                                             {% if imgUrl %}
-                                                <img src="{{ imgUrl }}" alt="{{ article.nom }}" class="w-9 h-9 object-cover rounded flex-shrink-0">
+                                                <img src="{{ imgUrl }}" alt="{{ article.nom }}" style="width:90px;flex-shrink:0;object-fit:cover;">
                                             {% else %}
-                                                <div class="w-9 h-9 bg-gray-100 rounded flex-shrink-0"></div>
+                                                <div style="width:90px;flex-shrink:0;background:#f3f4f6;display:flex;align-items:center;justify-content:center;">
+                                                    <svg width="24" height="24" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v13.5A1.5 1.5 0 003.75 21z"/></svg>
+                                                </div>
                                             {% endif %}
-                                            <div class="flex-1 min-w-0">
-                                                <p class="text-sm font-medium text-gray-900 truncate">{{ article.nom }}</p>
-                                                {% if dejaAjoute %}
-                                                    <p class="text-xs text-gray-400 italic">déjà ajouté</p>
-                                                {% endif %}
+                                            {# Contenu #}
+                                            <div class="flex-1 min-w-0 p-3 flex items-center gap-3">
+                                                <div class="flex-1 min-w-0">
+                                                    <p class="text-sm font-semibold text-gray-900 leading-snug">{{ article.nom }}</p>
+                                                    {% if dejaAjoute %}
+                                                        <p class="text-xs text-gray-400 italic mt-0.5">déjà ajouté</p>
+                                                    {% endif %}
+                                                </div>
+                                                <input type="checkbox" name="articles[]" value="{{ article.id }}"
+                                                       {{ dejaAjoute ? 'checked disabled' : '' }}
+                                                       class="rounded border-gray-300 flex-shrink-0 w-4 h-4">
                                             </div>
                                         </label>
                                     {% endif %}
