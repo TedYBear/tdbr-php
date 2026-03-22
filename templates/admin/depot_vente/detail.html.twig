@@ -271,17 +271,17 @@
             <h2 class="font-semibold text-gray-800">Stock</h2>
         </div>
 
-        {% if articles is empty %}
-            <div class="px-5 py-10 text-center text-gray-400 text-sm">Aucun article en stock.</div>
+        {% if articlesAvecStockItems is empty %}
+            <div class="px-5 py-10 text-center text-gray-400 text-sm">Aucun article suivi.</div>
         {% else %}
             <div class="p-5 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                {% for article in articles %}
-                    {% set variantesEnStock = [] %}
+                {% for article in articlesAvecStockItems %}
+                    {% set variantesSuivies = [] %}
                     {% for variante in article.variantes %}
                         {% if variante.actif %}
                             {% set stockItem = stockMap[variante.id] ?? null %}
-                            {% if stockItem and stockItem.quantite > 0 %}
-                                {% set variantesEnStock = variantesEnStock|merge([{
+                            {% if stockItem %}
+                                {% set variantesSuivies = variantesSuivies|merge([{
                                     'variante': variante,
                                     'stockItem': stockItem,
                                     'prix': prixMap[variante.id] ?? null
@@ -290,7 +290,7 @@
                         {% endif %}
                     {% endfor %}
 
-                    {% if variantesEnStock|length > 0 %}
+                    {% if variantesSuivies|length > 0 %}
                         <div class="border border-gray-200 rounded-xl overflow-hidden">
                             {% set imgUrl = article.firstImageUrl %}
                             {% if imgUrl %}
@@ -305,13 +305,13 @@
                             <div class="p-3">
                                 <p class="font-semibold text-gray-900 text-sm mb-2">{{ article.nom }}</p>
                                 <div class="space-y-1.5">
-                                    {% for v in variantesEnStock %}
+                                    {% for v in variantesSuivies %}
                                         <div class="flex items-center gap-2">
                                             <span class="flex-1 text-xs text-gray-600 truncate">{{ v.variante.nom }}</span>
                                             {% if v.prix is not null %}
                                                 <span class="text-xs font-medium text-gray-500">{{ v.prix|number_format(2, ',', ' ') }} €</span>
                                             {% endif %}
-                                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-green-100 text-green-700 text-sm font-bold flex-shrink-0">
+                                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full text-sm font-bold flex-shrink-0 {{ v.stockItem.quantite > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400' }}">
                                                 {{ v.stockItem.quantite }}
                                             </span>
                                         </div>
