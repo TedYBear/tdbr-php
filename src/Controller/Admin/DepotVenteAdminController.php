@@ -191,6 +191,28 @@ class DepotVenteAdminController extends AbstractController
         return $this->redirectToRoute('admin_depot_ventes_detail', ['id' => $depot->getId()]);
     }
 
+    // ─── Réinitialisation complète ────────────────────────────────────────────
+
+    #[Route('/{id}/reinit', name: '_reinit', methods: ['POST'])]
+    public function reinit(DepotVente $depot): Response
+    {
+        foreach ($depot->getTransactions() as $transaction) {
+            foreach ($transaction->getLignes() as $ligne) {
+                $this->em->remove($ligne);
+            }
+            $this->em->remove($transaction);
+        }
+
+        foreach ($depot->getStockItems() as $stockItem) {
+            $this->em->remove($stockItem);
+        }
+
+        $this->em->flush();
+
+        $this->addFlash('success', 'Dépôt-vente réinitialisé.');
+        return $this->redirectToRoute('admin_depot_ventes_detail', ['id' => $depot->getId()]);
+    }
+
     // ─── Suppression d'un article du suivi ───────────────────────────────────
 
     #[Route('/{id}/supprimer-article/{articleId}', name: '_supprimer_article', methods: ['POST'])]

@@ -6,6 +6,7 @@
 <div x-data="{
     openFond: false,
     openVente: false,
+    openReinit: false,
     fondSens: 'ajout',
     panel: null,
     collectionId: null,
@@ -23,10 +24,40 @@
             {% if depot.ville %}<p class="text-sm text-gray-500">{{ depot.codePostal }} {{ depot.ville }}</p>{% endif %}
             {% if depot.user %}<p class="text-xs text-gray-400 mt-0.5">Géré par {{ depot.user.prenom }} {{ depot.user.nom }}</p>{% endif %}
         </div>
-        <a href="{{ path('admin_depot_ventes_edit', {id: depot.id}) }}"
-           class="px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition">
-            Modifier
-        </a>
+        <div class="flex items-center gap-2">
+            <a href="{{ path('admin_depot_ventes_edit', {id: depot.id}) }}"
+               class="px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition">
+                Modifier
+            </a>
+            <button @click="openReinit = true"
+                    style="padding:0.375rem 0.75rem;border-radius:0.5rem;border:1px solid #fca5a5;background:#fff;color:#dc2626;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:inherit;">
+                Réinit.
+            </button>
+        </div>
+    </div>
+
+    {# Modal Réinitialisation #}
+    <div x-show="openReinit" x-cloak
+         style="position:fixed;inset:0;z-index:10002;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:1rem;"
+         @click.self="openReinit = false">
+        <div style="background:#fff;border-radius:1.25rem;padding:2rem;max-width:22rem;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+            <h3 style="font-size:1rem;font-weight:700;color:#111827;margin:0 0 0.5rem;">Réinitialiser le dépôt-vente</h3>
+            <p style="font-size:0.85rem;color:#6b7280;margin:0 0 1.5rem;line-height:1.5;">
+                Cette action supprime <strong>tous les articles suivis</strong>, leurs stocks et <strong>tout l'historique</strong> des transactions. Irréversible.
+            </p>
+            <div style="display:flex;gap:0.75rem;">
+                <button type="button" @click="openReinit = false"
+                        style="flex:1;padding:0.6rem;border-radius:0.625rem;border:1.5px solid #d1d5db;background:#fff;font-weight:600;cursor:pointer;font-size:0.875rem;font-family:inherit;">
+                    Annuler
+                </button>
+                <form method="post" action="{{ path('admin_depot_ventes_reinit', {id: depot.id}) }}" style="flex:1;">
+                    <button type="submit"
+                            style="width:100%;padding:0.6rem;border-radius:0.625rem;border:none;background:#dc2626;color:#fff;font-weight:600;cursor:pointer;font-size:0.875rem;font-family:inherit;">
+                        Réinitialiser
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
 
     {# ── Cartes KPI ───────────────────────────────────────────────────────── #}
