@@ -2,6 +2,8 @@
 namespace App\Entity;
 
 use App\Repository\PropositionCommercialeRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: PropositionCommercialeRepository::class)]
@@ -55,6 +57,13 @@ class PropositionCommerciale
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?Commande $commande = null;
 
+    #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'clones')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?self $parent = null;
+
+    #[ORM\OneToMany(mappedBy: 'parent', targetEntity: self::class)]
+    private Collection $clones;
+
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
@@ -65,6 +74,7 @@ class PropositionCommerciale
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->token = bin2hex(random_bytes(32));
+        $this->clones = new ArrayCollection();
     }
 
     public function getId(): ?int { return $this->id; }
@@ -98,6 +108,9 @@ class PropositionCommerciale
     public function setDemandeSurMesure(?DemandeSurMesure $d): static { $this->demandeSurMesure = $d; return $this; }
     public function getCommande(): ?Commande { return $this->commande; }
     public function setCommande(?Commande $c): static { $this->commande = $c; return $this; }
+    public function getParent(): ?self { return $this->parent; }
+    public function setParent(?self $p): static { $this->parent = $p; return $this; }
+    public function getClones(): Collection { return $this->clones; }
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
     public function getUpdatedAt(): ?\DateTimeImmutable { return $this->updatedAt; }
     public function setUpdatedAt(?\DateTimeImmutable $u): static { $this->updatedAt = $u; return $this; }

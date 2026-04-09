@@ -184,6 +184,34 @@ class PropositionCommercialeAdminController extends AbstractController
         return $this->redirectToRoute('admin_propositions');
     }
 
+    #[Route('/{id}/cloner', name: 'admin_propositions_cloner', methods: ['POST'])]
+    public function cloner(int $id): Response
+    {
+        $original = $this->propositionRepo->find($id);
+        if (!$original) {
+            throw $this->createNotFoundException();
+        }
+
+        $clone = new PropositionCommerciale();
+        $clone->setDescription($original->getDescription());
+        $clone->setCoutDesign($original->getCoutDesign());
+        $clone->setPrixPublic($original->getPrixPublic());
+        $clone->setFraisManutention($original->getFraisManutention());
+        $clone->setRistourne($original->getRistourne());
+        $clone->setPrixTotal($original->getPrixTotal());
+        $clone->setClientEmail($original->getClientEmail());
+        $clone->setClientNom($original->getClientNom());
+        $clone->setStatut('brouillon');
+        $clone->setParent($original);
+
+        $this->em->persist($clone);
+        $this->em->flush();
+
+        $this->addFlash('success', 'Proposition clonée en brouillon.');
+
+        return $this->redirectToRoute('admin_propositions_edit', ['id' => $clone->getId()]);
+    }
+
     #[Route('/{id}/delete', name: 'admin_propositions_delete', methods: ['POST'])]
     public function delete(int $id): Response
     {
