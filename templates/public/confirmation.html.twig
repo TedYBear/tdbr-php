@@ -223,7 +223,7 @@
 
                                 <div class="flex-1">
                                     <h3 class="font-heading text-xl font-bold mb-2">{{ item.nom }}</h3>
-                                    {% if item.variant %}
+                                    {% if item.variant is defined and item.variant %}
                                         <p class="text-sm text-gray-600 mb-2">Variante: {{ item.variant.nom }}</p>
                                     {% endif %}
                                     <div class="flex items-center gap-4 text-gray-700">
