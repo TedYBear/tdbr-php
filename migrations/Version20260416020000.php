@@ -17,7 +17,7 @@ final class Version20260416020000 extends AbstractMigration
     public function up(Schema $schema): void
     {
         $this->addSql('ALTER TABLE propositions_commerciales ADD user_id INT DEFAULT NULL');
-        $this->addSql('ALTER TABLE propositions_commerciales ADD CONSTRAINT FK_PROP_USER FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE SET NULL');
+        $this->addSql('ALTER TABLE propositions_commerciales ADD CONSTRAINT FK_PROP_USER FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE SET NULL');
         $this->addSql('CREATE INDEX IDX_PROP_USER ON propositions_commerciales (user_id)');
     }
 
