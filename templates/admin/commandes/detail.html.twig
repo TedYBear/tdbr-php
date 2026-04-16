@@ -12,14 +12,14 @@
                 <div class="space-y-3">
                     {% for article in commande.articles %}
                         <div class="flex gap-4 p-4 bg-gray-50 rounded-lg">
-                            {% if article.image %}
+                            {% if article.image is defined and article.image %}
                                 <img src="{{ article.image }}" alt="{{ article.nom }}" class="w-16 h-16 object-cover rounded">
                             {% else %}
                                 <div class="w-16 h-16 bg-gray-200 rounded"></div>
                             {% endif %}
                             <div class="flex-1">
                                 <div class="font-semibold">{{ article.nom }}</div>
-                                {% if article.variant %}
+                                {% if article.variant is defined and article.variant %}
                                     <div class="text-sm text-gray-600">Variante: {{ article.variant.nom }}</div>
                                 {% endif %}
                                 <div class="text-sm text-gray-600">Quantité: {{ article.quantity }}</div>
