@@ -463,6 +463,11 @@ class PublicController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $paymentIntentId = $request->request->get('stripePaymentIntentId');
 
+            if ($this->siteConfigRepo->getConfig()->isPaymentsDisabled()) {
+                $this->addFlash('error', 'Les paiements en ligne sont temporairement suspendus.');
+                return $this->redirectToRoute('checkout');
+            }
+
             if (!$paymentIntentId) {
                 $this->addFlash('error', 'Paiement introuvable. Veuillez recommencer.');
                 return $this->redirectToRoute('checkout');
@@ -1363,6 +1368,11 @@ class PublicController extends AbstractController
         $proposition = $this->propositionRepo->findByToken($token);
         if (!$proposition || !$proposition->getCommande()) {
             throw $this->createNotFoundException();
+        }
+
+        if ($this->siteConfigRepo->getConfig()->isPaymentsDisabled()) {
+            $this->addFlash('error', 'Les paiements en ligne sont temporairement suspendus.');
+            return $this->redirectToRoute('proposition_view', ['token' => $token]);
         }
 
         $commande = $proposition->getCommande();

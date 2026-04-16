@@ -66,6 +66,14 @@ class SiteConfig
     public function getGiftResetAt(): ?\DateTimeImmutable { return $this->giftResetAt; }
     public function setGiftResetAt(?\DateTimeImmutable $v): static { $this->giftResetAt = $v; return $this; }
 
+    // --- Paiements ---
+
+    #[ORM\Column]
+    private bool $paymentsDisabled = false;
+
+    public function isPaymentsDisabled(): bool { return $this->paymentsDisabled; }
+    public function setPaymentsDisabled(bool $v): static { $this->paymentsDisabled = $v; return $this; }
+
     // --- Livraison Vistaprint ---
 
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]

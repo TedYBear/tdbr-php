@@ -42,6 +42,17 @@ class SiteConfigAdminController extends AbstractController
         ]);
     }
 
+    #[Route('/payments', name: '_payments', methods: ['POST'])]
+    public function editPayments(Request $request): Response
+    {
+        $config = $this->siteConfigRepo->getConfig();
+        $config->setPaymentsDisabled((bool) $request->request->get('paymentsDisabled'));
+        $this->em->flush();
+        $status = $config->isPaymentsDisabled() ? 'désactivés' : 'activés';
+        $this->addFlash('success', "Paiements en ligne $status.");
+        return $this->redirectToRoute('admin_site_config');
+    }
+
     #[Route('/livraison', name: '_livraison', methods: ['POST'])]
     public function editLivraison(Request $request): Response
     {

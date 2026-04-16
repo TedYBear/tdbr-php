@@ -5,6 +5,42 @@
 
 {% block body %}
     <div class="max-w-2xl">
+
+        {# === Paiements === #}
+        <div class="card p-6 mb-6 border-2 {{ config.paymentsDisabled ? 'border-red-300 bg-red-50' : 'border-gray-200' }}">
+            <h2 class="text-xl font-bold mb-1 flex items-center gap-2 {{ config.paymentsDisabled ? 'text-red-700' : '' }}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                </svg>
+                Paiements en ligne
+            </h2>
+            <p class="text-sm text-gray-500 mb-5">Désactiver bloque le paiement Stripe sur le checkout et les propositions commerciales. Le virement reste disponible.</p>
+
+            <form method="post" action="{{ path('admin_site_config_payments') }}">
+                <div class="flex items-center justify-between p-4 {{ config.paymentsDisabled ? 'bg-red-100' : 'bg-gray-50' }} rounded-lg">
+                    <div>
+                        <div class="font-semibold {{ config.paymentsDisabled ? 'text-red-700' : 'text-gray-800' }}">
+                            {% if config.paymentsDisabled %}Paiements désactivés{% else %}Paiements actifs{% endif %}
+                        </div>
+                        <div class="text-sm text-gray-500">Affecte le checkout boutique et les propositions commerciales</div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="paymentsDisabled" value="1" class="sr-only peer"
+                               {{ config.paymentsDisabled ? 'checked' : '' }}>
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer
+                                    peer-checked:after:translate-x-full peer-checked:after:border-white
+                                    after:content-[''] after:absolute after:top-[2px] after:left-[2px]
+                                    after:bg-white after:border-gray-300 after:border after:rounded-full
+                                    after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500"></div>
+                    </label>
+                </div>
+
+                <button type="submit" class="mt-4 {{ config.paymentsDisabled ? 'bg-red-600 hover:bg-red-700 text-white' : 'btn-primary' }} px-6 py-2.5 rounded-lg font-semibold transition">
+                    Enregistrer
+                </button>
+            </form>
+        </div>
+
         <div class="card p-6 mb-6">
             <h2 class="text-xl font-bold mb-6">Bandeau d'information</h2>
 

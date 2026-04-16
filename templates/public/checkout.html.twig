@@ -348,8 +348,20 @@
                             Paiement sécurisé
                         </h2>
 
-                        <div id="payment-element" class="mb-4"></div>
-                        <div id="payment-message" class="hidden text-red-600 text-sm font-medium mt-2"></div>
+                        {% if siteConfig.paymentsDisabled %}
+                            <div class="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700">
+                                <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                                </svg>
+                                <div>
+                                    <p class="font-semibold">Paiements temporairement indisponibles</p>
+                                    <p class="text-sm mt-1">Le paiement par carte bancaire est suspendu. Vous pouvez utiliser le virement bancaire ci-dessous ou <a href="{{ path('contact') }}" class="underline font-medium">nous contacter</a>.</p>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div id="payment-element" class="mb-4"></div>
+                            <div id="payment-message" class="hidden text-red-600 text-sm font-medium mt-2"></div>
+                        {% endif %}
                     </div>
 
                     {# Validation admin — visible uniquement pour les admins #}
@@ -433,6 +445,12 @@
                                   x-text="formatPrice(grandTotal)">{{ total|number_format(2, ',', ' ') }} €</span>
                         </div>
 
+                        {% if siteConfig.paymentsDisabled %}
+                        <button type="button" disabled
+                                class="w-full btn-primary text-lg py-4 rounded-xl font-bold opacity-40 cursor-not-allowed">
+                            Paiement indisponible
+                        </button>
+                        {% else %}
                         <button type="button"
                                 @click="pay()"
                                 :disabled="loading"
@@ -447,6 +465,7 @@
                                 Traitement…
                             </span>
                         </button>
+                        {% endif %}
 
                         {# Séparateur virement #}
                         <div class="relative my-6">
@@ -494,7 +513,7 @@
 
 {% block javascripts %}
     {{ parent() }}
-    {% if clientSecret %}
+    {% if clientSecret and not siteConfig.paymentsDisabled %}
         <script src="https://js.stripe.com/v3/"></script>
         <script>
         (function() {
