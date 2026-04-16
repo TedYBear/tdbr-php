@@ -85,7 +85,9 @@
                 <div class="space-y-2 text-sm">
                     <div><strong>Nom:</strong> {{ commande.client.prenom }} {{ commande.client.nom }}</div>
                     <div><strong>Email:</strong> {{ commande.client.email }}</div>
+                    {% if commande.client.telephone is defined and commande.client.telephone %}
                     <div><strong>Téléphone:</strong> {{ commande.client.telephone }}</div>
+                    {% endif %}
                 </div>
             </div>
 
@@ -94,7 +96,7 @@
                 <h2 class="text-xl font-bold mb-4">Livraison</h2>
                 <div class="text-sm space-y-1">
                     <div>{{ commande.adresseLivraison.adresse }}</div>
-                    {% if commande.adresseLivraison.complementAdresse %}
+                    {% if commande.adresseLivraison.complementAdresse is defined and commande.adresseLivraison.complementAdresse %}
                         <div>{{ commande.adresseLivraison.complementAdresse }}</div>
                     {% endif %}
                     <div>{{ commande.adresseLivraison.codePostal }} {{ commande.adresseLivraison.ville }}</div>
