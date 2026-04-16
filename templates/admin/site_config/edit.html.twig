@@ -14,7 +14,7 @@
                 </svg>
                 Paiements en ligne
             </h2>
-            <p class="text-sm text-gray-500 mb-5">Désactiver bloque le paiement Stripe sur le checkout et les propositions commerciales. Le virement reste disponible.</p>
+            <p class="text-sm text-gray-500 mb-5">Désactiver bloque le paiement Mollie sur le checkout et les propositions commerciales. Le virement reste disponible.</p>
 
             <form method="post" action="{{ path('admin_site_config_payments') }}">
                 <div class="flex items-center justify-between p-4 {{ config.paymentsDisabled ? 'bg-red-100' : 'bg-gray-50' }} rounded-lg">

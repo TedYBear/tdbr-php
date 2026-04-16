@@ -421,12 +421,12 @@
         {# Paiement + Livraison #}
         <div class="payment-info">
             <strong>Paiement</strong>
-            {% if commande.modePaiement == 'stripe' %}Carte bancaire (Stripe)
+            {% if commande.modePaiement == 'mollie' %}Carte bancaire (Mollie)
             {% elseif commande.modePaiement == 'virement' %}Virement bancaire
             {% elseif commande.modePaiement == 'paypal' %}PayPal
             {% else %}{{ commande.modePaiement|capitalize }}{% endif %}
-            {% if commande.stripePaymentIntentId %}
-                &nbsp;·&nbsp; Réf. {{ commande.stripePaymentIntentId }}
+            {% if commande.molliePaymentId %}
+                &nbsp;·&nbsp; Réf. {{ commande.molliePaymentId }}
             {% endif %}
         </div>
 

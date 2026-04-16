@@ -44,11 +44,10 @@ services:
         arguments:
             $projectDir: '%kernel.project_dir%'
 
-    # Stripe Service
-    App\Service\StripeService:
+    # Mollie Service
+    App\Service\MollieService:
         arguments:
-            $secretKey:     '%env(STRIPE_SECRET_KEY)%'
-            $webhookSecret: '%env(STRIPE_WEBHOOK_SECRET)%'
+            $apiKey: '%env(MOLLIE_API_KEY)%'
 
     # Printful Service
     App\Service\PrintfulService:

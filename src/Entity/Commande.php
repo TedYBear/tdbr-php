@@ -39,7 +39,7 @@ class Commande
     private string $statut = 'en_attente';
 
     #[ORM\Column(length: 255, nullable: true, unique: true)]
-    private ?string $stripePaymentIntentId = null;
+    private ?string $molliePaymentId = null;
 
     #[ORM\Column(nullable: true)]
     private ?int $printfulOrderId = null;
@@ -82,8 +82,8 @@ class Commande
     public function setNotes(?string $n): static { $this->notes = $n; return $this; }
     public function getStatut(): string { return $this->statut; }
     public function setStatut(string $s): static { $this->statut = $s; return $this; }
-    public function getStripePaymentIntentId(): ?string { return $this->stripePaymentIntentId; }
-    public function setStripePaymentIntentId(?string $id): static { $this->stripePaymentIntentId = $id; return $this; }
+    public function getMolliePaymentId(): ?string { return $this->molliePaymentId; }
+    public function setMolliePaymentId(?string $id): static { $this->molliePaymentId = $id; return $this; }
 
     public function getPrintfulOrderId(): ?int { return $this->printfulOrderId; }
     public function setPrintfulOrderId(?int $id): static { $this->printfulOrderId = $id; return $this; }

@@ -263,8 +263,8 @@
                             <div>
                                 <div class="text-sm text-gray-600 mb-1">Mode de paiement</div>
                                 <div class="font-semibold text-lg capitalize">
-                                    {% if commande.modePaiement == 'stripe' %}
-                                        Carte Bancaire (Stripe)
+                                    {% if commande.modePaiement == 'mollie' %}
+                                        Carte Bancaire (Mollie)
                                     {% elseif commande.modePaiement == 'carte' %}
                                         Carte Bancaire
                                     {% elseif commande.modePaiement == 'virement' %}

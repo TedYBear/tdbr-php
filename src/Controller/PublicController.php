@@ -18,8 +18,8 @@ use App\Repository\SiteConfigRepository;
 use App\Repository\UserRepository;
 use App\Service\CartService;
 use App\Service\MailerService;
+use App\Service\MollieService;
 use App\Service\PrintfulService;
-use App\Service\StripeService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -60,7 +60,7 @@ class PublicController extends AbstractController
         private CommandeRepository $commandeRepo,
         private UserRepository $userRepo,
         private CartService $cartService,
-        private StripeService $stripeService,
+        private MollieService $mollieService,
         private CodeReductionRepository $codeReductionRepo,
         private BoutiqueRelaisRepository $boutiqueRelaisRepo,
         private FournisseurRepository $fournisseurRepo,
@@ -384,15 +384,6 @@ class PublicController extends AbstractController
         );
         $total = max(0.01, $cartTotal + $fraisLivraison - $reduction);
 
-        $paymentIntentId = $data['paymentIntentId'] ?? null;
-        if ($paymentIntentId) {
-            try {
-                $this->stripeService->updatePaymentIntentAmount($paymentIntentId, $total);
-            } catch (\Exception $e) {
-                // Non-fatal : le montant sera re-validé côté serveur au POST
-            }
-        }
-
         return $this->json([
             'fraisLivraison' => $fraisLivraison,
             'reduction'      => $reduction,
@@ -422,15 +413,6 @@ class PublicController extends AbstractController
         $cartTotal = $this->cartService->getTotal();
         $total = max(0.01, $cartTotal + $fraisLivraison - $reduction);
 
-        $paymentIntentId = $data['paymentIntentId'] ?? null;
-        if ($paymentIntentId) {
-            try {
-                $this->stripeService->updatePaymentIntentAmount($paymentIntentId, $total);
-            } catch (\Exception $e) {
-                // Non-fatal
-            }
-        }
-
         return $this->json([
             'reduction'      => $reduction,
             'fraisLivraison' => $fraisLivraison,
@@ -459,53 +441,24 @@ class PublicController extends AbstractController
         $form = $this->createForm(\App\Form\CheckoutType::class, $formData);
         $form->handleRequest($request);
 
-        // POST : vérifier le paiement Stripe et créer la commande
+        // POST : construire la commande et rediriger vers Mollie
         if ($form->isSubmitted() && $form->isValid()) {
-            $paymentIntentId = $request->request->get('stripePaymentIntentId');
-
             if ($this->siteConfigRepo->getConfig()->isPaymentsDisabled()) {
                 $this->addFlash('error', 'Les paiements en ligne sont temporairement suspendus.');
                 return $this->redirectToRoute('checkout');
             }
 
-            if (!$paymentIntentId) {
-                $this->addFlash('error', 'Paiement introuvable. Veuillez recommencer.');
-                return $this->redirectToRoute('checkout');
-            }
-
-            $modeLivraison = $request->request->get('modeLivraison', 'domicile');
+            $modeLivraison   = $request->request->get('modeLivraison', 'domicile');
             $livraisonOption = self::LIVRAISON_OPTIONS[$modeLivraison] ?? self::LIVRAISON_OPTIONS['domicile'];
             $fraisVistaprint = $modeLivraison === 'domicile' ? $this->getFraisVistaprintDomicile() : 0.0;
-            $fraisLivraison = $livraisonOption['prix'] + $fraisVistaprint;
+            $fraisLivraison  = $livraisonOption['prix'] + $fraisVistaprint;
             $codeReductionId = (int) $request->request->get('codeReductionId') ?: null;
-            $reduction = $this->getReductionFromCode($codeReductionId);
-
-            try {
-                $paymentIntent = $this->stripeService->retrievePaymentIntent($paymentIntentId);
-            } catch (\Exception $e) {
-                $this->addFlash('error', 'Erreur lors de la vérification du paiement.');
-                return $this->redirectToRoute('checkout');
-            }
-
-            // Vérification du montant côté serveur (inclut frais livraison et réduction)
-            $cartTotal = $this->cartService->getTotal();
-            $expectedAmount = (int) round(max(0.01, $cartTotal + $fraisLivraison - $reduction) * 100);
-            if ($paymentIntent->status !== 'succeeded'
-                || $paymentIntent->amount !== $expectedAmount
-                || $paymentIntent->currency !== 'eur') {
-                $this->addFlash('error', 'Le paiement n\'a pas pu être validé. Veuillez réessayer.');
-                return $this->redirectToRoute('checkout');
-            }
-
-            // Protection doublon : une commande par PaymentIntent
-            $existing = $this->commandeRepo->findOneBy(['stripePaymentIntentId' => $paymentIntentId]);
-            if ($existing) {
-                return $this->redirectToRoute('confirmation', ['id' => $existing->getId()]);
-            }
+            $reduction       = $this->getReductionFromCode($codeReductionId);
+            $cartTotal       = $this->cartService->getTotal();
+            $total           = max(0.01, $cartTotal + $fraisLivraison - $reduction);
 
             $data = $form->getData();
 
-            // Construire l'adresse de livraison selon le mode
             $pointRelaisId = (int) $request->request->get('pointRelaisId');
             if ($modeLivraison === 'relais') {
                 $relais = ($pointRelaisId ? $this->boutiqueRelaisRepo->find($pointRelaisId) : null)
@@ -527,19 +480,14 @@ class PublicController extends AbstractController
                 ];
             }
 
-            // Données du mode de livraison
-            $modeLivraisonData = [
-                'type'  => $modeLivraison,
-                'label' => $livraisonOption['label'],
-                'prix'  => $fraisLivraison,
-            ];
+            $modeLivraisonData = ['type' => $modeLivraison, 'label' => $livraisonOption['label'], 'prix' => $fraisLivraison];
             if ($modeLivraison === 'relais') {
                 $modeLivraisonData['pointRelaisNom']     = $relais?->getNom() ?? '';
                 $modeLivraisonData['pointRelaisAdresse'] = ($relais?->getAdresse() ?? '') . ', ' . ($relais?->getCodePostal() ?? '') . ' ' . ($relais?->getVille() ?? '');
             }
 
             $orderItems = [];
-            foreach ($this->cartService->getCart() as $itemId => $item) {
+            foreach ($this->cartService->getCart() as $item) {
                 $orderItems[] = [
                     'articleId'         => $item['article']['id'],
                     'nom'               => $item['article']['nom'],
@@ -564,96 +512,46 @@ class PublicController extends AbstractController
             $commande->setModeLivraison($modeLivraisonData);
             $commande->setArticles($orderItems);
             $commande->setReduction($reduction);
-            $commande->setTotal(max(0.01, $cartTotal + $fraisLivraison - $reduction));
-            $commande->setModePaiement('stripe');
+            $commande->setTotal($total);
+            $commande->setModePaiement('mollie');
             $commande->setNotes($data['notes'] ?? null);
-            $commande->setStatut('payee');
-            $commande->setStripePaymentIntentId($paymentIntentId);
+            $commande->setStatut('en_attente');
             if ($this->getUser() instanceof User) {
                 $commande->setUser($this->getUser());
             }
 
+            // Stocker l'ID du code de réduction pour l'appliquer après paiement
+            $request->getSession()->set('checkout_code_reduction_id', $codeReductionId);
+
             $this->em->persist($commande);
             $this->em->flush();
 
-            // Marquer le code de réduction comme utilisé
-            if ($codeReductionId) {
-                $codeReduction = $this->codeReductionRepo->find($codeReductionId);
-                if ($codeReduction && ($codeReduction->isGlobal() || $codeReduction->getUser() === $this->getUser())) {
-                    $codeReduction->setStatut('utilise');
-                    $codeReduction->setCommande($commande);
-                    $this->em->flush();
-                }
-            }
-
-            $this->cartService->clear();
-
-            // Envoi en brouillon à Printful (uniquement pour livraison à domicile)
-            if ($modeLivraison === 'domicile') {
-                $printfulItems = array_filter($orderItems, fn($i) => !empty($i['printfulVariantId']));
-                if (!empty($printfulItems)) {
-                    try {
-                        $printfulOrderId = $this->printfulService->createDraftOrder($commande, array_values($printfulItems));
-                        $commande->setPrintfulOrderId($printfulOrderId);
-                        $this->em->flush();
-                    } catch (\Throwable $e) {
-                        // Non-bloquant : la commande est déjà enregistrée
-                    }
-                }
-            }
-
-            // Envoyer l'email de confirmation au client
+            // Créer le paiement Mollie et rediriger
             try {
-                $confirmationUrl = $this->generateUrl(
-                    'confirmation',
-                    ['id' => $commande->getId()],
-                    UrlGeneratorInterface::ABSOLUTE_URL
+                $redirectUrl = $this->generateUrl('checkout_retour', [], UrlGeneratorInterface::ABSOLUTE_URL);
+                $webhookUrl  = $this->generateUrl('mollie_webhook', [], UrlGeneratorInterface::ABSOLUTE_URL);
+
+                $payment = $this->mollieService->createPayment(
+                    $total,
+                    'Commande TDBR ' . $commande->getNumero(),
+                    $redirectUrl,
+                    $webhookUrl,
+                    ['commande_id' => $commande->getId()]
                 );
-                $this->mailerService->sendOrderConfirmation($commande, $confirmationUrl);
+
+                $commande->setMolliePaymentId($payment->id);
+                $this->em->flush();
+
+                return $this->redirect($payment->getCheckoutUrl());
             } catch (\Exception $e) {
-                // L'échec d'email ne doit pas bloquer la commande
+                $this->em->remove($commande);
+                $this->em->flush();
+                $this->addFlash('error', 'Le service de paiement est temporairement indisponible.');
+                return $this->redirectToRoute('checkout');
             }
-
-            // Campagne code cadeau
-            try {
-                $siteConfig = $this->siteConfigRepo->getConfig();
-                if ($siteConfig->isGiftActive()) {
-                    $clientEmail = strtolower($commande->getClient()['email']);
-                    $since = $siteConfig->getGiftResetAt();
-                    $beneficiairesCount = $this->codeReductionRepo->countCampaignGift($since);
-                    if (
-                        $beneficiairesCount < $siteConfig->getGiftMaxBeneficiaires()
-                        && !$this->codeReductionRepo->hasCampaignGiftForEmail($clientEmail, $since)
-                    ) {
-                        $montant = $siteConfig->getGiftType() === 'pourcentage'
-                            ? round($commande->getTotal() * $siteConfig->getGiftValue() / 100, 2)
-                            : $siteConfig->getGiftValue();
-
-                        $giftCode = new CodeReduction();
-                        $giftCode->setCode('CADEAU-' . strtoupper(bin2hex(random_bytes(4))));
-                        $giftCode->setMontant($montant);
-                        $giftCode->setStatut('actif');
-                        $giftCode->setIsCampaignGift(true);
-                        $giftCode->setRecipientEmail($clientEmail);
-                        /** @var \App\Entity\User|null $currentUser */
-                        $currentUser = $this->getUser();
-                        if ($currentUser instanceof User) {
-                            $giftCode->setUser($currentUser);
-                        }
-                        $this->em->persist($giftCode);
-                        $this->em->flush();
-
-                        $this->mailerService->sendGiftCode($clientEmail, $giftCode->getCode(), $montant, $siteConfig->getGiftType());
-                    }
-                }
-            } catch (\Exception $e) {
-                // L'échec de la campagne ne doit pas bloquer la commande
-            }
-
-            return $this->redirectToRoute('confirmation', ['id' => $commande->getId()]);
         }
 
-        // GET : créer un PaymentIntent avec livraison domicile par défaut
+        // GET : afficher le formulaire
         $total = $this->cartService->getTotal();
         $fraisVistaprint = $this->getFraisVistaprintDomicile();
         $fraisParMode = [
@@ -661,17 +559,6 @@ class PublicController extends AbstractController
             'relais'   => self::LIVRAISON_OPTIONS['relais']['prix'],
             'toulouse' => self::LIVRAISON_OPTIONS['toulouse']['prix'],
         ];
-        $totalAvecLivraison = $total + $fraisParMode['domicile'];
-        $clientSecret = null;
-        $paymentIntentId = null;
-
-        try {
-            $paymentIntent = $this->stripeService->createPaymentIntent($totalAvecLivraison, 'ref-' . uniqid());
-            $clientSecret = $paymentIntent->client_secret;
-            $paymentIntentId = $paymentIntent->id;
-        } catch (\Exception $e) {
-            $this->addFlash('error', 'Le service de paiement est temporairement indisponible.');
-        }
 
         $codesDisponibles = $this->getUser()
             ? $this->codeReductionRepo->findActiveForUser($this->getUser())
@@ -688,14 +575,120 @@ class PublicController extends AbstractController
             'cartItems'            => $this->cartService->getCart(),
             'total'                => $total,
             'quantity'             => $this->cartService->getTotalQuantity(),
-            'stripePublicKey'      => $_ENV['STRIPE_PUBLIC_KEY'] ?? '',
-            'clientSecret'         => $clientSecret,
-            'paymentIntentId'      => $paymentIntentId,
             'livraisonOptions'     => self::LIVRAISON_OPTIONS,
             'pointsRelais'         => $this->boutiqueRelaisRepo->findActives(),
             'fraisParMode'         => $fraisParMode,
             'codesDisponiblesData' => $codesDisponiblesData,
         ]);
+    }
+
+    /**
+     * Retour depuis Mollie après paiement carte.
+     */
+    #[Route('/checkout/retour', name: 'checkout_retour', methods: ['GET'])]
+    public function checkoutRetour(Request $request): Response
+    {
+        $mollieId = $request->query->get('id', '');
+
+        if (!$mollieId) {
+            $this->addFlash('error', 'Paiement non trouvé.');
+            return $this->redirectToRoute('checkout');
+        }
+
+        $commande = $this->commandeRepo->findOneBy(['molliePaymentId' => $mollieId]);
+        if (!$commande) {
+            $this->addFlash('error', 'Commande introuvable.');
+            return $this->redirectToRoute('checkout');
+        }
+
+        // Anti-doublon : déjà traitée (webhook plus rapide)
+        if ($commande->getStatut() === 'payee') {
+            return $this->redirectToRoute('confirmation', ['id' => $commande->getId()]);
+        }
+
+        try {
+            $payment = $this->mollieService->getPayment($mollieId);
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Impossible de vérifier le paiement. Veuillez nous contacter.');
+            return $this->redirectToRoute('checkout');
+        }
+
+        if (!$payment->isPaid()) {
+            $this->addFlash('error', 'Le paiement n\'a pas abouti. Vous pouvez réessayer.');
+            return $this->redirectToRoute('checkout');
+        }
+
+        $commande->setStatut('payee');
+        $commande->setUpdatedAt(new \DateTimeImmutable());
+        $this->em->flush();
+
+        // Code de réduction
+        $codeReductionId = $request->getSession()->get('checkout_code_reduction_id');
+        $request->getSession()->remove('checkout_code_reduction_id');
+        if ($codeReductionId) {
+            $codeReduction = $this->codeReductionRepo->find($codeReductionId);
+            if ($codeReduction && ($codeReduction->isGlobal() || $codeReduction->getUser() === $this->getUser())) {
+                $codeReduction->setStatut('utilise');
+                $codeReduction->setCommande($commande);
+                $this->em->flush();
+            }
+        }
+
+        $this->cartService->clear();
+
+        $modeLivraison = $commande->getModeLivraison()['type'] ?? 'domicile';
+        $orderItems    = $commande->getArticles();
+
+        // Printful
+        if ($modeLivraison === 'domicile') {
+            $printfulItems = array_filter($orderItems, fn($i) => !empty($i['printfulVariantId']));
+            if (!empty($printfulItems)) {
+                try {
+                    $printfulOrderId = $this->printfulService->createDraftOrder($commande, array_values($printfulItems));
+                    $commande->setPrintfulOrderId($printfulOrderId);
+                    $this->em->flush();
+                } catch (\Throwable $e) {}
+            }
+        }
+
+        // Email confirmation
+        try {
+            $confirmationUrl = $this->generateUrl('confirmation', ['id' => $commande->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
+            $this->mailerService->sendOrderConfirmation($commande, $confirmationUrl);
+        } catch (\Exception $e) {}
+
+        // Campagne code cadeau
+        try {
+            $siteConfig = $this->siteConfigRepo->getConfig();
+            if ($siteConfig->isGiftActive()) {
+                $clientEmail = strtolower($commande->getClient()['email']);
+                $since = $siteConfig->getGiftResetAt();
+                $beneficiairesCount = $this->codeReductionRepo->countCampaignGift($since);
+                if (
+                    $beneficiairesCount < $siteConfig->getGiftMaxBeneficiaires()
+                    && !$this->codeReductionRepo->hasCampaignGiftForEmail($clientEmail, $since)
+                ) {
+                    $montant = $siteConfig->getGiftType() === 'pourcentage'
+                        ? round($commande->getTotal() * $siteConfig->getGiftValue() / 100, 2)
+                        : $siteConfig->getGiftValue();
+
+                    $giftCode = new CodeReduction();
+                    $giftCode->setCode('CADEAU-' . strtoupper(bin2hex(random_bytes(4))));
+                    $giftCode->setMontant($montant);
+                    $giftCode->setStatut('actif');
+                    $giftCode->setIsCampaignGift(true);
+                    $giftCode->setRecipientEmail($clientEmail);
+                    if ($this->getUser() instanceof User) {
+                        $giftCode->setUser($this->getUser());
+                    }
+                    $this->em->persist($giftCode);
+                    $this->em->flush();
+                    $this->mailerService->sendGiftCode($clientEmail, $giftCode->getCode(), $montant, $siteConfig->getGiftType());
+                }
+            }
+        } catch (\Exception $e) {}
+
+        return $this->redirectToRoute('confirmation', ['id' => $commande->getId()]);
     }
 
     #[Route('/checkout/admin-validate', name: 'checkout_admin_validate', methods: ['POST'])]
@@ -1313,7 +1306,7 @@ class PublicController extends AbstractController
     }
 
     /**
-     * Crée une Commande + PaymentIntent Stripe, puis redirige vers la page de paiement.
+     * Crée une Commande + paiement Mollie, puis redirige vers la page de paiement.
      */
     #[Route('/proposition/{token}/valider', name: 'proposition_accept', methods: ['POST'])]
     public function propositionAccept(string $token): Response
@@ -1345,54 +1338,52 @@ class PublicController extends AbstractController
             'prix'     => $proposition->getPrixTotal(),
         ]]);
         $commande->setTotal($proposition->getPrixTotal());
-        $commande->setModePaiement('stripe');
+        $commande->setModePaiement('mollie');
         $commande->setModeLivraison(['type' => 'proposition', 'label' => 'À coordonner', 'prix' => 0]);
         $commande->setStatut('en_attente');
 
-        // Créer le PaymentIntent Stripe
-        $intent = $this->stripeService->createPaymentIntent(
-            $proposition->getPrixTotal(),
-            $commande->getNumero()
-        );
-        $commande->setStripePaymentIntentId($intent->id);
-
         $this->em->persist($commande);
+        $this->em->flush(); // Besoin de l'ID avant le paiement
 
-        $proposition->setStatut('acceptee');
-        $proposition->setCommande($commande);
-        $proposition->setUpdatedAt(new \DateTimeImmutable());
+        // Créer le paiement Mollie et rediriger directement
+        try {
+            $redirectUrl = $this->generateUrl('proposition_retour', ['token' => $token], UrlGeneratorInterface::ABSOLUTE_URL);
+            $webhookUrl  = $this->generateUrl('mollie_webhook', [], UrlGeneratorInterface::ABSOLUTE_URL);
 
-        $this->em->flush();
+            $payment = $this->mollieService->createPayment(
+                $proposition->getPrixTotal(),
+                'Proposition TDBR #' . $proposition->getId(),
+                $redirectUrl,
+                $webhookUrl,
+                ['commande_id' => $commande->getId(), 'proposition_token' => $token]
+            );
 
-        return $this->redirectToRoute('proposition_pay', ['token' => $token]);
+            $commande->setMolliePaymentId($payment->id);
+            $proposition->setStatut('acceptee');
+            $proposition->setCommande($commande);
+            $proposition->setUpdatedAt(new \DateTimeImmutable());
+            $this->em->flush();
+
+            return $this->redirect($payment->getCheckoutUrl());
+        } catch (\Exception $e) {
+            $this->em->remove($commande);
+            $this->em->flush();
+            $this->addFlash('error', 'Le service de paiement est temporairement indisponible.');
+            return $this->redirectToRoute('proposition_view', ['token' => $token]);
+        }
     }
 
+    /**
+     * Retry paiement Mollie pour une proposition acceptée mais non encore payée.
+     */
     #[Route('/proposition/{token}/payer', name: 'proposition_pay')]
     public function propositionPay(string $token): Response
     {
         $proposition = $this->getPropositionOrDeny($token);
+        $commande    = $proposition->getCommande();
 
-        if (!$proposition->getCommande() || $proposition->getStatut() === 'payee') {
+        if (!$commande || $proposition->getStatut() === 'payee') {
             return $this->redirectToRoute('proposition_view', ['token' => $token]);
-        }
-
-        $commande = $proposition->getCommande();
-        $intent   = $this->stripeService->retrievePaymentIntent($commande->getStripePaymentIntentId());
-
-        return $this->render('public/proposition_payer.html.twig', [
-            'proposition'      => $proposition,
-            'clientSecret'     => $intent->client_secret,
-            'stripePublicKey'  => $_ENV['STRIPE_PUBLIC_KEY'] ?? '',
-        ]);
-    }
-
-    #[Route('/proposition/{token}/confirmer', name: 'proposition_confirm', methods: ['POST'])]
-    public function propositionConfirm(string $token, Request $request): Response
-    {
-        $proposition = $this->getPropositionOrDeny($token);
-
-        if (!$proposition->getCommande()) {
-            throw $this->createNotFoundException();
         }
 
         if ($this->siteConfigRepo->getConfig()->isPaymentsDisabled()) {
@@ -1400,25 +1391,82 @@ class PublicController extends AbstractController
             return $this->redirectToRoute('proposition_view', ['token' => $token]);
         }
 
-        $commande = $proposition->getCommande();
-        $paymentIntentId = $request->request->get('stripePaymentIntentId');
-
-        if ($paymentIntentId && $commande->getStripePaymentIntentId() === $paymentIntentId) {
-            $intent = $this->stripeService->retrievePaymentIntent($paymentIntentId);
-            if ($intent->status === 'succeeded') {
-                $commande->setStatut('payee');
-                $commande->setUpdatedAt(new \DateTimeImmutable());
-                $proposition->setStatut('payee');
-                $proposition->setUpdatedAt(new \DateTimeImmutable());
-                $this->em->flush();
-
-                try {
-                    $this->mailerService->sendOrderConfirmation($commande);
-                } catch (\Throwable $e) {
-                    // non-bloquant
+        try {
+            // Vérifier si le paiement Mollie existant est encore utilisable
+            if ($commande->getMolliePaymentId()) {
+                $existingPayment = $this->mollieService->getPayment($commande->getMolliePaymentId());
+                if ($existingPayment->isOpen() || $existingPayment->isPending()) {
+                    return $this->redirect($existingPayment->getCheckoutUrl());
                 }
             }
+
+            // Créer un nouveau paiement Mollie
+            $redirectUrl = $this->generateUrl('proposition_retour', ['token' => $token], UrlGeneratorInterface::ABSOLUTE_URL);
+            $webhookUrl  = $this->generateUrl('mollie_webhook', [], UrlGeneratorInterface::ABSOLUTE_URL);
+
+            $payment = $this->mollieService->createPayment(
+                $proposition->getPrixTotal(),
+                'Proposition TDBR #' . $proposition->getId(),
+                $redirectUrl,
+                $webhookUrl,
+                ['commande_id' => $commande->getId(), 'proposition_token' => $token]
+            );
+
+            $commande->setMolliePaymentId($payment->id);
+            $this->em->flush();
+
+            return $this->redirect($payment->getCheckoutUrl());
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Le service de paiement est temporairement indisponible.');
+            return $this->redirectToRoute('proposition_view', ['token' => $token]);
         }
+    }
+
+    /**
+     * Retour depuis Mollie après paiement d'une proposition.
+     */
+    #[Route('/proposition/{token}/retour', name: 'proposition_retour', methods: ['GET'])]
+    public function propositionRetour(string $token): Response
+    {
+        $proposition = $this->getPropositionOrDeny($token);
+        $commande    = $proposition->getCommande();
+
+        if (!$commande) {
+            return $this->redirectToRoute('proposition_view', ['token' => $token]);
+        }
+
+        // Anti-doublon
+        if ($proposition->getStatut() === 'payee') {
+            return $this->redirectToRoute('proposition_view', ['token' => $token]);
+        }
+
+        $mollieId = $commande->getMolliePaymentId();
+        if (!$mollieId) {
+            $this->addFlash('error', 'Paiement introuvable.');
+            return $this->redirectToRoute('proposition_view', ['token' => $token]);
+        }
+
+        try {
+            $payment = $this->mollieService->getPayment($mollieId);
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Impossible de vérifier le paiement. Veuillez nous contacter.');
+            return $this->redirectToRoute('proposition_view', ['token' => $token]);
+        }
+
+        if (!$payment->isPaid()) {
+            $this->addFlash('error', 'Le paiement n\'a pas abouti. Vous pouvez réessayer.');
+            return $this->redirectToRoute('proposition_view', ['token' => $token]);
+        }
+
+        $commande->setStatut('payee');
+        $commande->setUpdatedAt(new \DateTimeImmutable());
+        $proposition->setStatut('payee');
+        $proposition->setUpdatedAt(new \DateTimeImmutable());
+        $this->em->flush();
+
+        try {
+            $this->mailerService->sendOrderConfirmation($commande);
+        } catch (\Throwable $e) {}
 
         return $this->redirectToRoute('proposition_view', ['token' => $token]);
     }

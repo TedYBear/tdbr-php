@@ -51,10 +51,10 @@
             pointRelais: {{ pointsRelais|first is not empty ? pointsRelais|first.id : 0 }},
             fraisLivraison: {{ fraisParMode.domicile }},
             cartTotal: {{ total }},
-            piId: {{ paymentIntentId|default('')|json_encode|raw }},
             codesDisponibles: {{ codesDisponiblesData|json_encode|raw }},
             selectedCodeId: null,
             reduction: 0,
+            loading: false,
 
             get grandTotal() {
                 return Math.max(0.01, this.cartTotal + this.fraisLivraison - this.reduction);
@@ -70,11 +70,7 @@
                     const resp = await fetch('/checkout/update-livraison', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            paymentIntentId: this.piId,
-                            modeLivraison: m,
-                            codeReductionId: this.selectedCodeId
-                        })
+                        body: JSON.stringify({ modeLivraison: m, codeReductionId: this.selectedCodeId })
                     });
                     if (resp.ok) {
                         const data = await resp.json();
@@ -89,11 +85,7 @@
                     const resp = await fetch('/checkout/apply-code', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            paymentIntentId: this.piId,
-                            codeReductionId: codeId,
-                            modeLivraison: this.mode
-                        })
+                        body: JSON.stringify({ codeReductionId: codeId, modeLivraison: this.mode })
                     });
                     if (resp.ok) {
                         const data = await resp.json();
@@ -105,44 +97,14 @@
                 } catch (e) {}
             },
 
-            loading: false,
-
-            async pay() {
+            pay() {
                 const form = document.querySelector('form[name="checkout"]');
-                if (!form) return;
-                if (!form.checkValidity()) {
-                    form.reportValidity();
+                if (!form || !form.checkValidity()) {
+                    form && form.reportValidity();
                     return;
                 }
                 this.loading = true;
-                const msgEl = document.getElementById('payment-message');
-                if (msgEl) { msgEl.classList.add('hidden'); msgEl.textContent = ''; }
-
-                if (!window._stripeInstance || !window._stripeElements) {
-                    if (msgEl) { msgEl.textContent = 'Service de paiement non initialisé.'; msgEl.classList.remove('hidden'); }
-                    this.loading = false;
-                    return;
-                }
-
-                const { error, paymentIntent } = await window._stripeInstance.confirmPayment({
-                    elements: window._stripeElements,
-                    confirmParams: {},
-                    redirect: 'if_required',
-                });
-
-                if (error) {
-                    if (msgEl) { msgEl.textContent = error.message; msgEl.classList.remove('hidden'); }
-                    this.loading = false;
-                    return;
-                }
-
-                if (paymentIntent && paymentIntent.status === 'succeeded') {
-                    document.getElementById('stripePaymentIntentId').value = paymentIntent.id;
-                    form.submit();
-                } else {
-                    if (msgEl) { msgEl.textContent = 'Le paiement n\'a pas abouti. Veuillez réessayer.'; msgEl.classList.remove('hidden'); }
-                    this.loading = false;
-                }
+                form.submit();
             }
         };
     }
@@ -339,7 +301,7 @@
                         </div>
                     </div>
 
-                    {# Paiement Stripe #}
+                    {# Paiement par carte — Mollie #}
                     <div class="card p-5 md:p-8">
                         <h2 class="font-heading text-3xl font-bold mb-6 flex items-center gap-3">
                             <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -359,8 +321,12 @@
                                 </div>
                             </div>
                         {% else %}
-                            <div id="payment-element" class="mb-4"></div>
-                            <div id="payment-message" class="hidden text-red-600 text-sm font-medium mt-2"></div>
+                            <div class="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-xl text-blue-700 text-sm">
+                                <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <p>En cliquant sur "Payer", vous serez redirigé vers notre partenaire de paiement sécurisé Mollie pour finaliser votre paiement par carte bancaire.</p>
+                            </div>
                         {% endif %}
                     </div>
 
@@ -505,30 +471,9 @@
                     </div>
                 </div>
 
-                <input type="hidden" name="stripePaymentIntentId" id="stripePaymentIntentId" value="">
             {{ form_end(form) }}
         </div>
     </section>
 {% endblock %}
 
-{% block javascripts %}
-    {{ parent() }}
-    {% if clientSecret and not siteConfig.paymentsDisabled %}
-        <script src="https://js.stripe.com/v3/"></script>
-        <script>
-        (function() {
-            const pk = {{ stripePublicKey|json_encode|raw }};
-            const cs = {{ clientSecret|json_encode|raw }};
-            if (!pk || !cs) return;
-
-            window._stripeInstance = Stripe(pk);
-            window._stripeElements = window._stripeInstance.elements({ clientSecret: cs });
-
-            const paymentElement = window._stripeElements.create('payment', {
-                layout: 'tabs'
-            });
-            paymentElement.mount('#payment-element');
-        })();
-        </script>
-    {% endif %}
 {% endblock %}
