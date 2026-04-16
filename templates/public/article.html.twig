@@ -2,6 +2,10 @@
 
 {% block title %}{{ article.nom }} - TDBR{% endblock %}
 
+{# prixBase calculé ici pour être disponible dans tous les blocs #}
+{% set prixBase = 0 %}
+{% if article.grillePrix %}{% for p in article.grillePrix.paliers %}{% if p.min == 1 and p.prixVente is not null and prixBase == 0 %}{% set prixBase = p.prixVente %}{% endif %}{% endfor %}{% endif %}
+
 {% block javascripts %}
     {#
      IMPORTANT: ce <script> doit être AVANT {{ parent() }} pour que le listener
@@ -30,8 +34,6 @@
                 {% endfor %}
                 imagesData: {{ imagesArr|json_encode|raw }},
 
-                {% set prixBase = 0 %}
-                {% if article.grillePrix %}{% for p in article.grillePrix.paliers %}{% if p.min == 1 and p.prixVente is not null and prixBase == 0 %}{% set prixBase = p.prixVente %}{% endif %}{% endfor %}{% endif %}
                 basePrice: {{ prixBase }},
                 choices: {},
 
