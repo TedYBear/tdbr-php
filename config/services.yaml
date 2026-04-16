@@ -43,6 +43,7 @@ services:
     App\Service\MailerService:
         arguments:
             $projectDir: '%kernel.project_dir%'
+            $bccEmail: '%env(MAILER_BCC)%'
 
     # Mollie Service
     App\Service\MollieService:

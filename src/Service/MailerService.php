@@ -19,8 +19,20 @@ class MailerService
         private UrlGeneratorInterface $urlGenerator,
         private string $projectDir,
         private string $fromEmail = 'noreply@tdbr.fr',
-        private string $fromName = 'TDBR'
+        private string $fromName = 'TDBR',
+        private string $bccEmail = ''
     ) {
+    }
+
+    /**
+     * Envoie un email et ajoute automatiquement le BCC admin si configuré.
+     */
+    private function sendWithBcc(Email $email): void
+    {
+        if ($this->bccEmail !== '') {
+            $email->addBcc($this->bccEmail);
+        }
+        $this->mailer->send($email);
     }
 
     /**
@@ -41,7 +53,7 @@ class MailerService
             ->subject('Bienvenue sur TDBR !')
             ->html($html);
 
-        $this->mailer->send($email);
+        $this->sendWithBcc($email);
     }
 
     /**
@@ -62,7 +74,7 @@ class MailerService
             ->subject('Confirmation de commande ' . $commande->getNumero())
             ->html($html);
 
-        $this->mailer->send($email);
+        $this->sendWithBcc($email);
     }
 
     /**
@@ -82,7 +94,7 @@ class MailerService
             ->subject('Instructions de virement — Commande ' . $commande->getNumero())
             ->html($html);
 
-        $this->mailer->send($email);
+        $this->sendWithBcc($email);
     }
 
     /**
@@ -111,7 +123,7 @@ class MailerService
             ->subject('Mise à jour de votre commande ' . $commande['numero'])
             ->html($html);
 
-        $this->mailer->send($email);
+        $this->sendWithBcc($email);
     }
 
     /**
@@ -150,7 +162,7 @@ class MailerService
             ->subject('Un cadeau vous attend chez TDBR !')
             ->html($html);
 
-        $this->mailer->send($email);
+        $this->sendWithBcc($email);
     }
 
     /**
@@ -192,7 +204,7 @@ class MailerService
             ->html($html)
             ->attach($pdfContent, $pdfFilename, 'application/pdf');
 
-        $this->mailer->send($email);
+        $this->sendWithBcc($email);
     }
 
     private function generatePropositionPdf(PropositionCommerciale $proposition): string
@@ -235,6 +247,6 @@ class MailerService
             ->subject('Re: ' . $subject)
             ->html($html);
 
-        $this->mailer->send($email);
+        $this->sendWithBcc($email);
     }
 }
