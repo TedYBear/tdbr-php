@@ -49,6 +49,10 @@ class PropositionCommerciale
     #[ORM\Column(length: 64, unique: true)]
     private string $token;
 
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?User $user = null;
+
     #[ORM\ManyToOne(targetEntity: DemandeSurMesure::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?DemandeSurMesure $demandeSurMesure = null;
@@ -96,6 +100,9 @@ class PropositionCommerciale
     }
     public function getMessagePersonnel(): ?string { return $this->messagePersonnel; }
     public function setMessagePersonnel(?string $m): static { $this->messagePersonnel = $m; return $this; }
+    public function getUser(): ?User { return $this->user; }
+    public function setUser(?User $u): static { $this->user = $u; return $this; }
+
     public function getClientEmail(): string { return $this->clientEmail; }
     public function setClientEmail(string $e): static { $this->clientEmail = $e; return $this; }
     public function getClientNom(): ?string { return $this->clientNom; }

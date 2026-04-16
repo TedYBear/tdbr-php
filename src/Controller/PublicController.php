@@ -1170,10 +1170,13 @@ class PublicController extends AbstractController
             $codesReduction[] = $cg;
         }
 
+        $propositions = $this->propositionRepo->findByUser($user);
+
         return $this->render('auth/profil.html.twig', [
             'user'           => $user,
             'commandes'      => $commandes,
             'codesReduction' => $codesReduction,
+            'propositions'   => $propositions,
         ]);
     }
 
@@ -1269,13 +1272,40 @@ class PublicController extends AbstractController
 
     // ─── Propositions commerciales ──────────────────────────────────────────
 
-    #[Route('/proposition/{token}', name: 'proposition_view')]
-    public function propositionView(string $token): Response
+    /**
+     * Charge une proposition et vérifie que l'utilisateur connecté y a accès.
+     * Redirige vers le login si non connecté, lance une 403 si email non concordant.
+     * Auto-lie la proposition au compte utilisateur si ce n'est pas encore fait.
+     */
+    private function getPropositionOrDeny(string $token): \App\Entity\PropositionCommerciale
     {
+        $this->denyAccessUnlessGranted('ROLE_USER');
+
         $proposition = $this->propositionRepo->findByToken($token);
         if (!$proposition) {
             throw $this->createNotFoundException('Proposition introuvable');
         }
+
+        /** @var User $user */
+        $user = $this->getUser();
+
+        if (!$this->isGranted('ROLE_ADMIN') && strtolower($user->getEmail()) !== strtolower($proposition->getClientEmail())) {
+            throw $this->createAccessDeniedException('Cette proposition ne vous appartient pas.');
+        }
+
+        // Auto-liaison au compte
+        if ($proposition->getUser() === null && !$this->isGranted('ROLE_ADMIN')) {
+            $proposition->setUser($user);
+            $this->em->flush();
+        }
+
+        return $proposition;
+    }
+
+    #[Route('/proposition/{token}', name: 'proposition_view')]
+    public function propositionView(string $token): Response
+    {
+        $proposition = $this->getPropositionOrDeny($token);
 
         return $this->render('public/proposition.html.twig', [
             'proposition' => $proposition,
@@ -1288,10 +1318,7 @@ class PublicController extends AbstractController
     #[Route('/proposition/{token}/valider', name: 'proposition_accept', methods: ['POST'])]
     public function propositionAccept(string $token): Response
     {
-        $proposition = $this->propositionRepo->findByToken($token);
-        if (!$proposition) {
-            throw $this->createNotFoundException('Proposition introuvable');
-        }
+        $proposition = $this->getPropositionOrDeny($token);
 
         if (!in_array($proposition->getStatut(), ['envoyee', 'brouillon'])) {
             return $this->redirectToRoute('proposition_view', ['token' => $token]);
@@ -1343,12 +1370,9 @@ class PublicController extends AbstractController
     #[Route('/proposition/{token}/payer', name: 'proposition_pay')]
     public function propositionPay(string $token): Response
     {
-        $proposition = $this->propositionRepo->findByToken($token);
-        if (!$proposition || !$proposition->getCommande()) {
-            return $this->redirectToRoute('proposition_view', ['token' => $token]);
-        }
+        $proposition = $this->getPropositionOrDeny($token);
 
-        if ($proposition->getStatut() === 'payee') {
+        if (!$proposition->getCommande() || $proposition->getStatut() === 'payee') {
             return $this->redirectToRoute('proposition_view', ['token' => $token]);
         }
 
@@ -1365,8 +1389,9 @@ class PublicController extends AbstractController
     #[Route('/proposition/{token}/confirmer', name: 'proposition_confirm', methods: ['POST'])]
     public function propositionConfirm(string $token, Request $request): Response
     {
-        $proposition = $this->propositionRepo->findByToken($token);
-        if (!$proposition || !$proposition->getCommande()) {
+        $proposition = $this->getPropositionOrDeny($token);
+
+        if (!$proposition->getCommande()) {
             throw $this->createNotFoundException();
         }
 
@@ -1401,9 +1426,9 @@ class PublicController extends AbstractController
     #[Route('/proposition/{token}/virement', name: 'proposition_virement', methods: ['POST'])]
     public function propositionVirement(string $token): Response
     {
-        $proposition = $this->propositionRepo->findByToken($token);
+        $proposition = $this->getPropositionOrDeny($token);
 
-        if (!$proposition || !in_array($proposition->getStatut(), ['envoyee', 'brouillon'], true)) {
+        if (!in_array($proposition->getStatut(), ['envoyee', 'brouillon'], true)) {
             throw $this->createNotFoundException();
         }
 
@@ -1445,9 +1470,9 @@ class PublicController extends AbstractController
     #[Route('/proposition/{token}/facture', name: 'proposition_facture')]
     public function propositionFacture(string $token): Response
     {
-        $proposition = $this->propositionRepo->findByToken($token);
+        $proposition = $this->getPropositionOrDeny($token);
 
-        if (!$proposition || $proposition->getStatut() !== 'payee' || !$proposition->getCommande()) {
+        if ($proposition->getStatut() !== 'payee' || !$proposition->getCommande()) {
             throw $this->createNotFoundException('Facture non disponible');
         }
 

@@ -250,8 +250,17 @@ class PropositionCommercialeAdminController extends AbstractController
         $proposition->setFraisManutention(!empty($data['fraisManutention']) ? (float)$data['fraisManutention'] : null);
         $proposition->setRistourne(!empty($data['ristourne']) ? (float)$data['ristourne'] : null);
         $proposition->setPrixTotal($proposition->computePrixTotal());
-        $proposition->setClientEmail(trim($data['clientEmail'] ?? ''));
+        $clientEmail = trim($data['clientEmail'] ?? '');
+        $proposition->setClientEmail($clientEmail);
         $proposition->setClientNom(!empty($data['clientNom']) ? trim($data['clientNom']) : null);
+
+        // Auto-liaison au compte utilisateur si l'email correspond à un compte existant
+        if ($proposition->getUser() === null && $clientEmail !== '') {
+            $linkedUser = $this->userRepo->findOneBy(['email' => $clientEmail]);
+            if ($linkedUser) {
+                $proposition->setUser($linkedUser);
+            }
+        }
 
         if ($isNew) {
             $this->em->persist($proposition);
