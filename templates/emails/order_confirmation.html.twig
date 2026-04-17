@@ -6,7 +6,7 @@
     <h2 style="color: #2C2416; margin-top: 0;">Merci pour votre commande !</h2>
 
     <p style="font-size: 16px; line-height: 1.6; color: #333;">
-        Bonjour <strong>{{ commande.client.prenom }} {{ commande.client.nom }}</strong>,
+        Bonjour <strong>{{ commande.client.prenom ?? '' }} {{ commande.client.nom ?? '' }}</strong>,
     </p>
 
     <p style="font-size: 16px; line-height: 1.6; color: #333;">
@@ -22,7 +22,7 @@
             {% set sousTotal = sousTotal + ligneTotal %}
             <div style="padding: 10px 0; border-bottom: 1px solid #D4AF7A;">
                 <strong>{{ article.nom }}</strong>
-                {% if article.variant %}
+                {% if article.variant is defined and article.variant %}
                     <br><span style="font-size: 14px; color: #666;">Variante: {{ article.variant.nom }}</span>
                 {% endif %}
                 <br>Quantité: {{ article.quantity }} × {{ article.prix|number_format(2, ',', ' ') }} €

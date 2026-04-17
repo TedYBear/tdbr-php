@@ -324,10 +324,10 @@
         <div class="addresses">
             <div class="address-block">
                 <div class="address-label">Facturer à</div>
-                <div class="address-name">{{ commande.client.prenom }} {{ commande.client.nom }}</div>
+                <div class="address-name">{{ commande.client.prenom ?? '' }} {{ commande.client.nom ?? '' }}</div>
                 <div class="address-detail">
                     {{ commande.client.email }}<br>
-                    {% if commande.client.telephone %}{{ commande.client.telephone }}{% endif %}
+                    {% if commande.client.telephone ?? '' %}{{ commande.client.telephone }}{% endif %}
                 </div>
             </div>
             <div class="address-block">
@@ -341,7 +341,7 @@
                     </div>
                 {% else %}
                     {% set adresse = commande.adresseLivraison %}
-                    <div class="address-name">{{ commande.client.prenom }} {{ commande.client.nom }}</div>
+                    <div class="address-name">{{ commande.client.prenom ?? '' }} {{ commande.client.nom ?? '' }}</div>
                     <div class="address-detail">
                         {{ adresse.adresse }}<br>
                         {% if adresse.complementAdresse %}{{ adresse.complementAdresse }}<br>{% endif %}
