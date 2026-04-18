@@ -28,4 +28,27 @@ class PropositionCommercialeRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /** @return PropositionCommerciale[] */
+    public function findUnlinkedByEmail(string $email): array
+    {
+        return $this->createQueryBuilder('p')
+            ->where('p.user IS NULL')
+            ->andWhere('p.clientEmail = :email')
+            ->setParameter('email', $email)
+            ->orderBy('p.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /** @return PropositionCommerciale[] */
+    public function findAllByEmail(string $email): array
+    {
+        return $this->createQueryBuilder('p')
+            ->where('p.clientEmail = :email')
+            ->setParameter('email', $email)
+            ->orderBy('p.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 }

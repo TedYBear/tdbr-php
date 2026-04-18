@@ -1,0 +1,229 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% block title %}Rattacher des éléments — {{ user.prenom }} {{ user.nom }}{% endblock %}
+{% block page_title %}Rattacher des éléments{% endblock %}
+
+{% block body %}
+    <div class="mb-6 flex items-center gap-4">
+        <a href="{{ path('admin_utilisateurs') }}" class="text-sm text-gray-500 hover:text-gray-700">← Utilisateurs</a>
+        <span class="text-gray-300">/</span>
+        <span class="text-sm font-semibold text-gray-700">{{ user.prenom }} {{ user.nom }}</span>
+        <span class="text-xs text-gray-400">&lt;{{ user.email }}&gt;</span>
+    </div>
+
+    {% for msg in app.flashes('success') %}
+        <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm">{{ msg }}</div>
+    {% endfor %}
+    {% for msg in app.flashes('error') %}
+        <div class="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">{{ msg }}</div>
+    {% endfor %}
+
+    <form method="post" action="{{ path('admin_utilisateurs_rattacher', {id: user.id}) }}">
+
+    {# ── Commandes ─────────────────────────────────────────────── #}
+    <div class="card overflow-hidden mb-6">
+        <div class="px-5 py-4 border-b bg-gray-50 flex items-center justify-between">
+            <h2 class="font-semibold text-gray-800">Commandes <span class="ml-2 text-xs font-normal text-gray-400">({{ commandes|length }})</span></h2>
+        </div>
+
+        {% if commandes is empty %}
+            <p class="px-5 py-4 text-sm text-gray-400">Aucune commande avec cet email.</p>
+        {% else %}
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50 border-b text-xs uppercase text-gray-500">
+                    <tr>
+                        <th class="px-4 py-2 w-8">
+                            <input type="checkbox" class="check-all" data-group="commandes"
+                                   title="Tout sélectionner">
+                        </th>
+                        <th class="px-4 py-2 text-left">Numéro</th>
+                        <th class="px-4 py-2 text-left">Date</th>
+                        <th class="px-4 py-2 text-left">Total</th>
+                        <th class="px-4 py-2 text-left">Statut</th>
+                        <th class="px-4 py-2 text-left">Compte rattaché</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for commande in commandes %}
+                        <tr class="{{ commande.user ? 'bg-green-50' : 'hover:bg-gray-50' }} transition">
+                            <td class="px-4 py-2 text-center">
+                                {% if not commande.user %}
+                                    <input type="checkbox" name="commandes[]" value="{{ commande.id }}"
+                                           class="check-item" data-group="commandes">
+                                {% else %}
+                                    <svg class="w-4 h-4 text-green-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-2 font-mono font-semibold">
+                                <a href="{{ path('admin_commande_detail', {id: commande.id}) }}" class="hover:text-primary transition">
+                                    {{ commande.numero }}
+                                </a>
+                            </td>
+                            <td class="px-4 py-2 text-gray-500">{{ commande.createdAt|date('d/m/Y') }}</td>
+                            <td class="px-4 py-2 font-semibold">{{ commande.total|number_format(2, ',', ' ') }} €</td>
+                            <td class="px-4 py-2">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+                                    {{ commande.statut == 'payee' ? 'bg-green-100 text-green-700' :
+                                       (commande.statut == 'en_attente' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-600') }}">
+                                    {{ commande.statut|replace({'_': ' '})|capitalize }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-2 text-gray-500">
+                                {% if commande.user %}
+                                    <span class="text-green-600 font-medium">{{ commande.user.prenom }} {{ commande.user.nom }}</span>
+                                {% else %}
+                                    <span class="text-gray-300">—</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </div>
+
+    {# ── Propositions commerciales ──────────────────────────────── #}
+    <div class="card overflow-hidden mb-6">
+        <div class="px-5 py-4 border-b bg-gray-50 flex items-center justify-between">
+            <h2 class="font-semibold text-gray-800">Propositions commerciales <span class="ml-2 text-xs font-normal text-gray-400">({{ propositions|length }})</span></h2>
+        </div>
+
+        {% if propositions is empty %}
+            <p class="px-5 py-4 text-sm text-gray-400">Aucune proposition avec cet email.</p>
+        {% else %}
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50 border-b text-xs uppercase text-gray-500">
+                    <tr>
+                        <th class="px-4 py-2 w-8">
+                            <input type="checkbox" class="check-all" data-group="propositions"
+                                   title="Tout sélectionner">
+                        </th>
+                        <th class="px-4 py-2 text-left">Description</th>
+                        <th class="px-4 py-2 text-left">Date</th>
+                        <th class="px-4 py-2 text-left">Montant</th>
+                        <th class="px-4 py-2 text-left">Statut</th>
+                        <th class="px-4 py-2 text-left">Compte rattaché</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for prop in propositions %}
+                        <tr class="{{ prop.user ? 'bg-green-50' : 'hover:bg-gray-50' }} transition">
+                            <td class="px-4 py-2 text-center">
+                                {% if not prop.user %}
+                                    <input type="checkbox" name="propositions[]" value="{{ prop.id }}"
+                                           class="check-item" data-group="propositions">
+                                {% else %}
+                                    <svg class="w-4 h-4 text-green-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-2 text-gray-700 max-w-xs truncate">{{ prop.description|slice(0, 80) }}…</td>
+                            <td class="px-4 py-2 text-gray-500">{{ prop.createdAt|date('d/m/Y') }}</td>
+                            <td class="px-4 py-2 font-semibold">{{ prop.prixTotal|number_format(2, ',', ' ') }} €</td>
+                            <td class="px-4 py-2">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+                                    {{ prop.statut == 'payee' ? 'bg-green-100 text-green-700' :
+                                       (prop.statut == 'envoyee' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600') }}">
+                                    {{ prop.statut|replace({'_': ' '})|capitalize }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-2 text-gray-500">
+                                {% if prop.user %}
+                                    <span class="text-green-600 font-medium">{{ prop.user.prenom }} {{ prop.user.nom }}</span>
+                                {% else %}
+                                    <span class="text-gray-300">—</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </div>
+
+    {# ── Bouton de validation ───────────────────────────────────── #}
+    <div class="flex items-center gap-4">
+        <button type="submit" class="btn-primary px-6 py-2 text-sm font-semibold rounded-lg">
+            Rattacher les éléments sélectionnés
+        </button>
+        <a href="{{ path('admin_utilisateurs') }}" class="text-sm text-gray-500 hover:text-gray-700">Annuler</a>
+    </div>
+
+    </form>
+
+    {# ── Demandes sur-mesure (lecture seule) ───────────────────── #}
+    {% if demandes is not empty %}
+    <div class="card overflow-hidden mt-8">
+        <div class="px-5 py-4 border-b bg-gray-50">
+            <h2 class="font-semibold text-gray-800">Demandes sur-mesure <span class="ml-2 text-xs font-normal text-gray-400">({{ demandes|length }}) — lecture seule</span></h2>
+        </div>
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50 border-b text-xs uppercase text-gray-500">
+                <tr>
+                    <th class="px-4 py-2 text-left">Date</th>
+                    <th class="px-4 py-2 text-left">Concept</th>
+                    <th class="px-4 py-2 text-left">Statut</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for demande in demandes %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-2 text-gray-500">{{ demande.createdAt|date('d/m/Y') }}</td>
+                        <td class="px-4 py-2 text-gray-700 max-w-sm truncate">{{ demande.concept|slice(0, 80) }}…</td>
+                        <td class="px-4 py-2">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
+                                {{ demande.statut|capitalize }}
+                            </span>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    {# ── Messages contact (lecture seule) ──────────────────────── #}
+    {% if messages is not empty %}
+    <div class="card overflow-hidden mt-6">
+        <div class="px-5 py-4 border-b bg-gray-50">
+            <h2 class="font-semibold text-gray-800">Messages de contact <span class="ml-2 text-xs font-normal text-gray-400">({{ messages|length }}) — lecture seule</span></h2>
+        </div>
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50 border-b text-xs uppercase text-gray-500">
+                <tr>
+                    <th class="px-4 py-2 text-left">Date</th>
+                    <th class="px-4 py-2 text-left">Sujet</th>
+                    <th class="px-4 py-2 text-left">Lu</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for msg in messages %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-2 text-gray-500">{{ msg.createdAt|date('d/m/Y') }}</td>
+                        <td class="px-4 py-2 text-gray-700">{{ msg.sujet ?? '(sans sujet)' }}</td>
+                        <td class="px-4 py-2">
+                            {% if msg.lu %}
+                                <span class="text-green-600 text-xs font-medium">Lu</span>
+                            {% else %}
+                                <span class="text-gray-400 text-xs">Non lu</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <script>
+    document.querySelectorAll('.check-all').forEach(master => {
+        master.addEventListener('change', () => {
+            document.querySelectorAll(`.check-item[data-group="${master.dataset.group}"]`)
+                .forEach(cb => cb.checked = master.checked);
+        });
+    });
+    </script>
+{% endblock %}

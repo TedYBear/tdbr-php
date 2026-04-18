@@ -3,6 +3,10 @@
 namespace App\Controller\Admin;
 
 use App\Entity\User;
+use App\Repository\CommandeRepository;
+use App\Repository\DemandeSurMesureRepository;
+use App\Repository\MessageRepository;
+use App\Repository\PropositionCommercialeRepository;
 use App\Repository\UserRepository;
 use App\Service\MailerService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -23,6 +27,10 @@ class UserAdminController extends AbstractController
         private EntityManagerInterface $em,
         private UserPasswordHasherInterface $hasher,
         private MailerService $mailer,
+        private CommandeRepository $commandeRepo,
+        private PropositionCommercialeRepository $propositionRepo,
+        private DemandeSurMesureRepository $demandeRepo,
+        private MessageRepository $messageRepo,
     ) {}
 
     #[Route('/creer', name: '_create', methods: ['GET', 'POST'])]
@@ -79,6 +87,51 @@ class UserAdminController extends AbstractController
         return $this->render('admin/users/index.html.twig', [
             'rows'  => $rows,
             'total' => count($rows),
+        ]);
+    }
+
+    #[Route('/{id}/rattacher', name: '_rattacher', methods: ['GET', 'POST'])]
+    public function rattacher(int $id, Request $request): Response
+    {
+        $user = $this->userRepo->find($id);
+        if (!$user) {
+            throw $this->createNotFoundException();
+        }
+
+        $email = $user->getEmail();
+
+        if ($request->isMethod('POST')) {
+            $linked = 0;
+
+            // Rattacher les commandes sélectionnées
+            foreach ($request->request->all('commandes') as $commandeId) {
+                $commande = $this->commandeRepo->find((int)$commandeId);
+                if ($commande && $commande->getUser() === null) {
+                    $commande->setUser($user);
+                    $linked++;
+                }
+            }
+
+            // Rattacher les propositions sélectionnées
+            foreach ($request->request->all('propositions') as $propId) {
+                $prop = $this->propositionRepo->find((int)$propId);
+                if ($prop && $prop->getUser() === null) {
+                    $prop->setUser($user);
+                    $linked++;
+                }
+            }
+
+            $this->em->flush();
+            $this->addFlash('success', $linked . ' élément(s) rattaché(s) au compte de ' . $user->getPrenom() . ' ' . $user->getNom() . '.');
+            return $this->redirectToRoute('admin_utilisateurs_rattacher', ['id' => $id]);
+        }
+
+        return $this->render('admin/users/rattacher.html.twig', [
+            'user'           => $user,
+            'commandes'      => $this->commandeRepo->findAllByEmail($email),
+            'propositions'   => $this->propositionRepo->findAllByEmail($email),
+            'demandes'       => $this->demandeRepo->findBy(['email' => $email], ['createdAt' => 'DESC']),
+            'messages'       => $this->messageRepo->findBy(['email' => $email], ['createdAt' => 'DESC']),
         ]);
     }
 
