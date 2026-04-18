@@ -130,6 +130,24 @@ class CommandeAdminController extends AbstractController
         ]);
     }
 
+    #[Route('/{id}/facture/pdf', name: 'admin_commandes_facture_pdf', requirements: ['id' => '\d+'])]
+    public function facturePdf(int $id): Response
+    {
+        $commande = $this->commandeRepo->find($id);
+
+        if (!$commande) {
+            throw $this->createNotFoundException('Commande introuvable');
+        }
+
+        $pdf = $this->mailer->generateFacturePdf($commande);
+        $filename = 'facture-tdbr-' . $commande->getNumero() . '.pdf';
+
+        return new Response($pdf, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $filename . '"',
+        ]);
+    }
+
     #[Route('/{id}/renvoyer-facture', name: 'admin_commandes_renvoyer_facture', methods: ['POST'])]
     public function renvoyerFacture(int $id): Response
     {
