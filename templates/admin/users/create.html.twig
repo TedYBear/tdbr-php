@@ -1,0 +1,47 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% block title %}Créer un utilisateur{% endblock %}
+{% block page_title %}Créer un utilisateur{% endblock %}
+
+{% block body %}
+    <div class="max-w-lg">
+        {% for msg in app.flashes('error') %}
+            <div class="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">{{ msg }}</div>
+        {% endfor %}
+
+        <div class="card p-6">
+            <p class="text-sm text-gray-500 mb-6">
+                Un compte sera créé et un email d'invitation envoyé à l'utilisateur avec un lien pour définir son mot de passe (valable 7 jours).
+            </p>
+
+            <form method="post" action="{{ path('admin_utilisateurs_create') }}" class="space-y-5">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Prénom <span class="text-red-500">*</span></label>
+                        <input type="text" name="prenom" required autofocus
+                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nom <span class="text-red-500">*</span></label>
+                        <input type="text" name="nom" required
+                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Email <span class="text-red-500">*</span></label>
+                    <input type="email" name="email" required
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary">
+                </div>
+
+                <div class="flex items-center gap-3 pt-2">
+                    <button type="submit"
+                            class="btn-primary px-5 py-2 text-sm font-semibold rounded-lg">
+                        Créer et envoyer l'invitation
+                    </button>
+                    <a href="{{ path('admin_utilisateurs') }}" class="text-sm text-gray-500 hover:text-gray-700">Annuler</a>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

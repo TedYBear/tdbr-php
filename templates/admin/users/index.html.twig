@@ -6,6 +6,13 @@
 {% block body %}
     <div class="mb-6 flex items-center justify-between">
         <p class="text-gray-500 text-sm">{{ total }} utilisateur{{ total > 1 ? 's' : '' }} enregistré{{ total > 1 ? 's' : '' }}</p>
+        <a href="{{ path('admin_utilisateurs_create') }}"
+           class="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary/90 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            Créer un utilisateur
+        </a>
     </div>
 
     <div class="card overflow-hidden">

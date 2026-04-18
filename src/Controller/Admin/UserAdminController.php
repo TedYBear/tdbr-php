@@ -2,11 +2,16 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\User;
 use App\Repository\UserRepository;
+use App\Service\MailerService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/admin/utilisateurs', name: 'admin_utilisateurs')]
@@ -16,7 +21,55 @@ class UserAdminController extends AbstractController
     public function __construct(
         private UserRepository $userRepo,
         private EntityManagerInterface $em,
+        private UserPasswordHasherInterface $hasher,
+        private MailerService $mailer,
     ) {}
+
+    #[Route('/creer', name: '_create', methods: ['GET', 'POST'])]
+    public function create(Request $request): Response
+    {
+        if ($request->isMethod('POST')) {
+            $prenom = trim($request->request->get('prenom', ''));
+            $nom    = trim($request->request->get('nom', ''));
+            $email  = trim($request->request->get('email', ''));
+
+            if (!$prenom || !$nom || !$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $this->addFlash('error', 'Tous les champs sont obligatoires et l\'email doit être valide.');
+                return $this->redirectToRoute('admin_utilisateurs_create');
+            }
+
+            if ($this->userRepo->findOneBy(['email' => $email])) {
+                $this->addFlash('error', 'Un compte existe déjà avec cet email.');
+                return $this->redirectToRoute('admin_utilisateurs_create');
+            }
+
+            $token = bin2hex(random_bytes(32));
+
+            $user = new User();
+            $user->setPrenom($prenom);
+            $user->setNom($nom);
+            $user->setEmail($email);
+            $user->setPassword($this->hasher->hashPassword($user, bin2hex(random_bytes(16))));
+            $user->setInviteToken($token);
+            $user->setInviteTokenExpiresAt(new \DateTimeImmutable('+7 days'));
+
+            $this->em->persist($user);
+            $this->em->flush();
+
+            $inviteUrl = $this->generateUrl('invitation_set_password', ['token' => $token], UrlGeneratorInterface::ABSOLUTE_URL);
+
+            try {
+                $this->mailer->sendInvitation($user, $inviteUrl);
+                $this->addFlash('success', 'Compte créé et invitation envoyée à ' . $email . '.');
+            } catch (\Exception $e) {
+                $this->addFlash('warning', 'Compte créé mais l\'email n\'a pas pu être envoyé : ' . $e->getMessage());
+            }
+
+            return $this->redirectToRoute('admin_utilisateurs');
+        }
+
+        return $this->render('admin/users/create.html.twig');
+    }
 
     #[Route('', name: '', methods: ['GET'])]
     public function index(): Response

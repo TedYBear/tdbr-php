@@ -36,6 +36,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $inviteToken = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $inviteTokenExpiresAt = null;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
@@ -59,4 +65,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setTelephone(?string $telephone): static { $this->telephone = $telephone; return $this; }
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
     public function getFullName(): string { return trim(($this->prenom ?? '') . ' ' . ($this->nom ?? '')); }
+
+    public function getInviteToken(): ?string { return $this->inviteToken; }
+    public function setInviteToken(?string $token): static { $this->inviteToken = $token; return $this; }
+    public function getInviteTokenExpiresAt(): ?\DateTimeImmutable { return $this->inviteTokenExpiresAt; }
+    public function setInviteTokenExpiresAt(?\DateTimeImmutable $at): static { $this->inviteTokenExpiresAt = $at; return $this; }
+
+    public function isInviteTokenValid(): bool
+    {
+        return $this->inviteToken !== null
+            && $this->inviteTokenExpiresAt !== null
+            && $this->inviteTokenExpiresAt > new \DateTimeImmutable();
+    }
 }

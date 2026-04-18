@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Commande;
 use App\Entity\PropositionCommerciale;
+use App\Entity\User;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use Symfony\Component\Mailer\MailerInterface;
@@ -230,6 +231,25 @@ class MailerService
         $dompdf->render();
 
         return $dompdf->output();
+    }
+
+    /**
+     * Envoie un email d'invitation avec lien de définition du mot de passe
+     */
+    public function sendInvitation(User $user, string $inviteUrl): void
+    {
+        $html = $this->twig->render('emails/invitation.html.twig', [
+            'user'      => $user,
+            'inviteUrl' => $inviteUrl,
+        ]);
+
+        $email = (new Email())
+            ->from($this->fromEmail)
+            ->to($user->getEmail())
+            ->subject('Votre invitation TDBR — Activez votre compte')
+            ->html($html);
+
+        $this->sendWithBcc($email);
     }
 
     /**

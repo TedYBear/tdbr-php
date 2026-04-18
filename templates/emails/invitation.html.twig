@@ -1,0 +1,37 @@
+{% extends 'emails/base.html.twig' %}
+
+{% block header_title %}Votre invitation TDBR{% endblock %}
+
+{% block content %}
+    <h2 style="color: #2C2416; margin-top: 0;">Bonjour {{ user.prenom }} !</h2>
+
+    <p style="font-size: 16px; line-height: 1.6; color: #333;">
+        Un compte a été créé pour vous sur la boutique TDBR.
+    </p>
+
+    <p style="font-size: 16px; line-height: 1.6; color: #333;">
+        Cliquez sur le bouton ci-dessous pour choisir votre mot de passe et activer votre compte :
+    </p>
+
+    <div style="text-align: center; margin: 30px 0;">
+        <a href="{{ inviteUrl }}"
+           style="display: inline-block; background-color: #8B7355; color: #ffffff; text-decoration: none;
+                  padding: 14px 32px; border-radius: 8px; font-size: 16px; font-weight: 600;">
+            Activer mon compte
+        </a>
+    </div>
+
+    <p style="font-size: 14px; line-height: 1.6; color: #666;">
+        Ce lien est valable <strong>7 jours</strong>. Passé ce délai, contactez-nous pour recevoir un nouveau lien.
+    </p>
+
+    <p style="font-size: 13px; line-height: 1.6; color: #999; word-break: break-all;">
+        Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :<br>
+        {{ inviteUrl }}
+    </p>
+
+    <p style="font-size: 16px; line-height: 1.6; color: #333; font-weight: 600; margin-top: 30px;">
+        À bientôt !<br>
+        L'équipe TDBR
+    </p>
+{% endblock %}
