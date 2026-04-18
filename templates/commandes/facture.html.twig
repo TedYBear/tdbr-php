@@ -339,7 +339,7 @@
             <div class="address-block">
                 <div class="address-label">Livrer à</div>
                 {% set livraison = commande.modeLivraison %}
-                {% if livraison and livraison.mode == 'relais' %}
+                {% if livraison and livraison.mode is defined and livraison.mode == 'relais' %}
                     <div class="address-name">Point relais</div>
                     <div class="address-detail">
                         {{ livraison.pointRelaisNom ?? '' }}<br>
