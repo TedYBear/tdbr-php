@@ -9,10 +9,10 @@
 
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
-            font-size: 13px;
+            font-size: 12px;
             color: #1a1a1a;
             background: #f0f0f0;
-            line-height: 1.5;
+            line-height: 1.4;
         }
 
         /* Barre d'action — masquée à l'impression */
@@ -58,7 +58,7 @@
             min-height: 297mm;
             margin: 2rem auto;
             background: #fff;
-            padding: 15mm 18mm 12mm 18mm;
+            padding: 12mm 15mm 10mm 15mm;
             box-shadow: 0 4px 24px rgba(0,0,0,0.12);
             display: flex;
             flex-direction: column;
@@ -69,32 +69,26 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            padding-bottom: 8mm;
+            padding-bottom: 6mm;
             border-bottom: 2px solid #1a1a1a;
-            margin-bottom: 8mm;
+            margin-bottom: 6mm;
         }
         .brand-logo {
-            height: 80px;
+            height: 60px;
             width: auto;
             display: block;
-            margin-bottom: 6px;
-        }
-        .brand-name {
-            font-size: 28px;
-            font-weight: 900;
-            letter-spacing: -0.5px;
-            color: #1a1a1a;
+            margin-bottom: 4px;
         }
         .brand-tagline {
-            font-size: 11px;
+            font-size: 10px;
             color: #666;
             margin-top: 2px;
         }
         .brand-info {
-            font-size: 11px;
+            font-size: 10px;
             color: #555;
-            margin-top: 6px;
-            line-height: 1.6;
+            margin-top: 4px;
+            line-height: 1.5;
         }
         .invoice-meta {
             text-align: right;
@@ -107,46 +101,15 @@
             text-transform: uppercase;
         }
         .invoice-number {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 700;
             color: #555;
-            margin-top: 4px;
+            margin-top: 3px;
         }
         .invoice-date {
-            font-size: 12px;
+            font-size: 11px;
             color: #777;
             margin-top: 2px;
-        }
-
-        /* Bloc adresses */
-        .addresses {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 6mm;
-            margin-bottom: 8mm;
-        }
-        .address-block {
-            padding: 5mm;
-            background: #f8f8f8;
-            border-radius: 4px;
-        }
-        .address-label {
-            font-size: 10px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: #999;
-            margin-bottom: 3mm;
-        }
-        .address-name {
-            font-size: 14px;
-            font-weight: 700;
-            margin-bottom: 1mm;
-        }
-        .address-detail {
-            font-size: 12px;
-            color: #555;
-            line-height: 1.6;
         }
 
         /* Badge statut payé */
@@ -157,25 +120,56 @@
             background: #dcfce7;
             color: #15803d;
             font-weight: 700;
-            font-size: 11px;
-            padding: 3px 8px;
+            font-size: 10px;
+            padding: 2px 7px;
             border-radius: 12px;
             margin-top: 4px;
+        }
+
+        /* Bloc adresses */
+        .addresses {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5mm;
+            margin-bottom: 6mm;
+        }
+        .address-block {
+            padding: 4mm;
+            background: #f8f8f8;
+            border-radius: 4px;
+        }
+        .address-label {
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #999;
+            margin-bottom: 2mm;
+        }
+        .address-name {
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 1mm;
+        }
+        .address-detail {
+            font-size: 11px;
+            color: #555;
+            line-height: 1.5;
         }
 
         /* Tableau articles */
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 6mm;
+            margin-bottom: 5mm;
         }
         thead tr {
             background: #1a1a1a;
             color: #fff;
         }
         thead th {
-            padding: 3mm 4mm;
-            font-size: 11px;
+            padding: 2.5mm 3.5mm;
+            font-size: 10px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -188,33 +182,33 @@
         tbody tr { border-bottom: 1px solid #e5e5e5; }
         tbody tr:last-child { border-bottom: none; }
         tbody tr:nth-child(even) { background: #fafafa; }
-        tbody td { padding: 3mm 4mm; font-size: 12px; vertical-align: top; }
+        tbody td { padding: 2.5mm 3.5mm; font-size: 11px; vertical-align: top; }
         tbody td.right { text-align: right; }
         tbody td.center { text-align: center; }
         .item-name { font-weight: 600; }
-        .item-variant { font-size: 11px; color: #777; margin-top: 1px; }
+        .item-variant { font-size: 10px; color: #777; margin-top: 1px; }
 
         /* Totaux */
         .totals {
             display: flex;
             justify-content: flex-end;
-            margin-bottom: 8mm;
+            margin-bottom: 5mm;
         }
         .totals-box {
-            width: 60mm;
+            width: 58mm;
         }
         .total-row {
             display: flex;
             justify-content: space-between;
-            padding: 1.5mm 0;
-            font-size: 12px;
+            padding: 1.2mm 0;
+            font-size: 11px;
             border-bottom: 1px solid #eee;
         }
         .total-row:last-child { border-bottom: none; }
         .total-row.discount { color: #15803d; font-weight: 600; }
         .total-row.grand {
-            padding: 3mm 0 0;
-            font-size: 15px;
+            padding: 2.5mm 0 0;
+            font-size: 14px;
             font-weight: 900;
             border-top: 2px solid #1a1a1a;
             margin-top: 1mm;
@@ -223,46 +217,57 @@
         .total-label.grand { color: #1a1a1a; }
         .total-value { font-weight: 700; }
 
-        /* Paiement */
-        .payment-info {
-            background: #f8f8f8;
-            border-left: 3px solid #1a1a1a;
-            padding: 4mm 5mm;
-            border-radius: 0 4px 4px 0;
-            margin-bottom: 6mm;
-            font-size: 12px;
+        /* Bande récap paiement + livraison */
+        .meta-row {
+            display: flex;
+            gap: 4mm;
+            margin-bottom: 5mm;
         }
-        .payment-info strong { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #888; margin-bottom: 1mm; }
+        .meta-cell {
+            flex: 1;
+            background: #f8f8f8;
+            border-radius: 4px;
+            padding: 3mm 4mm;
+            font-size: 11px;
+        }
+        .meta-cell strong {
+            display: block;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #999;
+            margin-bottom: 1.5mm;
+        }
 
-        /* Mode livraison */
-        .shipping-info {
-            font-size: 12px;
+        /* Notes */
+        .notes-block {
+            font-size: 11px;
             color: #555;
-            margin-bottom: 6mm;
-            padding: 3mm 5mm;
+            margin-bottom: 5mm;
+            padding: 3mm 4mm;
             border: 1px solid #e5e5e5;
             border-radius: 4px;
         }
-        .shipping-info strong { color: #1a1a1a; }
+        .notes-block strong { color: #1a1a1a; }
 
         /* Footer */
         .footer {
             margin-top: auto;
-            padding-top: 6mm;
+            padding-top: 5mm;
             border-top: 1px solid #ddd;
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
-            font-size: 10px;
+            font-size: 9px;
             color: #999;
         }
         .footer-thanks {
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 700;
             color: #1a1a1a;
             margin-bottom: 1mm;
         }
-        .footer-legal { line-height: 1.6; }
+        .footer-legal { line-height: 1.5; }
 
         /* Print */
         @media print {
@@ -270,7 +275,7 @@
             .print-bar { display: none !important; }
             .page {
                 margin: 0;
-                padding: 12mm 15mm 10mm 15mm;
+                padding: 10mm 13mm 8mm 13mm;
                 box-shadow: none;
                 min-height: auto;
             }
@@ -311,8 +316,7 @@
                     <strong>Emmanuel Chauveau</strong><br>
                     39 Boulevard Victor Hugo, Rés. Léopoldine B36<br>
                     31770 Colomiers, France<br>
-                    tedybear.fr<br>
-                    SIREN : 538 044 231
+                    tedybear.fr &nbsp;·&nbsp; SIREN : 538 044 231
                 </div>
             </div>
             <div class="invoice-meta">
@@ -320,8 +324,8 @@
                 <div class="invoice-number">N° {{ commande.numero }}</div>
                 <div class="invoice-date">Date : {{ commande.createdAt|date('d/m/Y') }}</div>
                 <div class="paid-badge">
-                    <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
-                    Payée
+                    <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                    Acquittée
                 </div>
             </div>
         </div>
@@ -330,10 +334,10 @@
         <div class="addresses">
             <div class="address-block">
                 <div class="address-label">Facturer à</div>
-                <div class="address-name">{{ commande.client.prenom ?? '' }} {{ commande.client.nom ?? '' }}</div>
+                <div class="address-name">{{ (commande.client.prenom ?? '') ~ ' ' ~ (commande.client.nom ?? '') }}</div>
                 <div class="address-detail">
                     {{ commande.client.email }}<br>
-                    {% if commande.client.telephone ?? '' %}{{ commande.client.telephone }}{% endif %}
+                    {% if commande.client.telephone is defined and commande.client.telephone %}{{ commande.client.telephone }}{% endif %}
                 </div>
             </div>
             <div class="address-block">
@@ -347,12 +351,12 @@
                     </div>
                 {% else %}
                     {% set adresse = commande.adresseLivraison %}
-                    <div class="address-name">{{ commande.client.prenom ?? '' }} {{ commande.client.nom ?? '' }}</div>
+                    <div class="address-name">{{ (commande.client.prenom ?? '') ~ ' ' ~ (commande.client.nom ?? '') }}</div>
                     <div class="address-detail">
-                        {{ adresse.adresse }}<br>
+                        {{ adresse.adresse ?? '' }}<br>
                         {% if adresse.complementAdresse is defined and adresse.complementAdresse %}{{ adresse.complementAdresse }}<br>{% endif %}
-                        {{ adresse.codePostal }} {{ adresse.ville }}<br>
-                        {{ adresse.pays == 'FR' ? 'France' : adresse.pays }}
+                        {{ adresse.codePostal ?? '' }} {{ adresse.ville ?? '' }}<br>
+                        {{ (adresse.pays ?? 'FR') == 'FR' ? 'France' : (adresse.pays ?? '') }}
                     </div>
                 {% endif %}
             </div>
@@ -401,22 +405,18 @@
                     <span class="total-label">Articles</span>
                     <span class="total-value">{{ sousTotal|number_format(2, ',', ' ') }} €</span>
                 </div>
-                <div class="total-row">
-                    <span class="total-label">Livraison</span>
-                    <span class="total-value">
-                        {% if fraisLivraison <= 0 %}
-                            Gratuite
-                        {% else %}
-                            {{ fraisLivraison|number_format(2, ',', ' ') }} €
-                        {% endif %}
-                    </span>
-                </div>
                 {% if commande.reduction > 0 %}
                     <div class="total-row discount">
                         <span>Réduction</span>
                         <span>- {{ commande.reduction|number_format(2, ',', ' ') }} €</span>
                     </div>
                 {% endif %}
+                <div class="total-row">
+                    <span class="total-label">Livraison</span>
+                    <span class="total-value">
+                        {% if fraisLivraison <= 0 %}Gratuite{% else %}{{ fraisLivraison|number_format(2, ',', ' ') }} €{% endif %}
+                    </span>
+                </div>
                 <div class="total-row grand">
                     <span class="total-label grand">Total TTC</span>
                     <span>{{ commande.total|number_format(2, ',', ' ') }} €</span>
@@ -424,27 +424,27 @@
             </div>
         </div>
 
-        {# Paiement + Livraison #}
-        <div class="payment-info">
-            <strong>Paiement</strong>
-            {% if commande.modePaiement == 'mollie' %}Carte bancaire (Mollie)
-            {% elseif commande.modePaiement == 'virement' %}Virement bancaire
-            {% elseif commande.modePaiement == 'paypal' %}PayPal
-            {% else %}{{ commande.modePaiement|capitalize }}{% endif %}
-            {% if commande.molliePaymentId %}
-                &nbsp;·&nbsp; Réf. {{ commande.molliePaymentId }}
+        {# Bande paiement + livraison #}
+        <div class="meta-row">
+            <div class="meta-cell">
+                <strong>Mode de paiement</strong>
+                {% if commande.modePaiement == 'mollie' %}Carte bancaire
+                {% elseif commande.modePaiement == 'virement' %}Virement bancaire
+                {% elseif commande.modePaiement == 'paypal' %}PayPal
+                {% elseif commande.modePaiement == 'admin' %}Manuel (admin)
+                {% else %}{{ commande.modePaiement|capitalize }}{% endif %}
+            </div>
+            {% if commande.modeLivraison %}
+            <div class="meta-cell">
+                <strong>Mode de livraison</strong>
+                {{ commande.modeLivraison.label ?? commande.modeLivraison.mode ?? '' }}
+            </div>
             {% endif %}
         </div>
 
-        {% if commande.modeLivraison %}
-            <div class="shipping-info">
-                <strong>Mode de livraison :</strong> {{ commande.modeLivraison.label ?? commande.modeLivraison.mode }}
-            </div>
-        {% endif %}
-
         {# Notes #}
         {% if commande.notes %}
-            <div class="shipping-info">
+            <div class="notes-block">
                 <strong>Notes :</strong> {{ commande.notes }}
             </div>
         {% endif %}
@@ -455,14 +455,13 @@
                 <div class="footer-thanks">Merci pour votre commande !</div>
                 <div class="footer-legal">
                     TDBR – Emmanuel Chauveau · 39 Bd Victor Hugo, Rés. Léopoldine B36, 31770 Colomiers<br>
-                    tedybear.fr · SIREN : 538 044 231<br>
-                    TVA non applicable – Art. 293 B du CGI<br>
+                    tedybear.fr · SIREN : 538 044 231 · TVA non applicable – Art. 293 B du CGI<br>
                     Pour toute question : formulaire de contact sur tedybear.fr
                 </div>
             </div>
-            <div class="footer-legal" style="text-align:right;">
+            <div class="footer-legal" style="text-align:right; white-space:nowrap;">
                 Document généré le {{ "now"|date("d/m/Y") }}<br>
-                Commande du {{ commande.createdAt|date('d/m/Y à H:i') }}
+                Commande du {{ commande.createdAt|date('d/m/Y') }}
             </div>
         </div>
 
