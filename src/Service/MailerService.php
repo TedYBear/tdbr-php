@@ -234,6 +234,70 @@ class MailerService
     }
 
     /**
+     * Génère le PDF de la facture acquittée d'une commande.
+     */
+    public function generateFacturePdf(Commande $commande): string
+    {
+        $logoPath = $this->projectDir . '/public/build/images/TDBR.png';
+        $logoBase64 = file_exists($logoPath)
+            ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath))
+            : null;
+
+        $html = $this->twig->render('commandes/facture.html.twig', [
+            'commande'   => $commande,
+            'pdf'        => true,
+            'logoBase64' => $logoBase64,
+        ]);
+
+        $options = new Options();
+        $options->set('defaultFont', 'Helvetica');
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('isRemoteEnabled', false);
+
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html, 'UTF-8');
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        return $dompdf->output();
+    }
+
+    /**
+     * Envoie la facture acquittée par email (avec garde anti-doublon via factureSentAt).
+     * Met à jour factureSentAt sur la commande — flush à faire côté appelant.
+     */
+    public function sendFactureAcquittee(Commande $commande): void
+    {
+        if ($commande->getFactureSentAt() !== null) {
+            return; // Déjà envoyée
+        }
+
+        $client = $commande->getClient();
+        $toEmail = $client['email'] ?? null;
+        if (!$toEmail) {
+            return;
+        }
+
+        $pdfContent = $this->generateFacturePdf($commande);
+        $filename   = 'facture-tdbr-' . $commande->getNumero() . '.pdf';
+
+        $html = $this->twig->render('emails/facture_acquittee.html.twig', [
+            'commande' => $commande,
+        ]);
+
+        $email = (new Email())
+            ->from($this->fromEmail)
+            ->to($toEmail)
+            ->subject('Votre facture acquittée — ' . $commande->getNumero())
+            ->html($html)
+            ->attach($pdfContent, $filename, 'application/pdf');
+
+        $this->sendWithBcc($email);
+
+        $commande->setFactureSentAt(new \DateTimeImmutable());
+    }
+
+    /**
      * Envoie un email d'invitation avec lien de définition du mot de passe
      */
     public function sendInvitation(User $user, string $inviteUrl): void

@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Repository\CommandeRepository;
 use App\Repository\PropositionCommercialeRepository;
+use App\Service\MailerService;
 use App\Service\MollieService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -18,6 +19,7 @@ class MollieWebhookController extends AbstractController
         private CommandeRepository $commandeRepo,
         private PropositionCommercialeRepository $propositionRepo,
         private EntityManagerInterface $em,
+        private MailerService $mailerService,
     ) {
     }
 
@@ -47,15 +49,26 @@ class MollieWebhookController extends AbstractController
         // Chercher la commande par molliePaymentId
         $commande = $this->commandeRepo->findOneBy(['molliePaymentId' => $mollieId]);
 
-        if ($commande && $commande->getStatut() !== 'payee') {
-            $commande->setStatut('payee');
-            $commande->setUpdatedAt(new \DateTimeImmutable());
+        if ($commande) {
+            $alreadyPaid = $commande->getStatut() === 'payee';
+
+            if (!$alreadyPaid) {
+                $commande->setStatut('payee');
+                $commande->setUpdatedAt(new \DateTimeImmutable());
+            }
 
             // Mettre à jour la proposition associée si présente
             $proposition = $this->propositionRepo->findOneBy(['commande' => $commande]);
             if ($proposition && $proposition->getStatut() !== 'payee') {
                 $proposition->setStatut('payee');
                 $proposition->setUpdatedAt(new \DateTimeImmutable());
+            }
+
+            // Envoyer la facture acquittée (anti-doublon via factureSentAt)
+            if ($proposition !== null) {
+                try {
+                    $this->mailerService->sendFactureAcquittee($commande);
+                } catch (\Throwable $e) {}
             }
 
             $this->em->flush();

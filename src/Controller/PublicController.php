@@ -1435,11 +1435,6 @@ class PublicController extends AbstractController
             return $this->redirectToRoute('proposition_view', ['token' => $token]);
         }
 
-        // Anti-doublon
-        if ($proposition->getStatut() === 'payee') {
-            return $this->redirectToRoute('proposition_view', ['token' => $token]);
-        }
-
         $mollieId = $commande->getMolliePaymentId();
         if (!$mollieId) {
             $this->addFlash('error', 'Paiement introuvable.');
@@ -1458,15 +1453,20 @@ class PublicController extends AbstractController
             return $this->redirectToRoute('proposition_view', ['token' => $token]);
         }
 
-        $commande->setStatut('payee');
-        $commande->setUpdatedAt(new \DateTimeImmutable());
-        $proposition->setStatut('payee');
-        $proposition->setUpdatedAt(new \DateTimeImmutable());
-        $this->em->flush();
+        // Marquer comme payée (idempotent)
+        if ($proposition->getStatut() !== 'payee') {
+            $commande->setStatut('payee');
+            $commande->setUpdatedAt(new \DateTimeImmutable());
+            $proposition->setStatut('payee');
+            $proposition->setUpdatedAt(new \DateTimeImmutable());
+        }
 
+        // Envoyer la facture acquittée si pas encore fait
         try {
-            $this->mailerService->sendOrderConfirmation($commande);
+            $this->mailerService->sendFactureAcquittee($commande);
         } catch (\Throwable $e) {}
+
+        $this->em->flush();
 
         return $this->redirectToRoute('proposition_view', ['token' => $token]);
     }

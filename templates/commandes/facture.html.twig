@@ -280,7 +280,8 @@
 </head>
 <body>
 
-    {# Barre d'action (masquée à l'impression) #}
+    {# Barre d'action (masquée à l'impression et en mode PDF) #}
+    {% if not (pdf ?? false) %}
     <div class="print-bar">
         <a href="javascript:history.back()" class="back-link">
             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
@@ -292,6 +293,7 @@
             Imprimer / Sauvegarder PDF
         </button>
     </div>
+    {% endif %}
 
     {# Page facture #}
     <div class="page">
@@ -299,7 +301,11 @@
         {# En-tête #}
         <div class="header">
             <div>
-                <img src="{{ asset('build/images/TDBR.png') }}" alt="TDBR" class="brand-logo">
+                {% if (pdf ?? false) and logoBase64 is defined and logoBase64 %}
+                    <img src="{{ logoBase64 }}" alt="TDBR" class="brand-logo">
+                {% else %}
+                    <img src="{{ asset('build/images/TDBR.png') }}" alt="TDBR" class="brand-logo">
+                {% endif %}
                 <div class="brand-tagline">Créations de produits personnalisés</div>
                 <div class="brand-info">
                     <strong>Emmanuel Chauveau</strong><br>

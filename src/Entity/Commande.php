@@ -60,6 +60,9 @@ class Commande
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $factureSentAt = null;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
@@ -95,6 +98,9 @@ class Commande
     public function setCreatedAt(\DateTimeImmutable $c): static { $this->createdAt = $c; return $this; }
     public function getUpdatedAt(): ?\DateTimeImmutable { return $this->updatedAt; }
     public function setUpdatedAt(?\DateTimeImmutable $u): static { $this->updatedAt = $u; return $this; }
+
+    public function getFactureSentAt(): ?\DateTimeImmutable { return $this->factureSentAt; }
+    public function setFactureSentAt(?\DateTimeImmutable $at): static { $this->factureSentAt = $at; return $this; }
 
     public function getUser(): ?User { return $this->user; }
     public function setUser(?User $user): static { $this->user = $user; return $this; }
