@@ -130,6 +130,29 @@ class CommandeAdminController extends AbstractController
         ]);
     }
 
+    #[Route('/{id}/renvoyer-facture', name: 'admin_commandes_renvoyer_facture', methods: ['POST'])]
+    public function renvoyerFacture(int $id): Response
+    {
+        $commande = $this->commandeRepo->find($id);
+
+        if (!$commande) {
+            throw $this->createNotFoundException('Commande introuvable');
+        }
+
+        // Réinitialise le garde pour forcer un nouvel envoi
+        $commande->setFactureSentAt(null);
+
+        try {
+            $this->mailer->sendFactureAcquittee($commande);
+            $this->em->flush();
+            $this->addFlash('success', 'Facture renvoyée à ' . ($commande->getClient()['email'] ?? '—') . '.');
+        } catch (\Throwable $e) {
+            $this->addFlash('error', 'Erreur lors de l\'envoi : ' . $e->getMessage());
+        }
+
+        return $this->redirectToRoute('admin_commandes_detail', ['id' => $id]);
+    }
+
     #[Route('/{id}/delete', name: 'admin_commandes_delete', methods: ['POST'])]
     public function delete(int $id): Response
     {
