@@ -350,7 +350,7 @@
                     <div class="address-name">{{ commande.client.prenom ?? '' }} {{ commande.client.nom ?? '' }}</div>
                     <div class="address-detail">
                         {{ adresse.adresse }}<br>
-                        {% if adresse.complementAdresse %}{{ adresse.complementAdresse }}<br>{% endif %}
+                        {% if adresse.complementAdresse is defined and adresse.complementAdresse %}{{ adresse.complementAdresse }}<br>{% endif %}
                         {{ adresse.codePostal }} {{ adresse.ville }}<br>
                         {{ adresse.pays == 'FR' ? 'France' : adresse.pays }}
                     </div>

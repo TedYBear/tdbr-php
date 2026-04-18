@@ -53,29 +53,33 @@
         </table>
     </div>
 
+    {% if commande.modeLivraison %}
     <h3 style="color: #8B7355;">Mode de livraison</h3>
     <p style="font-size: 14px; line-height: 1.6; color: #333;">
-        <strong>{{ commande.modeLivraison.label }}</strong>
-        {% if commande.modeLivraison.prix > 0 %}
+        <strong>{{ commande.modeLivraison.label ?? '' }}</strong>
+        {% if (commande.modeLivraison.prix ?? 0) > 0 %}
             — {{ commande.modeLivraison.prix|number_format(2, ',', ' ') }} €
         {% else %}
             — Offert
         {% endif %}
-        {% if commande.modeLivraison.type == 'relais' %}
-            <br>Point relais : <strong>{{ commande.modeLivraison.pointRelaisNom }}</strong>
-            <br>{{ commande.modeLivraison.pointRelaisAdresse }}
+        {% if (commande.modeLivraison.type ?? '') == 'relais' %}
+            <br>Point relais : <strong>{{ commande.modeLivraison.pointRelaisNom ?? '' }}</strong>
+            <br>{{ commande.modeLivraison.pointRelaisAdresse ?? '' }}
         {% endif %}
     </p>
+    {% endif %}
 
+    {% if commande.adresseLivraison %}
     <h3 style="color: #8B7355;">Adresse de livraison</h3>
     <p style="font-size: 14px; line-height: 1.6; color: #333;">
-        {{ commande.adresseLivraison.adresse }}<br>
-        {% if commande.adresseLivraison.complementAdresse %}
+        {{ commande.adresseLivraison.adresse ?? '' }}<br>
+        {% if commande.adresseLivraison.complementAdresse is defined and commande.adresseLivraison.complementAdresse %}
             {{ commande.adresseLivraison.complementAdresse }}<br>
         {% endif %}
-        {{ commande.adresseLivraison.codePostal }} {{ commande.adresseLivraison.ville }}<br>
-        {{ commande.adresseLivraison.pays }}
+        {{ commande.adresseLivraison.codePostal ?? '' }} {{ commande.adresseLivraison.ville ?? '' }}<br>
+        {{ commande.adresseLivraison.pays ?? '' }}
     </p>
+    {% endif %}
 
     <h3 style="color: #8B7355;">Mode de paiement</h3>
     <p style="font-size: 14px; line-height: 1.6; color: #333;">

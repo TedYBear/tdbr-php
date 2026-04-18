@@ -6,7 +6,7 @@
     <h2 style="color: #2C2416; margin-top: 0;">Votre commande est enregistrée</h2>
 
     <p style="font-size: 16px; line-height: 1.6; color: #333;">
-        {% if commande.client.prenom %}Bonjour <strong>{{ commande.client.prenom }}</strong>,{% else %}Bonjour,{% endif %}
+        {% if commande.client.prenom is defined and commande.client.prenom %}Bonjour <strong>{{ commande.client.prenom }}</strong>,{% else %}Bonjour,{% endif %}
     </p>
 
     <p style="font-size: 16px; line-height: 1.6; color: #333;">
