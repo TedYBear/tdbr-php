@@ -145,28 +145,47 @@
             </div>
 
             {# Facture #}
-            <div class="flex gap-2">
+            {% if commande.factureSentAt %}
+                {# Facture déjà créée — voir + renvoyer #}
+                <div class="flex gap-2">
+                    <a href="{{ path('admin_commandes_facture', {id: commande.id}) }}" target="_blank"
+                       class="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-700 transition text-sm font-semibold">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        Voir la facture
+                    </a>
+                    <form method="post" action="{{ path('admin_commandes_renvoyer_facture', {id: commande.id}) }}"
+                          onsubmit="window.confirmForm(event, this, 'Renvoyer la facture à {{ commande.client.email ?? '' }} ?')">
+                        <button type="submit"
+                                class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-semibold whitespace-nowrap">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                            Renvoyer
+                        </button>
+                    </form>
+                </div>
+                <p class="text-xs text-gray-400 text-center -mt-1">Envoyée le {{ commande.factureSentAt|date('d/m/Y à H:i') }}</p>
+            {% else %}
+                {# Pas encore de facture — proposer la création #}
                 <a href="{{ path('admin_commandes_facture', {id: commande.id}) }}" target="_blank"
-                   class="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-700 transition text-sm font-semibold">
+                   class="flex items-center justify-center gap-2 w-full px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-700 transition text-sm font-semibold">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
                     Voir la facture
                 </a>
                 <form method="post" action="{{ path('admin_commandes_renvoyer_facture', {id: commande.id}) }}"
-                      onsubmit="window.confirmForm(event, this, 'Renvoyer la facture acquittée à {{ commande.client.email ?? '' }} ?')">
+                      onsubmit="window.confirmForm(event, this, 'Créer et envoyer la facture à {{ commande.client.email ?? '' }} ?')">
                     <button type="submit"
-                            class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-semibold whitespace-nowrap"
-                            title="Regénérer et renvoyer la facture par email">
+                            class="flex items-center justify-center gap-2 w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition text-sm font-semibold">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                         </svg>
-                        Renvoyer
+                        Créer et envoyer la facture
                     </button>
                 </form>
-            </div>
-            {% if commande.factureSentAt %}
-                <p class="text-xs text-gray-400 text-center -mt-1">Facture envoyée le {{ commande.factureSentAt|date('d/m/Y à H:i') }}</p>
             {% endif %}
 
             {# Supprimer #}
