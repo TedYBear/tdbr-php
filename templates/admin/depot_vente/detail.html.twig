@@ -729,19 +729,17 @@
                 {% endif %}
             </div>
 
-            {# ── Boutons bas de modale ── #}
-            <div style="padding:1rem 1.5rem;border-top:1px solid #f3f4f6;flex-shrink:0;">
+            {# ── Bouton validation bas de modale ── #}
+            <div style="padding:1rem 1.5rem;border-top:1px solid #f3f4f6;flex-shrink:0;background:#fff;border-radius:0 0 1.25rem 1.25rem;">
                 <form method="post" action="{{ path('admin_depot_ventes_vente', {id: depot.id}) }}"
                       @submit="submitVente($event)">
                     <input type="hidden" name="note" :value="note">
-                    <div style="display:flex;gap:0.75rem;">
-                        <button type="submit" :disabled="lignes.length === 0"
-                                :style="lignes.length === 0 ? 'opacity:0.4;cursor:not-allowed;' : 'cursor:pointer;'"
-                                style="width:100%;padding:0.75rem 1rem;border-radius:0.625rem;border:none;background:#16a34a;color:#fff;font-weight:700;font-size:0.9rem;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:0.5rem;letter-spacing:0.01em;">
-                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                            Réaliser la vente
-                        </button>
-                    </div>
+                    <button type="submit"
+                            :disabled="lignes.length === 0"
+                            :style="lignes.length === 0 ? 'opacity:0.35;cursor:not-allowed;background:#15803d;' : 'background:#16a34a;cursor:pointer;'"
+                            style="display:block;width:100%;padding:0.8rem 1rem;border-radius:0.5rem;border:none;color:#fff;font-weight:700;font-size:0.95rem;font-family:inherit;text-align:center;">
+                        Valider la vente
+                    </button>
                 </form>
             </div>
 
