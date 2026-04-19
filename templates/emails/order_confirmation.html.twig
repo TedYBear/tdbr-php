@@ -22,6 +22,9 @@
             {% set sousTotal = sousTotal + ligneTotal %}
             <div style="padding: 10px 0; border-bottom: 1px solid #D4AF7A;">
                 <strong>{{ article.nom }}</strong>
+                {% if article.note is defined and article.note %}
+                    <br><span style="font-size: 13px; color: #555;">{{ article.note }}</span>
+                {% endif %}
                 {% if article.variant is defined and article.variant %}
                     <br><span style="font-size: 14px; color: #666;">Variante: {{ article.variant.nom }}</span>
                 {% endif %}

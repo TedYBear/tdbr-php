@@ -1332,11 +1332,16 @@ class PublicController extends AbstractController
             'codePostal' => '',
             'pays'       => 'FR',
         ]);
-        $commande->setArticles([[
-            'nom'      => 'Proposition commerciale #' . $proposition->getId(),
+        $articleProposition = [
+            'nom'      => $proposition->getDescription(),
             'quantity' => 1,
             'prix'     => $proposition->getPrixTotal(),
-        ]]);
+            'type'     => 'proposition',
+        ];
+        if ($proposition->getMessagePersonnel()) {
+            $articleProposition['note'] = $proposition->getMessagePersonnel();
+        }
+        $commande->setArticles([$articleProposition]);
         $commande->setTotal($proposition->getPrixTotal());
         $commande->setModePaiement('mollie');
         $commande->setModeLivraison(['type' => 'proposition', 'label' => 'À coordonner', 'prix' => 0]);
@@ -1494,11 +1499,16 @@ class PublicController extends AbstractController
             'codePostal' => '',
             'pays'       => 'FR',
         ]);
-        $commande->setArticles([[
-            'nom'      => 'Proposition commerciale #' . $proposition->getId(),
+        $articlePropositionV = [
+            'nom'      => $proposition->getDescription(),
             'quantity' => 1,
             'prix'     => $proposition->getPrixTotal(),
-        ]]);
+            'type'     => 'proposition',
+        ];
+        if ($proposition->getMessagePersonnel()) {
+            $articlePropositionV['note'] = $proposition->getMessagePersonnel();
+        }
+        $commande->setArticles([$articlePropositionV]);
         $commande->setTotal($proposition->getPrixTotal());
         $commande->setModePaiement('virement');
         $commande->setModeLivraison(['type' => 'proposition', 'label' => 'À coordonner', 'prix' => 0]);

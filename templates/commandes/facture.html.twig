@@ -380,6 +380,9 @@
                     <tr>
                         <td>
                             <div class="item-name">{{ item.nom }}</div>
+                            {% if item.note is defined and item.note %}
+                                <div class="item-variant">{{ item.note }}</div>
+                            {% endif %}
                             {% if item.variant is defined and item.variant %}
                                 <div class="item-variant">Variante : {{ item.variant.nom }}</div>
                             {% endif %}

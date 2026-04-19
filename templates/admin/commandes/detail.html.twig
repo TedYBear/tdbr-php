@@ -19,6 +19,9 @@
                             {% endif %}
                             <div class="flex-1">
                                 <div class="font-semibold">{{ article.nom }}</div>
+                                {% if article.note is defined and article.note %}
+                                    <div class="text-sm text-gray-500 italic mt-0.5">{{ article.note }}</div>
+                                {% endif %}
                                 {% if article.variant is defined and article.variant %}
                                     <div class="text-sm text-gray-600">Variante: {{ article.variant.nom }}</div>
                                 {% endif %}
