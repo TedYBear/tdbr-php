@@ -187,7 +187,7 @@
                                             </svg>
                                         </a>
                                         {% if prop.statut == 'payee' and prop.commande %}
-                                            <a href="{{ path('proposition_facture', {token: prop.token}) }}"
+                                            <a href="{{ path('commande_facture', {id: prop.commande.id}) }}"
                                                target="_blank"
                                                class="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 hover:bg-gray-700 text-white rounded-lg transition font-medium text-sm">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -1538,4 +1538,28 @@ class PublicController extends AbstractController
             'commande' => $proposition->getCommande(),
         ]);
     }
+
+    #[Route('/commande/{id}/facture', name: 'commande_facture', requirements: ['id' => '\d+'])]
+    public function commandeFacture(int $id): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_USER');
+
+        $commande = $this->commandeRepo->find($id);
+        if (!$commande) {
+            throw $this->createNotFoundException('Commande introuvable');
+        }
+
+        /** @var \App\Entity\User $user */
+        $user = $this->getUser();
+        $clientEmail = $commande->getClient()['email'] ?? '';
+
+        if (!$this->isGranted('ROLE_ADMIN')
+            && strtolower($user->getEmail()) !== strtolower($clientEmail)) {
+            throw $this->createAccessDeniedException('Cette commande ne vous appartient pas.');
+        }
+
+        return $this->render('commandes/facture.html.twig', [
+            'commande' => $commande,
+        ]);
+    }
 }
