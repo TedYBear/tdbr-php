@@ -468,7 +468,7 @@
        Données pré-construites côté Twig, logique panier côté Alpine
     ════════════════════════════════════════════════════════════════════════ #}
 
-    {# Construction du JSON articles-en-stock pour Alpine #}
+    {# Construction du JSON articles-en-stock pour Alpine (avec paliers de prix) #}
     {% set venteData = [] %}
     {% for article in articles %}
         {% set variantesData = [] %}
@@ -476,13 +476,12 @@
             {% if variante.actif %}
                 {% set stockItem = stockMap[variante.id] ?? null %}
                 {% if stockItem and stockItem.quantite > 0 %}
-                    {% set prixUnit = prixMap[variante.id] ?? (article.prixBase + (variante.deltaPrix ?? 0)) %}
                     {% set variantesData = variantesData|merge([{
                         id: variante.id,
                         nom: variante.nom,
                         stock: stockItem.quantite,
                         stockItemId: stockItem.id,
-                        prix: prixUnit
+                        deltaPrix: variante.deltaPrix ?? 0
                     }]) %}
                 {% endif %}
             {% endif %}
@@ -491,6 +490,8 @@
             {% set venteData = venteData|merge([{
                 id: article.id,
                 nom: article.nom,
+                prixBase: article.prixBase,
+                paliers: article.grillePrix ? article.grillePrix.paliers : [],
                 variantes: variantesData
             }]) %}
         {% endif %}
@@ -498,7 +499,8 @@
 
     <div x-show="openVente" x-cloak
          style="position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:1rem;"
-         @click.self="openVente = false">
+         @click.self="openVente = false"
+         @close-vente.window="openVente = false">
 
         <div x-data="{
                 catalogueVente: {{ venteData|json_encode|e('html_attr') }},
@@ -513,8 +515,24 @@
                 get variante() { return this.variantes.find(v => v.id == this.varianteId) ?? null; },
                 get maxStock() { return this.variante ? this.variante.stock : 0; },
                 get canAdd() { return this.variante !== null && this.qty >= 1; },
+                get currentPrix() {
+                    if (!this.article || !this.variante) return null;
+                    return this.getPrixForQty(this.article, this.variante, parseInt(this.qty));
+                },
                 get total() {
                     return this.lignes.reduce((s, l) => s + l.qty * l.prix, 0);
+                },
+
+                getPrixForQty(article, variante, qty) {
+                    const paliers = article.paliers ?? [];
+                    let resolved = null;
+                    for (const p of paliers) {
+                        if (qty >= (p.min ?? 0) && p.prixVente !== null && p.prixVente !== undefined) {
+                            resolved = parseFloat(p.prixVente);
+                        }
+                    }
+                    const base = resolved !== null ? resolved : parseFloat(article.prixBase ?? 0);
+                    return base + parseFloat(variante.deltaPrix ?? 0);
                 },
 
                 onArticleChange() { this.varianteId = ''; this.qty = 1; },
@@ -522,16 +540,18 @@
 
                 addLigne() {
                     if (!this.canAdd) return;
+                    const prix = this.getPrixForQty(this.article, this.variante, parseInt(this.qty));
                     const existing = this.lignes.find(l => l.stockItemId == this.variante.stockItemId);
                     if (existing) {
                         existing.qty = Math.min(existing.qty + parseInt(this.qty), this.variante.stock);
+                        existing.prix = this.getPrixForQty(this.article, this.variante, existing.qty);
                     } else {
                         this.lignes.push({
                             articleNom: this.article.nom,
                             varianteNom: this.variante.nom,
                             stockItemId: this.variante.stockItemId,
                             qty: parseInt(this.qty),
-                            prix: this.variante.prix,
+                            prix: prix,
                             maxStock: this.variante.stock
                         });
                     }
@@ -550,7 +570,7 @@
                     this.articleId = '';
                     this.varianteId = '';
                     this.qty = 1;
-                    this.$parent.openVente = false;
+                    this.$dispatch('close-vente');
                 },
 
                 submitVente(event) {
@@ -609,22 +629,31 @@
                     </select>
                 </div>
 
-                {# ── Quantité + bouton ajouter (visible si variante choisie) ── #}
-                <div x-show="varianteId !== ''" x-cloak
-                     style="display:flex;gap:0.625rem;align-items:flex-end;margin-bottom:1.25rem;">
-                    <div style="flex:1;">
-                        <label style="display:block;font-size:0.8rem;font-weight:600;color:#374151;margin-bottom:0.35rem;">Quantité</label>
-                        <select x-model="qty"
-                                style="width:100%;border:1.5px solid #d1d5db;border-radius:0.5rem;padding:0.5rem 0.75rem;font-size:0.875rem;font-family:inherit;background:#fff;">
-                            <template x-for="n in Array.from({length: maxStock}, (_, i) => i + 1)" :key="n">
-                                <option :value="n" x-text="n"></option>
-                            </template>
-                        </select>
+                {# ── Quantité + prix calculé + bouton ajouter ── #}
+                <div x-show="varianteId !== ''" x-cloak style="margin-bottom:1.25rem;">
+                    <div style="display:flex;gap:0.625rem;align-items:flex-end;">
+                        <div style="flex:1;">
+                            <label style="display:block;font-size:0.8rem;font-weight:600;color:#374151;margin-bottom:0.35rem;">Quantité</label>
+                            <select x-model="qty" @change="qty = parseInt($event.target.value)"
+                                    style="width:100%;border:1.5px solid #d1d5db;border-radius:0.5rem;padding:0.5rem 0.75rem;font-size:0.875rem;font-family:inherit;background:#fff;">
+                                <template x-for="n in Array.from({length: maxStock}, (_, i) => i + 1)" :key="n">
+                                    <option :value="n" x-text="n"></option>
+                                </template>
+                            </select>
+                        </div>
+                        <button type="button" @click="addLigne()" :disabled="!canAdd"
+                                style="padding:0.5rem 1.125rem;border:none;border-radius:0.5rem;background:#111827;color:#fff;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;">
+                            + Ajouter
+                        </button>
                     </div>
-                    <button type="button" @click="addLigne()" :disabled="!canAdd"
-                            style="padding:0.5rem 1.125rem;border:none;border-radius:0.5rem;background:#111827;color:#fff;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;">
-                        + Ajouter
-                    </button>
+                    {# Prix unitaire selon grille + total ligne #}
+                    <div x-show="currentPrix !== null" x-cloak
+                         style="margin-top:0.4rem;font-size:0.78rem;color:#6b7280;display:flex;gap:0.5rem;align-items:center;">
+                        <span x-text="currentPrix ? currentPrix.toFixed(2).replace('.', ',') + ' €/u' : ''"></span>
+                        <span style="color:#d1d5db;">·</span>
+                        <span style="font-weight:600;color:#111827;"
+                              x-text="currentPrix ? 'Total : ' + (parseInt(qty) * currentPrix).toFixed(2).replace('.', ',') + ' €' : ''"></span>
+                    </div>
                 </div>
 
                 {# ── Récapitulatif de la vente ── #}
