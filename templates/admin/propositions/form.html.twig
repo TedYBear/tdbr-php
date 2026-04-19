@@ -237,7 +237,7 @@
             {% if proposition.commande %}
                 <div class="card p-6">
                     <h2 class="font-heading text-lg font-bold mb-3">Commande associée</h2>
-                    <a href="{{ path('admin_commande_detail', {id: proposition.commande.id}) }}"
+                    <a href="{{ path('admin_commandes_detail', {id: proposition.commande.id}) }}"
                        class="text-primary hover:underline font-medium">
                         {{ proposition.commande.numero }}
                     </a>
