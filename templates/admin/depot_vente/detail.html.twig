@@ -501,7 +501,7 @@
          @click.self="openVente = false">
 
         <div x-data="{
-                catalogueVente: {{ venteData|json_encode|raw }},
+                catalogueVente: {{ venteData|json_encode|e('html_attr') }},
                 articleId: '',
                 varianteId: '',
                 qty: 1,
