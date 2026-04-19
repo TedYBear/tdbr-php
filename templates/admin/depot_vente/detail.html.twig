@@ -492,6 +492,7 @@
                 nom: article.nom,
                 prixBase: article.prixBase,
                 paliers: article.grillePrix ? article.grillePrix.paliers : [],
+                grillePrixId: article.grillePrix ? article.grillePrix.id : null,
                 variantes: variantesData
             }]) %}
         {% endif %}
@@ -547,6 +548,7 @@
                     } else {
                         this.lignes.push({
                             articleId: this.article.id,
+                            grillePrixId: this.article.grillePrixId,
                             articleNom: this.article.nom,
                             varianteNom: this.variante.nom,
                             stockItemId: this.variante.stockItemId,
@@ -555,32 +557,47 @@
                             maxStock: this.variante.stock
                         });
                     }
-                    // Recalcule le prix de toutes les lignes du même article
-                    // selon le total de toutes ses variantes (palier global)
-                    this.recalcPrixArticle(this.article);
+                    // Recalcule les prix de toutes les lignes partageant la même grille
+                    this.recalcPrixGrille(this.article.grillePrixId, this.article.paliers);
                     this.articleId = '';
                     this.varianteId = '';
                     this.qty = 1;
                 },
 
-                recalcPrixArticle(article) {
-                    const lignesArticle = this.lignes.filter(l => l.articleId == article.id);
-                    const totalQty = lignesArticle.reduce((s, l) => s + l.qty, 0);
-                    lignesArticle.forEach(ligne => {
-                        const v = article.variantes.find(v => v.stockItemId == ligne.stockItemId);
-                        if (v) ligne.prix = this.getPrixForQty(article, v, totalQty);
+                // Regroupe toutes les lignes partageant grillePrixId,
+                // calcule le total cumulé et applique le bon palier à chacune.
+                // Les articles sans grille (grillePrixId=null) sont recalculés individuellement.
+                recalcPrixGrille(grillePrixId, paliers) {
+                    if (grillePrixId === null) {
+                        // Pas de grille partagée : recalcul article par article
+                        const lignesArticle = this.lignes.filter(l => l.grillePrixId === null && l.articleId == this.article?.id);
+                        const totalQty = lignesArticle.reduce((s, l) => s + l.qty, 0);
+                        lignesArticle.forEach(ligne => {
+                            const art = this.catalogueVente.find(a => a.id == ligne.articleId);
+                            if (!art) return;
+                            const v = art.variantes.find(v => v.stockItemId == ligne.stockItemId);
+                            if (v) ligne.prix = this.getPrixForQty(art, v, totalQty);
+                        });
+                        return;
+                    }
+                    // Grille partagée : total sur tous les articles qui l'utilisent
+                    const lignesGrille = this.lignes.filter(l => l.grillePrixId == grillePrixId);
+                    const totalQty = lignesGrille.reduce((s, l) => s + l.qty, 0);
+                    lignesGrille.forEach(ligne => {
+                        const art = this.catalogueVente.find(a => a.id == ligne.articleId);
+                        if (!art) return;
+                        const v = art.variantes.find(v => v.stockItemId == ligne.stockItemId);
+                        if (v) ligne.prix = this.getPrixForQty(art, v, totalQty);
                     });
                 },
 
                 removeLigne(stockItemId) {
                     const ligne = this.lignes.find(l => l.stockItemId == stockItemId);
-                    const articleId = ligne ? ligne.articleId : null;
+                    const grillePrixId = ligne ? ligne.grillePrixId : null;
+                    const art = ligne ? this.catalogueVente.find(a => a.id == ligne.articleId) : null;
                     this.lignes = this.lignes.filter(l => l.stockItemId != stockItemId);
-                    // Recalcule les lignes restantes du même article
-                    if (articleId !== null) {
-                        const article = this.catalogueVente.find(a => a.id == articleId);
-                        if (article) this.recalcPrixArticle(article);
-                    }
+                    // Recalcule les lignes restantes partageant la même grille
+                    if (art) this.recalcPrixGrille(grillePrixId, art.paliers);
                 },
 
                 cancelVente() {
