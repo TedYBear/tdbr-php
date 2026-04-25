@@ -8,6 +8,7 @@ use App\Entity\Variante;
 use App\Repository\ArticleRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\GrillePrixRepository;
+use App\Repository\GuideTailleRepository;
 use App\Repository\ProductCollectionRepository;
 use App\Repository\VarianteTemplateRepository;
 use App\Service\SlugifyService;
@@ -28,6 +29,7 @@ class ArticleAdminController extends AbstractController
         private ProductCollectionRepository $collectionRepo,
         private FournisseurRepository $fournisseurRepo,
         private GrillePrixRepository $grillePrixRepo,
+        private GuideTailleRepository $guideTailleRepo,
         private VarianteTemplateRepository $templateRepo,
         private SlugifyService $slugify,
     ) {
@@ -135,6 +137,7 @@ class ArticleAdminController extends AbstractController
         $collections = $this->collectionRepo->findBy(['actif' => true], ['nom' => 'ASC']);
         $fournisseurs = $this->fournisseurRepo->findBy([], ['nom' => 'ASC']);
         $grilles = $this->grillePrixRepo->findBy([], ['nom' => 'ASC']);
+        $guidesTailles = $this->guideTailleRepo->findBy([], ['nom' => 'ASC']);
 
         if ($request->isMethod('POST')) {
             $data = $request->request->all();
@@ -156,6 +159,9 @@ class ArticleAdminController extends AbstractController
 
             $grille = !empty($data['grillePrix']) ? $this->grillePrixRepo->find((int)$data['grillePrix']) : null;
             $article->setGrillePrix($grille);
+
+            $guideTaille = !empty($data['guideTaille']) ? $this->guideTailleRepo->find((int)$data['guideTaille']) : null;
+            $article->setGuideTaille($guideTaille);
 
             $pfProductId = trim($data['printfulProductId'] ?? '');
             $article->setPrintfulProductId($pfProductId !== '' ? (int)$pfProductId : null);
@@ -189,6 +195,7 @@ class ArticleAdminController extends AbstractController
             'collections' => $collections,
             'fournisseurs' => $fournisseurs,
             'grilles' => $grilles,
+            'guidesTailles' => $guidesTailles,
             'templates' => $this->buildTemplatesData(),
         ]);
     }
@@ -205,6 +212,7 @@ class ArticleAdminController extends AbstractController
         $collections = $this->collectionRepo->findBy(['actif' => true], ['nom' => 'ASC']);
         $fournisseurs = $this->fournisseurRepo->findBy([], ['nom' => 'ASC']);
         $grilles = $this->grillePrixRepo->findBy([], ['nom' => 'ASC']);
+        $guidesTailles = $this->guideTailleRepo->findBy([], ['nom' => 'ASC']);
 
         if ($request->isMethod('POST')) {
             $data = $request->request->all();
@@ -224,6 +232,9 @@ class ArticleAdminController extends AbstractController
 
             $grille = !empty($data['grillePrix']) ? $this->grillePrixRepo->find((int)$data['grillePrix']) : null;
             $article->setGrillePrix($grille);
+
+            $guideTaille = !empty($data['guideTaille']) ? $this->guideTailleRepo->find((int)$data['guideTaille']) : null;
+            $article->setGuideTaille($guideTaille);
 
             $pfProductId = trim($data['printfulProductId'] ?? '');
             $article->setPrintfulProductId($pfProductId !== '' ? (int)$pfProductId : null);
@@ -262,6 +273,7 @@ class ArticleAdminController extends AbstractController
             'collections' => $collections,
             'fournisseurs' => $fournisseurs,
             'grilles' => $grilles,
+            'guidesTailles' => $guidesTailles,
             'templates' => $this->buildTemplatesData(),
             'returnUrl' => $request->query->get('returnUrl', ''),
         ]);
@@ -328,6 +340,7 @@ class ArticleAdminController extends AbstractController
         $clone->setCollection($source->getCollection());
         $clone->setFournisseur($source->getFournisseur());
         $clone->setGrillePrix($source->getGrillePrix());
+        $clone->setGuideTaille($source->getGuideTaille());
 
         foreach ($source->getImages() as $img) {
             $newImg = new ArticleImage();

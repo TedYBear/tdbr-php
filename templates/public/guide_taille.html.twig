@@ -1,0 +1,93 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Guide des tailles : {{ guide.nom }} - TDBR{% endblock %}
+{% block description %}Tableau de mensurations pour {{ guide.nom }}.{% endblock %}
+
+{% block body %}
+<section class="bg-cream py-12 md:py-16">
+    <div class="container mx-auto px-4 max-w-4xl">
+        <h1 class="font-heading text-3xl md:text-4xl font-bold mb-2">Guide des tailles</h1>
+        <p class="text-lg text-gray-600">{{ guide.nom }}</p>
+    </div>
+</section>
+
+<section class="py-10 md:py-14">
+    <div class="container mx-auto px-4 max-w-4xl space-y-10">
+
+        {# Intro #}
+        {% if guide.description %}
+            <div class="prose max-w-none text-gray-700 leading-relaxed">
+                {{ guide.description|nl2br }}
+            </div>
+        {% endif %}
+
+        {# Schéma + points de mesure #}
+        {% if guide.imageDiagramme or guide.mesures|length > 0 %}
+        <div class="bg-gray-50 rounded-2xl p-6 md:p-8">
+            <h2 class="font-heading text-xl font-bold mb-6">Dimensions du produit</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                {% if guide.imageDiagramme %}
+                    <div class="flex justify-center">
+                        <img src="{{ guide.imageDiagramme }}" alt="Schéma {{ guide.nom }}"
+                             class="max-w-full h-auto" style="max-height:340px;">
+                    </div>
+                {% endif %}
+
+                {% if guide.mesures|length > 0 %}
+                    <div class="space-y-4">
+                        {% for mesure in guide.mesures %}
+                            <div>
+                                <h3 class="font-bold text-base mb-1">
+                                    {% if mesure.lettre %}
+                                        <span class="inline-flex items-center justify-center w-6 h-6 bg-primary text-white text-xs rounded mr-1">{{ mesure.lettre }}</span>
+                                    {% endif %}
+                                    {{ mesure.nom }}
+                                </h3>
+                                {% if mesure.description %}
+                                    <p class="text-sm text-gray-600 leading-relaxed">{{ mesure.description }}</p>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        {# Tableau des tailles #}
+        {% if guide.lignes|length > 0 and guide.colonnes|length > 0 %}
+        <div>
+            <h2 class="font-heading text-xl font-bold mb-4">
+                Tableau des tailles
+                <span class="text-sm text-gray-400 font-normal ml-2">en {{ guide.unite }}</span>
+            </h2>
+            <div class="overflow-x-auto border border-gray-200 rounded-xl">
+                <table class="w-full">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-700">Étiquette de taille</th>
+                            {% for col in guide.colonnes %}
+                                <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-700">{{ col }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        {% for ligne in guide.lignes %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-4 py-3 font-bold text-sm">{{ ligne.taille }}</td>
+                                {% for val in ligne.valeurs %}
+                                    <td class="px-4 py-3 text-sm text-gray-700">
+                                        {{ val is not null ? val|number_format(1, ',', ' ') : '—' }}
+                                    </td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</section>
+{% endblock %}

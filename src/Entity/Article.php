@@ -50,6 +50,10 @@ class Article
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?GrillePrix $grillePrix = null;
 
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?GuideTaille $guideTaille = null;
+
     #[ORM\OneToMany(mappedBy: 'article', targetEntity: ArticleImage::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[ORM\OrderBy(['ordre' => 'ASC'])]
     private Collection $images;
@@ -97,6 +101,8 @@ class Article
     public function setFournisseur(?Fournisseur $f): static { $this->fournisseur = $f; return $this; }
     public function getGrillePrix(): ?GrillePrix { return $this->grillePrix; }
     public function setGrillePrix(?GrillePrix $g): static { $this->grillePrix = $g; return $this; }
+    public function getGuideTaille(): ?GuideTaille { return $this->guideTaille; }
+    public function setGuideTaille(?GuideTaille $g): static { $this->guideTaille = $g; return $this; }
     public function getImages(): Collection { return $this->images; }
     public function addImage(ArticleImage $img): static { if (!$this->images->contains($img)) { $this->images->add($img); $img->setArticle($this); } return $this; }
     public function removeImage(ArticleImage $img): static { if ($this->images->removeElement($img)) { if ($img->getArticle() === $this) { $img->setArticle(null); } } return $this; }

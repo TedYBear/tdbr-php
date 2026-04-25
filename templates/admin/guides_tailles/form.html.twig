@@ -1,0 +1,176 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% set isNew = guide.id is null %}
+{% block title %}{{ isNew ? 'Nouveau guide' : guide.nom }}{% endblock %}
+{% block page_title %}{{ isNew ? 'Nouveau guide des tailles' : guide.nom }}{% endblock %}
+
+{% block body %}
+<form method="post" class="space-y-6"
+      x-data='{
+          mesures: {{ guide.mesures|default([])|json_encode|e("html_attr") }},
+          colonnes: {{ guide.colonnes|default([])|json_encode|e("html_attr") }},
+          lignes: {{ guide.lignes|default([])|json_encode|e("html_attr") }},
+          addMesure() { this.mesures.push({ lettre: "", nom: "", description: "" }); },
+          removeMesure(i) { this.mesures.splice(i, 1); },
+          addColonne() { this.colonnes.push(""); this.lignes.forEach(l => l.valeurs.push(null)); },
+          removeColonne(i) { this.colonnes.splice(i, 1); this.lignes.forEach(l => l.valeurs.splice(i, 1)); },
+          addLigne() {
+              const valeurs = this.colonnes.map(() => null);
+              this.lignes.push({ taille: "", valeurs: valeurs });
+          },
+          removeLigne(i) { this.lignes.splice(i, 1); }
+      }'>
+
+    {# ── Identité ── #}
+    <div class="card p-6">
+        <h2 class="text-xl font-bold mb-4">Identité</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Nom *</label>
+                <input type="text" name="nom" value="{{ guide.nom ?? '' }}" required
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">
+                    Slug (URL) <span class="text-gray-400 font-normal">— laissez vide pour auto-générer</span>
+                </label>
+                <input type="text" name="slug" value="{{ guide.slug ?? '' }}"
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono">
+            </div>
+        </div>
+        <div class="mt-4">
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Description (intro)</label>
+            <textarea name="description" rows="3"
+                      class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">{{ guide.description ?? '' }}</textarea>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+            <div class="md:col-span-2">
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Image du schéma (URL)</label>
+                <input type="text" name="imageDiagramme" value="{{ guide.imageDiagramme ?? '' }}"
+                       placeholder="https://… ou /uploads/…"
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Unité</label>
+                <select name="unite" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    <option value="cm" {{ (guide.unite ?? 'cm') == 'cm' ? 'selected' : '' }}>Centimètres</option>
+                    <option value="pouces" {{ (guide.unite ?? '') == 'pouces' ? 'selected' : '' }}>Pouces</option>
+                </select>
+            </div>
+        </div>
+        <div class="mt-4">
+            <label class="inline-flex items-center gap-2 text-sm">
+                <input type="checkbox" name="actif" value="1" {{ (guide.actif ?? true) ? 'checked' : '' }}>
+                <span>Actif</span>
+            </label>
+        </div>
+    </div>
+
+    {# ── Points de mesure (A, B, C…) ── #}
+    <div class="card p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold">Points de mesure</h2>
+            <button type="button" @click="addMesure()" class="btn-secondary text-sm">+ Ajouter</button>
+        </div>
+        <p class="text-sm text-gray-500 mb-4">Lettres ou repères affichés à côté du schéma avec leur explication.</p>
+
+        <template x-for="(mesure, i) in mesures" :key="i">
+            <div class="grid grid-cols-12 gap-3 mb-3 pb-3 border-b last:border-b-0">
+                <div class="col-span-1">
+                    <label class="block text-xs text-gray-500 mb-1">Lettre</label>
+                    <input type="text" :name="`mesures[${i}][lettre]`" x-model="mesure.lettre" maxlength="3"
+                           class="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm font-bold text-center uppercase">
+                </div>
+                <div class="col-span-3">
+                    <label class="block text-xs text-gray-500 mb-1">Nom</label>
+                    <input type="text" :name="`mesures[${i}][nom]`" x-model="mesure.nom" placeholder="Longueur"
+                           class="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm">
+                </div>
+                <div class="col-span-7">
+                    <label class="block text-xs text-gray-500 mb-1">Description</label>
+                    <input type="text" :name="`mesures[${i}][description]`" x-model="mesure.description"
+                           placeholder="Comment effectuer la mesure…"
+                           class="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm">
+                </div>
+                <div class="col-span-1 flex items-end justify-end">
+                    <button type="button" @click="removeMesure(i)"
+                            class="text-red-500 hover:text-red-700 text-xs px-2 py-1.5">×</button>
+                </div>
+            </div>
+        </template>
+
+        <p x-show="mesures.length === 0" class="text-center text-gray-400 text-sm py-4">Aucun point de mesure</p>
+    </div>
+
+    {# ── Colonnes du tableau ── #}
+    <div class="card p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold">Colonnes du tableau</h2>
+            <button type="button" @click="addColonne()" class="btn-secondary text-sm">+ Ajouter</button>
+        </div>
+        <p class="text-sm text-gray-500 mb-4">Entêtes de colonnes (souvent les noms des points de mesure).</p>
+
+        <div class="flex flex-wrap gap-3">
+            <template x-for="(col, i) in colonnes" :key="i">
+                <div class="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
+                    <input type="text" :name="`colonnes[${i}]`" x-model="colonnes[i]"
+                           class="border border-gray-300 rounded px-2 py-1 text-sm" placeholder="Largeur">
+                    <button type="button" @click="removeColonne(i)" class="text-red-500 hover:text-red-700 text-xs">×</button>
+                </div>
+            </template>
+        </div>
+        <p x-show="colonnes.length === 0" class="text-center text-gray-400 text-sm py-4">Aucune colonne</p>
+    </div>
+
+    {# ── Lignes du tableau de tailles ── #}
+    <div class="card p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold">Tableau des tailles</h2>
+            <button type="button" @click="addLigne()" class="btn-secondary text-sm">+ Ajouter une taille</button>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-3 py-2 text-left font-semibold w-32">Étiquette</th>
+                        <template x-for="(col, i) in colonnes" :key="i">
+                            <th class="px-3 py-2 text-left font-semibold" x-text="col || `Col ${i+1}`"></th>
+                        </template>
+                        <th class="px-3 py-2 w-12"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <template x-for="(ligne, li) in lignes" :key="li">
+                        <tr class="border-b">
+                            <td class="px-3 py-2">
+                                <input type="text" :name="`lignes[${li}][taille]`" x-model="ligne.taille"
+                                       placeholder="S"
+                                       class="w-full border border-gray-300 rounded px-2 py-1 text-sm font-bold">
+                            </td>
+                            <template x-for="(col, ci) in colonnes" :key="ci">
+                                <td class="px-3 py-2">
+                                    <input type="number" step="0.1" :name="`lignes[${li}][valeurs][${ci}]`"
+                                           x-model="ligne.valeurs[ci]"
+                                           class="w-full border border-gray-300 rounded px-2 py-1 text-sm text-right">
+                                </td>
+                            </template>
+                            <td class="px-3 py-2 text-right">
+                                <button type="button" @click="removeLigne(li)"
+                                        class="text-red-500 hover:text-red-700 text-sm">×</button>
+                            </td>
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+        </div>
+        <p x-show="lignes.length === 0" class="text-center text-gray-400 text-sm py-4">Aucune taille</p>
+    </div>
+
+    {# ── Actions ── #}
+    <div class="flex items-center justify-between">
+        <a href="{{ path('admin_guides_tailles') }}" class="text-gray-600 hover:text-gray-800">← Retour à la liste</a>
+        <button type="submit" class="btn-primary">{{ isNew ? 'Créer le guide' : 'Enregistrer' }}</button>
+    </div>
+</form>
+{% endblock %}

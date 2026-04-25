@@ -478,6 +478,27 @@
                             </div>
                         </template>
                     </div>
+
+                    {# Guide des tailles (optionnel) #}
+                    <div class="form-group mt-4">
+                        <label>Guide des tailles <span class="text-xs text-gray-400 font-normal">(optionnel)</span></label>
+                        <select name="guideTaille" class="form-select">
+                            <option value="">Aucun</option>
+                            {% for g in guidesTailles %}
+                                <option value="{{ g.id }}"
+                                        {{ article and article.guideTaille and article.guideTaille.id == g.id ? 'selected' : '' }}>
+                                    {{ g.nom }}{{ not g.actif ? ' (inactif)' : '' }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        {% if guidesTailles|length == 0 %}
+                            <p class="text-xs text-gray-500 mt-1">
+                                <a href="{{ path('admin_guides_tailles_new') }}" class="text-primary hover:underline">
+                                    Créer un guide des tailles
+                                </a>
+                            </p>
+                        {% endif %}
+                    </div>
                 </div>
 
                 {# Publication #}
