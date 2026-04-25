@@ -14,10 +14,10 @@ class GuideTaille
     private ?int $id = null;
 
     #[ORM\Column(length: 200)]
-    private string $nom;
+    private string $nom = '';
 
     #[ORM\Column(length: 220, unique: true)]
-    private string $slug;
+    private string $slug = '';
 
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $description = null;
