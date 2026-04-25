@@ -21,6 +21,10 @@ class VarianteTemplate
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $description = null;
 
+    /** URL du PDF guide des tailles (optionnel) */
+    #[ORM\Column(length: 500, nullable: true)]
+    private ?string $guideTaillePdfUrl = null;
+
     #[ORM\ManyToMany(targetEntity: Caracteristique::class)]
     #[ORM\JoinTable(name: 'template_caracteristiques')]
     private Collection $caracteristiques;
@@ -35,6 +39,8 @@ class VarianteTemplate
     public function setNom(string $nom): static { $this->nom = $nom; return $this; }
     public function getDescription(): ?string { return $this->description; }
     public function setDescription(?string $d): static { $this->description = $d; return $this; }
+    public function getGuideTaillePdfUrl(): ?string { return $this->guideTaillePdfUrl; }
+    public function setGuideTaillePdfUrl(?string $u): static { $this->guideTaillePdfUrl = $u; return $this; }
     public function getCaracteristiques(): Collection { return $this->caracteristiques; }
     public function addCaracteristique(Caracteristique $c): static { if (!$this->caracteristiques->contains($c)) { $this->caracteristiques->add($c); } return $this; }
     public function removeCaracteristique(Caracteristique $c): static { $this->caracteristiques->removeElement($c); return $this; }

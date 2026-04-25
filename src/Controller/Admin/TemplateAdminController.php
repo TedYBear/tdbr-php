@@ -44,6 +44,7 @@ class TemplateAdminController extends AbstractController
             $template = new VarianteTemplate();
             $template->setNom(trim($data['nom']));
             $template->setDescription($data['description'] ?? null);
+            $template->setGuideTaillePdfUrl(trim($data['guideTaillePdfUrl'] ?? '') ?: null);
 
             $caracIds = array_filter((array)($data['caracteristiques'] ?? []), fn($v) => !empty($v));
             foreach ($caracIds as $caracId) {
@@ -82,6 +83,7 @@ class TemplateAdminController extends AbstractController
 
             $template->setNom(trim($data['nom']));
             $template->setDescription($data['description'] ?? null);
+            $template->setGuideTaillePdfUrl(trim($data['guideTaillePdfUrl'] ?? '') ?: null);
 
             // Reset caractéristiques
             foreach ($template->getCaracteristiques()->toArray() as $c) {

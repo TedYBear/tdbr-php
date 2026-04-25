@@ -479,25 +479,18 @@
                         </template>
                     </div>
 
-                    {# Guide des tailles (optionnel) #}
+                    {# Template (pour le guide des tailles PDF, optionnel) #}
                     <div class="form-group mt-4">
-                        <label>Guide des tailles <span class="text-xs text-gray-400 font-normal">(optionnel)</span></label>
-                        <select name="guideTaille" class="form-select">
+                        <label>Template <span class="text-xs text-gray-400 font-normal">(optionnel — fournit le PDF guide des tailles)</span></label>
+                        <select name="varianteTemplate" class="form-select">
                             <option value="">Aucun</option>
-                            {% for g in guidesTailles %}
-                                <option value="{{ g.id }}"
-                                        {{ article and article.guideTaille and article.guideTaille.id == g.id ? 'selected' : '' }}>
-                                    {{ g.nom }}{{ not g.actif ? ' (inactif)' : '' }}
+                            {% for t in varianteTemplates %}
+                                <option value="{{ t.id }}"
+                                        {{ article and article.varianteTemplate and article.varianteTemplate.id == t.id ? 'selected' : '' }}>
+                                    {{ t.nom }}{{ t.guideTaillePdfUrl ? ' — PDF tailles présent' : '' }}
                                 </option>
                             {% endfor %}
                         </select>
-                        {% if guidesTailles|length == 0 %}
-                            <p class="text-xs text-gray-500 mt-1">
-                                <a href="{{ path('admin_guides_tailles_new') }}" class="text-primary hover:underline">
-                                    Créer un guide des tailles
-                                </a>
-                            </p>
-                        {% endif %}
                     </div>
                 </div>
 
