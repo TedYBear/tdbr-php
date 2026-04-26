@@ -401,10 +401,24 @@ class PrintfulAdminController extends AbstractController
     ): array {
         return array_map(function (array $product) use ($tailleValues, $couleurValues, $byPfIdIndex, $bySlugIndex, $slugify) {
             $product['variants'] = array_map(function (array $v) use ($tailleValues, $couleurValues) {
-                $parsed    = $this->parseVariantName($v['name']);
-                $couleur   = $parsed['couleur'];
-                $taille    = $parsed['taille'];
-                $couleurOk = !$couleurValues || in_array($couleur, $couleurValues, true);
+                // Priorité 1 : color/size explicites du catalogue Printful
+                $couleur = !empty($v['color']) ? trim($v['color']) : null;
+                $taille  = !empty($v['size'])  ? trim($v['size'])  : null;
+
+                // Priorité 2 : fallback sur le parsing du sync_variant name
+                $parsed = $this->parseVariantName($v['name']);
+                if ($couleur === null) $couleur = $parsed['couleur'];
+                if ($taille  === null) $taille  = $parsed['taille'];
+
+                // Reconstruit le label affiché
+                $parsed['couleur'] = $couleur;
+                $parsed['taille']  = $taille;
+                $parsed['label']   = $couleur && $taille
+                    ? $couleur . ' / ' . $taille
+                    : ($couleur ?? $taille ?? $parsed['label']);
+
+                $couleurOk = $couleur !== null
+                    && (!$couleurValues || in_array($couleur, $couleurValues, true));
                 $tailleOk  = !$tailleValues  || $taille === null || in_array($taille, $tailleValues, true);
                 $delta     = $taille !== null ? (self::TAILLE_DELTA[strtoupper(trim($taille))] ?? null) : null;
 
