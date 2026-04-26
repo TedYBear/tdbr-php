@@ -40,6 +40,7 @@
 !/public/uploads/collections/
 !/public/uploads/general/
 !/public/uploads/temp/
+!/public/uploads/templates/
 /public/uploads/articles/*
 !/public/uploads/articles/.gitkeep
 /public/uploads/categories/*
@@ -51,4 +52,6 @@
 !/public/uploads/general/tdbr-logo.png
 /public/uploads/temp/*
 !/public/uploads/temp/.gitkeep
+/public/uploads/templates/*
+!/public/uploads/templates/.gitkeep
 ###< Uploads ###
