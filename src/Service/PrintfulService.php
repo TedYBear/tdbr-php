@@ -113,10 +113,13 @@ class PrintfulService
 
             foreach ($varData['result']['sync_variants'] ?? [] as $v) {
                 $variants[] = [
-                    'id'     => $v['id'],
-                    'name'   => $v['name'],
-                    'sku'    => $v['sku'] ?? '',
-                    'synced' => $v['synced'] ?? false,
+                    'id'          => $v['id'],
+                    'name'        => $v['name'],
+                    // Nom catalogue (ex: "Unisex Heavy Cotton Tee (Black / S)") :
+                    // contient la couleur même quand le sync_variant name ne l'a pas.
+                    'productName' => $v['product']['name'] ?? null,
+                    'sku'         => $v['sku'] ?? '',
+                    'synced'      => $v['synced'] ?? false,
                 ];
                 // Collecter les preview_url de maquettes (dédoublonnées)
                 foreach ($v['files'] ?? [] as $file) {

@@ -241,6 +241,31 @@ class PrintfulAdminController extends AbstractController
     }
 
     /**
+     * Extrait la couleur depuis le nom catalogue Printful.
+     * Formats connus :
+     *   "Unisex Heavy Cotton Tee (Black / S)"   → "Black"
+     *   "Unisex Heavy Cotton Tee (Black)"       → "Black"
+     *   "Unisex Crew Neck T-Shirt | Black | S"  → "Black"
+     */
+    private function extractColorFromCatalogName(string $catalogName): ?string
+    {
+        // Format avec parenthèses : (Color / Size) ou (Color)
+        if (preg_match('/\(\s*([^/()]+?)\s*(?:\/[^)]+)?\)\s*$/', $catalogName, $m)) {
+            $candidate = trim($m[1]);
+            if ($candidate !== '') return $candidate;
+        }
+
+        // Format avec pipes : "Title | Color | Size"
+        $parts = array_map('trim', explode('|', $catalogName));
+        if (count($parts) >= 3) {
+            $couleur = $parts[count($parts) - 2];
+            if ($couleur !== '') return $couleur;
+        }
+
+        return null;
+    }
+
+    /**
      * Parse un nom de variante Printful au format "titre/couleur/taille"
      * Retourne ['label' => 'Blanc / S', 'couleur' => 'Blanc', 'taille' => 'S']
      */
@@ -311,6 +336,17 @@ class PrintfulAdminController extends AbstractController
             $hasValidCouleur = $couleur !== null
                 && (!$couleurValues || in_array($couleur, $couleurValues, true));
 
+            // Fallback : extraire la couleur depuis le nom catalogue Printful
+            // (ex: "Unisex Heavy Cotton Tee (Black / S)") si on n'en a pas trouvé
+            if (!$hasValidCouleur && !empty($v['productName'])) {
+                $catalogColor = $this->extractColorFromCatalogName($v['productName']);
+                if ($catalogColor !== null) {
+                    $couleur = $catalogColor;
+                    $hasValidCouleur = !$couleurValues
+                        || in_array($couleur, $couleurValues, true);
+                }
+            }
+
             if ($couleur !== null && $couleurValues && !$hasValidCouleur) {
                 $unknowns[] = "Couleur «$couleur» (ignorée — pas dans la liste connue)";
             }
@@ -329,17 +365,23 @@ class PrintfulAdminController extends AbstractController
                 ? (self::TAILLE_DELTA[strtoupper(trim($taille))] ?? null)
                 : null;
 
-            $variante = $byPfId[$pfId] ?? $byNom[$parsed['label']] ?? null;
+            // Reconstruit le nom de la variante avec couleur + taille (fix pour les
+            // variantes Printful qui n'avaient que la taille)
+            $label = $hasValidCouleur && $taille !== null
+                ? $couleur . ' / ' . $taille
+                : ($hasValidCouleur ? $couleur : $parsed['label']);
+
+            $variante = $byPfId[$pfId] ?? $byNom[$parsed['label']] ?? $byNom[$label] ?? null;
 
             if ($variante) {
-                $variante->setNom($parsed['label']);
+                $variante->setNom($label);
                 $variante->setPrintfulVariantId($pfId);
                 $variante->setValeurs($valeurs);
                 $variante->setDeltaPrix($delta);
                 $variante->setSku($v['sku'] ?: null);
             } else {
                 $variante = new Variante();
-                $variante->setNom($parsed['label']);
+                $variante->setNom($label);
                 $variante->setPrintfulVariantId($pfId);
                 $variante->setValeurs($valeurs);
                 $variante->setDeltaPrix($delta);
