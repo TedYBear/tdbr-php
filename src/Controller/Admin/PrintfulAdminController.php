@@ -306,14 +306,22 @@ class PrintfulAdminController extends AbstractController
             $taille  = $parsed['taille'];
             $pfId    = (int)$v['id'];
 
-            if ($couleurValues && !in_array($couleur, $couleurValues, true)) {
-                $unknowns[] = "Couleur «$couleur»";
+            // Si une liste de couleurs connues existe et que la valeur parsée n'y est pas,
+            // c'est probablement le titre de l'article (variant Printful sans couleur explicite)
+            $hasValidCouleur = $couleur !== null
+                && (!$couleurValues || in_array($couleur, $couleurValues, true));
+
+            if ($couleur !== null && $couleurValues && !$hasValidCouleur) {
+                $unknowns[] = "Couleur «$couleur» (ignorée — pas dans la liste connue)";
             }
             if ($tailleValues && $taille && !in_array($taille, $tailleValues, true)) {
                 $unknowns[] = "Taille «$taille»";
             }
 
-            $valeurs = ['Couleur' => $couleur];
+            $valeurs = [];
+            if ($hasValidCouleur) {
+                $valeurs['Couleur'] = $couleur;
+            }
             if ($taille !== null) {
                 $valeurs['Taille'] = $taille;
             }

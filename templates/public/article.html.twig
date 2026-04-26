@@ -61,7 +61,12 @@
                             if (!caracs[nom].includes(val)) caracs[nom].push(val);
                         });
                     });
-                    return order.map(nom => ({ nom, valeurs: caracs[nom] }));
+                    // Ignore les caractéristiques dont la seule valeur est le titre de l'article
+                    // (cas où l'import Printful a mal parsé un nom de variante "Titre / Taille")
+                    const articleNom = {{ article.nom|json_encode|raw }};
+                    return order
+                        .map(nom => ({ nom, valeurs: caracs[nom] }))
+                        .filter(c => !(c.valeurs.length === 1 && c.valeurs[0] === articleNom));
                 },
 
                 /**
