@@ -99,6 +99,8 @@ class PrintfulService
         }
 
         $products = [];
+        $catalogCache = []; // [catalogProductId => [catalogVariantId => ['color' => ..., 'size' => ...]]]
+
         foreach ($data['result'] as $product) {
             // Récupérer les variantes du produit
             $varResp = $this->httpClient->request('GET', self::API_BASE . '/store/products/' . $product['id'], [
@@ -112,12 +114,23 @@ class PrintfulService
             $mockupUrls = [];
 
             foreach ($varData['result']['sync_variants'] ?? [] as $v) {
+                // Récupérer les attributs explicites du catalogue (color/size)
+                $catProductId = (int)($v['product']['product_id'] ?? 0);
+                $catVariantId = (int)($v['variant_id'] ?? $v['product']['variant_id'] ?? 0);
+
+                if ($catProductId > 0 && !isset($catalogCache[$catProductId])) {
+                    $catalogCache[$catProductId] = $this->fetchCatalogVariantsInfo($catProductId);
+                }
+
+                $catalogInfo = $catalogCache[$catProductId][$catVariantId] ?? [];
+
                 $variants[] = [
                     'id'          => $v['id'],
                     'name'        => $v['name'],
-                    // Nom catalogue (ex: "Unisex Heavy Cotton Tee (Black / S)") :
-                    // contient la couleur même quand le sync_variant name ne l'a pas.
                     'productName' => $v['product']['name'] ?? null,
+                    // Couleur et taille EXPLICITES depuis le catalogue Printful
+                    'color'       => $catalogInfo['color'] ?? null,
+                    'size'        => $catalogInfo['size'] ?? null,
                     'sku'         => $v['sku'] ?? '',
                     'synced'      => $v['synced'] ?? false,
                 ];
@@ -140,5 +153,30 @@ class PrintfulService
         }
 
         return $products;
+    }
+
+    /**
+     * Récupère pour un produit catalogue Printful la table [variantId => [color, size]].
+     * Endpoint public — n'a pas besoin du store id mais on garde l'auth bearer.
+     */
+    private function fetchCatalogVariantsInfo(int $catalogProductId): array
+    {
+        try {
+            $resp = $this->httpClient->request('GET', self::API_BASE . '/products/' . $catalogProductId, [
+                'auth_bearer' => $this->apiKey,
+            ]);
+            $data = $resp->toArray(false);
+        } catch (\Throwable) {
+            return [];
+        }
+
+        $info = [];
+        foreach ($data['result']['variants'] ?? [] as $v) {
+            $info[(int)$v['id']] = [
+                'color' => $v['color'] ?? null,
+                'size'  => $v['size'] ?? null,
+            ];
+        }
+        return $info;
     }
 }

@@ -326,26 +326,26 @@ class PrintfulAdminController extends AbstractController
         }
 
         foreach ($syncedVariants as $v) {
-            $parsed  = $this->parseVariantName($v['name']);
-            $couleur = $parsed['couleur'];
-            $taille  = $parsed['taille'];
-            $pfId    = (int)$v['id'];
+            // Priorité 1 : champs explicites du catalogue Printful (color/size)
+            $couleur = !empty($v['color']) ? trim($v['color']) : null;
+            $taille  = !empty($v['size'])  ? trim($v['size'])  : null;
 
-            // Si une liste de couleurs connues existe et que la valeur parsée n'y est pas,
-            // c'est probablement le titre de l'article (variant Printful sans couleur explicite)
+            // Priorité 2 : fallback sur le parsing du sync_variant name
+            if ($couleur === null || $taille === null) {
+                $parsed = $this->parseVariantName($v['name']);
+                $couleur = $couleur ?? $parsed['couleur'];
+                $taille  = $taille  ?? $parsed['taille'];
+                $parsedLabel = $parsed['label'];
+            } else {
+                $parsedLabel = $couleur . ' / ' . $taille;
+            }
+
+            $pfId = (int)$v['id'];
+
+            // Si une liste de couleurs connues existe et que la valeur n'y est pas,
+            // c'est probablement le titre (cas où l'on est tombé en fallback parsing)
             $hasValidCouleur = $couleur !== null
                 && (!$couleurValues || in_array($couleur, $couleurValues, true));
-
-            // Fallback : extraire la couleur depuis le nom catalogue Printful
-            // (ex: "Unisex Heavy Cotton Tee (Black / S)") si on n'en a pas trouvé
-            if (!$hasValidCouleur && !empty($v['productName'])) {
-                $catalogColor = $this->extractColorFromCatalogName($v['productName']);
-                if ($catalogColor !== null) {
-                    $couleur = $catalogColor;
-                    $hasValidCouleur = !$couleurValues
-                        || in_array($couleur, $couleurValues, true);
-                }
-            }
 
             if ($couleur !== null && $couleurValues && !$hasValidCouleur) {
                 $unknowns[] = "Couleur «$couleur» (ignorée — pas dans la liste connue)";
@@ -365,13 +365,12 @@ class PrintfulAdminController extends AbstractController
                 ? (self::TAILLE_DELTA[strtoupper(trim($taille))] ?? null)
                 : null;
 
-            // Reconstruit le nom de la variante avec couleur + taille (fix pour les
-            // variantes Printful qui n'avaient que la taille)
+            // Label affiché : couleur + taille (toujours, dès qu'on a la couleur)
             $label = $hasValidCouleur && $taille !== null
                 ? $couleur . ' / ' . $taille
-                : ($hasValidCouleur ? $couleur : $parsed['label']);
+                : ($hasValidCouleur ? $couleur : ($taille ?? $parsedLabel));
 
-            $variante = $byPfId[$pfId] ?? $byNom[$parsed['label']] ?? $byNom[$label] ?? null;
+            $variante = $byPfId[$pfId] ?? $byNom[$parsedLabel] ?? $byNom[$label] ?? null;
 
             if ($variante) {
                 $variante->setNom($label);
