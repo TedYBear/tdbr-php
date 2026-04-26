@@ -71,15 +71,15 @@ class MarketingAdminController extends AbstractController
 
     private function generateQrDataUri(string $url): string
     {
-        $result = Builder::create()
-            ->writer(new PngWriter())
-            ->data($url)
-            ->size(600)
-            ->margin(0)
-            ->errorCorrectionLevel(ErrorCorrectionLevel::High)
-            ->build();
+        $builder = new Builder(
+            writer: new PngWriter(),
+            data: $url,
+            size: 600,
+            margin: 0,
+            errorCorrectionLevel: ErrorCorrectionLevel::High,
+        );
 
-        return $result->getDataUri();
+        return $builder->build()->getDataUri();
     }
 
     private function fileAsBase64(string $relativePath): ?string
