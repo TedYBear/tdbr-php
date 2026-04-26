@@ -36,8 +36,8 @@ class MarketingAdminController extends AbstractController
         $url      = $request->query->get('url', self::SITE_URL);
 
         $qrDataUri  = $this->generateQrDataUri($url);
-        $logoBase64 = $this->fileAsBase64('/public/uploads/general/tdbr-logo.png');
-        $heroBase64 = $this->fileAsBase64('/public/build/images/main_page.png');
+        $logoBase64 = $this->fileAsBase64('/public/build/images/TDBR.png');
+        $heroBase64 = $this->fileAsBase64('/public/build/images/patron.png');
 
         $context = [
             'depotNom'   => $depotNom,

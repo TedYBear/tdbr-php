@@ -50,7 +50,7 @@
             text-align: center;
         }
         .header img {
-            max-height: 24mm;
+            max-height: 28mm;
             width: auto;
             display: inline-block;
         }
@@ -62,45 +62,84 @@
             color: #2C2416;
         }
         .header .tagline {
-            margin-top: 4mm;
-            font-size: 10pt;
+            margin-top: 3mm;
+            font-size: 9.5pt;
             letter-spacing: 0.4em;
             text-transform: uppercase;
             color: #8B7355;
             font-weight: 600;
         }
 
-        /* Hero image */
-        .hero {
+        /* Bloc présentation Manu — image à gauche, texte à droite */
+        .intro {
             position: absolute;
-            top: 60mm; left: 50%;
-            margin-left: -55mm;
-            width: 110mm; height: 80mm;
-            background: #fff;
-            border: 3pt solid #fff;
-            box-shadow: 0 0 0 1pt #D4AF7A;
-            text-align: center;
-            overflow: hidden;
+            top: 70mm;
+            left: 18mm;
+            right: 18mm;
         }
-        .hero img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: cover;
+        .intro-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        .intro-table td {
+            vertical-align: middle;
+        }
+        .intro-img-cell {
+            width: 65mm;
+            padding-right: 7mm;
+        }
+        .intro-img-cell img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border: 2pt solid #fff;
+            box-shadow: 0 0 0 1pt #D4AF7A;
+        }
+        .intro-text-cell {
+            font-size: 11pt;
+            line-height: 1.55;
+            color: #3D352A;
+        }
+        .intro-text-cell .salut {
+            font-family: 'Helvetica', Arial, sans-serif;
+            font-size: 16pt;
+            font-weight: 900;
+            color: #2C2416;
+            margin-bottom: 3mm;
+            display: block;
+        }
+        .intro-text-cell .signature {
+            display: block;
+            margin-top: 4mm;
+            font-style: italic;
+            color: #8B7355;
+            font-weight: 600;
         }
 
-        /* Bloc message */
+        /* Filet décoratif */
+        .divider {
+            position: absolute;
+            left: 50%;
+            margin-left: -25mm;
+            width: 50mm;
+            height: 1pt;
+            background: #D4AF7A;
+        }
+
+        /* Bloc message principal */
         .message {
             position: absolute;
-            top: 152mm; left: 20mm; right: 20mm;
+            top: 168mm; left: 20mm; right: 20mm;
             text-align: center;
         }
         .message h1 {
             font-family: 'Helvetica', Arial, sans-serif;
-            font-size: 32pt;
+            font-size: 28pt;
             font-weight: 900;
             color: #2C2416;
             line-height: 1.05;
-            margin-bottom: 6mm;
+            margin-bottom: 4mm;
         }
         .message h1 em {
             font-style: italic;
@@ -108,7 +147,7 @@
             font-weight: 900;
         }
         .message p {
-            font-size: 12pt;
+            font-size: 11pt;
             line-height: 1.55;
             color: #5C4F3C;
             max-width: 150mm;
@@ -118,21 +157,21 @@
         /* Bloc QR */
         .qr-zone {
             position: absolute;
-            top: 200mm; left: 0; right: 0;
+            top: 210mm; left: 0; right: 0;
             text-align: center;
         }
         .qr-card {
             display: inline-block;
-            padding: 6mm;
+            padding: 5mm;
             background: #fff;
             border: 2pt solid #2C2416;
         }
         .qr-card img {
             display: block;
-            width: 50mm; height: 50mm;
+            width: 45mm; height: 45mm;
         }
         .url {
-            margin-top: 6mm;
+            margin-top: 5mm;
             font-family: 'Helvetica', Arial, sans-serif;
             font-size: 22pt;
             font-weight: 900;
@@ -140,13 +179,13 @@
             letter-spacing: 0.05em;
         }
         .url-prefix {
-            font-size: 11pt;
+            font-size: 10pt;
             font-weight: 600;
             color: #8B7355;
             letter-spacing: 0.3em;
             text-transform: uppercase;
             display: block;
-            margin-bottom: 2mm;
+            margin-bottom: 1.5mm;
         }
 
         /* Footer */
@@ -160,16 +199,6 @@
             text-transform: uppercase;
         }
         .footer strong { font-weight: 700; color: #fff; }
-
-        /* Filets décoratifs */
-        .divider {
-            position: absolute;
-            left: 50%;
-            margin-left: -25mm;
-            width: 50mm;
-            height: 1pt;
-            background: #D4AF7A;
-        }
     </style>
 </head>
 <body>
@@ -180,7 +209,7 @@
     <div class="corner-deco bl"></div>
     <div class="ribbon-bottom"></div>
 
-    {# Logo / brand #}
+    {# Logo #}
     <div class="header">
         {% if logoBase64 %}
             <img src="{{ logoBase64 }}" alt="TDBR">
@@ -190,22 +219,36 @@
         <div class="tagline">Goodies &amp; Créations Street-Art</div>
     </div>
 
-    {# Image d'accueil encadrée #}
-    {% if heroBase64 %}
-    <div class="hero">
-        <img src="{{ heroBase64 }}" alt="Création TDBR">
+    {# Mot de Manu : image patron + texte #}
+    <div class="intro">
+        <table class="intro-table">
+            <tr>
+                <td class="intro-img-cell">
+                    {% if heroBase64 %}
+                        <img src="{{ heroBase64 }}" alt="Manu, créateur TDBR">
+                    {% endif %}
+                </td>
+                <td class="intro-text-cell">
+                    <span class="salut">Bonjour, c'est Manu&nbsp;!</span>
+                    J'ai créé <strong>TDBR</strong> au départ comme un jeu avec
+                    Baptiste, votre fromager. N'hésitez pas à visiter le site pour
+                    commander ou découvrir l'univers de TDBR — et vous pouvez bien
+                    sûr vous faire livrer ici.
+                    <span class="signature">— Manu</span>
+                </td>
+            </tr>
+        </table>
     </div>
-    {% endif %}
 
-    {# Filet sous l'image #}
-    <div class="divider" style="top: 145mm;"></div>
+    {# Filet entre intro et message #}
+    <div class="divider" style="top: 162mm;"></div>
 
     {# Message principal #}
     <div class="message">
-        <h1>Un modèle vous plaît ?<br><em>Trouvez votre taille en ligne.</em></h1>
+        <h1>Un modèle vous plaît&nbsp;?<br><em>Trouvez votre taille en ligne.</em></h1>
         <p>
             Pas la bonne taille en boutique ? Envie de découvrir l'ensemble des créations TDBR ?
-            Toute la collection est disponible sur notre site, livraison à domicile ou en point relais.
+            Toute la collection est disponible sur le site.
         </p>
     </div>
 
@@ -214,7 +257,7 @@
         <div class="qr-card">
             <img src="{{ qrDataUri }}" alt="QR code vers tedybear.fr">
         </div>
-        <div style="margin-top:5mm;">
+        <div style="margin-top:4mm;">
             <span class="url-prefix">Scannez ou tapez</span>
             <span class="url">{{ siteLabel }}</span>
         </div>
