@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Affiche TDBR — {{ depotNom }}</title>
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 0;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Helvetica', Arial, sans-serif;
+            color: #2C2416;
+            background: #fff;
+            -webkit-print-color-adjust: exact;
+        }
+
+        .page {
+            width: 210mm;
+            height: 297mm;
+            position: relative;
+            background: #FAF6EE;
+            overflow: hidden;
+        }
+
+        /* Bandeaux décoratifs */
+        .ribbon-top {
+            position: absolute; top: 0; left: 0; right: 0;
+            height: 12mm; background: #2C2416;
+        }
+        .ribbon-bottom {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            height: 14mm; background: #8B7355;
+        }
+
+        .corner-deco {
+            position: absolute;
+            width: 60mm; height: 60mm;
+            border-radius: 50%;
+            opacity: 0.18;
+        }
+        .corner-deco.tr { top: -30mm; right: -30mm; background: #D4AF7A; }
+        .corner-deco.bl { bottom: 14mm; left: -25mm; background: #D4AF7A; }
+
+        /* En-tête */
+        .header {
+            position: absolute;
+            top: 18mm; left: 0; right: 0;
+            text-align: center;
+        }
+        .header img {
+            max-height: 24mm;
+            width: auto;
+            display: inline-block;
+        }
+        .header .brand-fallback {
+            font-family: 'Helvetica', Arial, sans-serif;
+            font-weight: 900;
+            font-size: 36pt;
+            letter-spacing: 0.15em;
+            color: #2C2416;
+        }
+        .header .tagline {
+            margin-top: 4mm;
+            font-size: 10pt;
+            letter-spacing: 0.4em;
+            text-transform: uppercase;
+            color: #8B7355;
+            font-weight: 600;
+        }
+
+        /* Hero image */
+        .hero {
+            position: absolute;
+            top: 60mm; left: 50%;
+            margin-left: -55mm;
+            width: 110mm; height: 80mm;
+            background: #fff;
+            border: 3pt solid #fff;
+            box-shadow: 0 0 0 1pt #D4AF7A;
+            text-align: center;
+            overflow: hidden;
+        }
+        .hero img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;
+        }
+
+        /* Bloc message */
+        .message {
+            position: absolute;
+            top: 152mm; left: 20mm; right: 20mm;
+            text-align: center;
+        }
+        .message h1 {
+            font-family: 'Helvetica', Arial, sans-serif;
+            font-size: 32pt;
+            font-weight: 900;
+            color: #2C2416;
+            line-height: 1.05;
+            margin-bottom: 6mm;
+        }
+        .message h1 em {
+            font-style: italic;
+            color: #8B7355;
+            font-weight: 900;
+        }
+        .message p {
+            font-size: 12pt;
+            line-height: 1.55;
+            color: #5C4F3C;
+            max-width: 150mm;
+            margin: 0 auto;
+        }
+
+        /* Bloc QR */
+        .qr-zone {
+            position: absolute;
+            top: 200mm; left: 0; right: 0;
+            text-align: center;
+        }
+        .qr-card {
+            display: inline-block;
+            padding: 6mm;
+            background: #fff;
+            border: 2pt solid #2C2416;
+        }
+        .qr-card img {
+            display: block;
+            width: 50mm; height: 50mm;
+        }
+        .url {
+            margin-top: 6mm;
+            font-family: 'Helvetica', Arial, sans-serif;
+            font-size: 22pt;
+            font-weight: 900;
+            color: #2C2416;
+            letter-spacing: 0.05em;
+        }
+        .url-prefix {
+            font-size: 11pt;
+            font-weight: 600;
+            color: #8B7355;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 2mm;
+        }
+
+        /* Footer */
+        .footer {
+            position: absolute;
+            bottom: 4mm; left: 0; right: 0;
+            text-align: center;
+            color: #FAF6EE;
+            font-size: 9pt;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+        }
+        .footer strong { font-weight: 700; color: #fff; }
+
+        /* Filets décoratifs */
+        .divider {
+            position: absolute;
+            left: 50%;
+            margin-left: -25mm;
+            width: 50mm;
+            height: 1pt;
+            background: #D4AF7A;
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+    {# Bandeaux + cercles décoratifs #}
+    <div class="ribbon-top"></div>
+    <div class="corner-deco tr"></div>
+    <div class="corner-deco bl"></div>
+    <div class="ribbon-bottom"></div>
+
+    {# Logo / brand #}
+    <div class="header">
+        {% if logoBase64 %}
+            <img src="{{ logoBase64 }}" alt="TDBR">
+        {% else %}
+            <div class="brand-fallback">TDBR</div>
+        {% endif %}
+        <div class="tagline">Goodies &amp; Créations Street-Art</div>
+    </div>
+
+    {# Image d'accueil encadrée #}
+    {% if heroBase64 %}
+    <div class="hero">
+        <img src="{{ heroBase64 }}" alt="Création TDBR">
+    </div>
+    {% endif %}
+
+    {# Filet sous l'image #}
+    <div class="divider" style="top: 145mm;"></div>
+
+    {# Message principal #}
+    <div class="message">
+        <h1>Un modèle vous plaît ?<br><em>Trouvez votre taille en ligne.</em></h1>
+        <p>
+            Pas la bonne taille en boutique ? Envie de découvrir l'ensemble des créations TDBR ?
+            Toute la collection est disponible sur notre site, livraison à domicile ou en point relais.
+        </p>
+    </div>
+
+    {# QR + URL #}
+    <div class="qr-zone">
+        <div class="qr-card">
+            <img src="{{ qrDataUri }}" alt="QR code vers tedybear.fr">
+        </div>
+        <div style="margin-top:5mm;">
+            <span class="url-prefix">Scannez ou tapez</span>
+            <span class="url">{{ siteLabel }}</span>
+        </div>
+    </div>
+
+    {# Footer dépôt #}
+    <div class="footer">
+        Vu chez <strong>{{ depotNom }}</strong>
+    </div>
+</div>
+</body>
+</html>
