@@ -113,9 +113,10 @@ class PrintfulAdminController extends AbstractController
             $prixBase    = (float)($request->request->get('prixBase') ?? 0);
             $withMockups = (bool)$request->request->get('withMockups');
 
-            $created  = 0;
-            $updated  = 0;
-            $unknowns = [];
+            $created    = 0;
+            $updated    = 0;
+            $unknowns   = [];
+            $batchSlugs = []; // slugs déjà attribués dans cette transaction (pas encore flushés)
 
             foreach ($products as $product) {
                 if (!in_array((int)$product['id'], $selectedIds, true)) {
@@ -123,12 +124,12 @@ class PrintfulAdminController extends AbstractController
                 }
 
                 $pfProductId    = (int)$product['id'];
-                $slug           = $slugify->slugify($product['name']);
+                $baseSlug       = $slugify->slugify($product['name']);
                 $syncedVariants = array_filter($product['variants'], fn($v) => $v['synced'] ?? false);
 
                 // Matching : 1) par printfulProductId  2) par slug (fallback)
                 $existingArticle = $articleRepo->findOneBy(['printfulProductId' => (string)$pfProductId])
-                    ?? $articleRepo->findOneBy(['slug' => $slug]);
+                    ?? $articleRepo->findOneBy(['slug' => $baseSlug]);
 
                 if ($existingArticle) {
                     $this->syncVariantesForArticle($existingArticle, $syncedVariants, $tailleValues, $couleurValues, $unknowns);
@@ -160,7 +161,15 @@ class PrintfulAdminController extends AbstractController
 
                 $article = new Article();
                 $article->setNom($product['name']);
-                $article->setSlug($slug);
+                $uniqueSlug = $articleRepo->generateUniqueSlug($baseSlug, null, $batchSlugs);
+                if ($uniqueSlug !== $baseSlug) {
+                    $unknowns[] = sprintf(
+                        'Slug "%s" déjà utilisé pour "%s" → enregistré sous "%s"',
+                        $baseSlug, $product['name'], $uniqueSlug
+                    );
+                }
+                $article->setSlug($uniqueSlug);
+                $batchSlugs[] = $uniqueSlug;
                 $article->setPrixBase($prixBase);
                 $article->setActif(false);
                 $article->setCollection($collection);
@@ -184,7 +193,14 @@ class PrintfulAdminController extends AbstractController
                 $created++;
             }
 
-            $em->flush();
+            try {
+                $em->flush();
+            } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $e) {
+                $this->addFlash('error',
+                    "Conflit d'unicité (slug ou ID Printful en doublon). Détail : " . $e->getMessage()
+                );
+                return $this->redirectToRoute('admin_printful_import');
+            }
 
             // Invalider le cache après un import pour forcer la mise à jour
             $this->cache->delete(self::CACHE_KEY);

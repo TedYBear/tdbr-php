@@ -142,7 +142,15 @@ class ArticleAdminController extends AbstractController
 
             $article = new Article();
             $article->setNom($data['nom']);
-            $article->setSlug($this->slugify->slugify($data['nom']));
+            $baseSlug = $this->slugify->slugify($data['nom']);
+            $uniqueSlug = $this->articleRepo->generateUniqueSlug($baseSlug);
+            if ($uniqueSlug !== $baseSlug) {
+                $this->addFlash('warning', sprintf(
+                    'Le slug "%s" est déjà utilisé : nouvel article enregistré sous "%s".',
+                    $baseSlug, $uniqueSlug
+                ));
+            }
+            $article->setSlug($uniqueSlug);
             $article->setDescription($data['description'] ?? null);
             $article->setActif(isset($data['actif']));
             $article->setEnVedette(isset($data['enVedette']));
@@ -182,7 +190,12 @@ class ArticleAdminController extends AbstractController
 
             $this->saveVariantes($article, $data);
             $this->em->persist($article);
-            $this->em->flush();
+            try {
+                $this->em->flush();
+            } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $e) {
+                $this->addFlash('error', 'Conflit d\'unicité : ' . $e->getMessage());
+                return $this->redirectToRoute('admin_articles_new');
+            }
 
             $this->addFlash('success', 'Article créé avec succès');
             return $this->redirectToRoute('admin_articles');
@@ -216,7 +229,15 @@ class ArticleAdminController extends AbstractController
             $data = $request->request->all();
 
             $article->setNom($data['nom']);
-            $article->setSlug($this->slugify->slugify($data['nom']));
+            $baseSlug = $this->slugify->slugify($data['nom']);
+            $uniqueSlug = $this->articleRepo->generateUniqueSlug($baseSlug, $article->getId());
+            if ($uniqueSlug !== $baseSlug) {
+                $this->addFlash('warning', sprintf(
+                    'Le slug "%s" est déjà utilisé : article enregistré sous "%s".',
+                    $baseSlug, $uniqueSlug
+                ));
+            }
+            $article->setSlug($uniqueSlug);
             $article->setDescription($data['description'] ?? null);
             $article->setActif(isset($data['actif']));
             $article->setEnVedette(isset($data['enVedette']));
@@ -256,7 +277,12 @@ class ArticleAdminController extends AbstractController
             }
 
             $this->saveVariantes($article, $data);
-            $this->em->flush();
+            try {
+                $this->em->flush();
+            } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $e) {
+                $this->addFlash('error', 'Conflit d\'unicité : ' . $e->getMessage());
+                return $this->redirectToRoute('admin_articles_edit', ['id' => $article->getId()]);
+            }
 
             $this->addFlash('success', 'Article modifié avec succès');
             $returnUrl = $request->request->get('returnUrl', '');
@@ -331,7 +357,9 @@ class ArticleAdminController extends AbstractController
 
         $clone = new Article();
         $clone->setNom($source->getNom() . ' (copie)');
-        $clone->setSlug($this->slugify->slugify($source->getNom()) . '-copie-' . substr(uniqid(), -6));
+        $clone->setSlug($this->articleRepo->generateUniqueSlug(
+            $this->slugify->slugify($source->getNom()) . '-copie-' . substr(uniqid(), -6)
+        ));
         $clone->setDescription($source->getDescription());
         $clone->setActif(false);
         $clone->setEnVedette(false);
