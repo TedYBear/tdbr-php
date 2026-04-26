@@ -48,6 +48,7 @@
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Nom</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Prix vente</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Variantes</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Template</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Fournisseur</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Statut</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Vedette</th>
@@ -83,6 +84,19 @@
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-600">
                                 {{ article.variantes|length }} variante{{ article.variantes|length > 1 ? 's' : '' }}
+                            </td>
+
+                            {# Template associé #}
+                            <td class="px-6 py-4 text-sm">
+                                {% if article.varianteTemplate %}
+                                    <a href="{{ path('admin_templates_edit', {id: article.varianteTemplate.id}) }}"
+                                       class="text-primary hover:underline">{{ article.varianteTemplate.nom }}</a>
+                                    {% if article.varianteTemplate.guideTaillePdfUrl %}
+                                        <span class="ml-1 inline-flex items-center px-1.5 py-0.5 text-xs bg-green-100 text-green-700 rounded" title="Guide des tailles PDF disponible">PDF</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-gray-300">—</span>
+                                {% endif %}
                             </td>
 
                             {# Fournisseur — édition inline #}
