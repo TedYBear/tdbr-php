@@ -49,7 +49,7 @@
             text-align: center;
         }
         .header img {
-            max-height: 28mm;
+            max-height: 24mm;
             width: auto;
             display: inline-block;
         }
@@ -69,84 +69,91 @@
             font-weight: 600;
         }
 
-        /* Bloc présentation — image à gauche, texte à droite */
+        /* Intro plein largeur */
         .intro {
             position: absolute;
-            top: 65mm;
-            left: 18mm;
-            right: 18mm;
+            top: 60mm;
+            left: 22mm;
+            right: 22mm;
+            text-align: center;
         }
-        .intro-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-        }
-        .intro-table td {
-            vertical-align: middle;
-        }
-        .intro-img-cell {
-            width: 65mm;
-            padding-right: 7mm;
-        }
-        .intro-img-cell img {
-            width: 100%;
-            height: auto;
-            display: block;
-            border: 2pt solid #fff;
-            box-shadow: 0 0 0 1pt #D4AF7A;
-        }
-        .intro-text-cell {
-            font-size: 11pt;
-            line-height: 1.55;
-            color: #3D352A;
-        }
-        .intro-text-cell .salut {
+        .intro .salut {
             font-family: 'Helvetica', Arial, sans-serif;
-            font-size: 16pt;
+            font-size: 18pt;
             font-weight: 900;
             color: #2C2416;
-            margin-bottom: 3mm;
             display: block;
+            margin-bottom: 4mm;
         }
-        .intro-text-cell .signature {
+        .intro .body-text {
+            font-size: 10.5pt;
+            line-height: 1.55;
+            color: #3D352A;
+            max-width: 160mm;
+            margin: 0 auto;
+        }
+        .intro .signature {
             display: block;
-            margin-top: 4mm;
+            margin-top: 3mm;
             font-style: italic;
             color: #8B7355;
             font-weight: 600;
+            font-size: 10.5pt;
         }
 
-        /* Liste des thèmes */
-        .themes {
+        /* Grille des 3 visuels */
+        .samples {
             position: absolute;
-            top: 148mm; left: 20mm; right: 20mm;
-            text-align: center;
+            top: 130mm;
+            left: 14mm;
+            right: 14mm;
         }
-        .themes-title {
-            font-size: 11pt;
+        .samples-title {
+            text-align: center;
+            font-size: 10pt;
             letter-spacing: 0.4em;
             text-transform: uppercase;
             color: #8B7355;
             font-weight: 600;
             margin-bottom: 4mm;
         }
-        .themes-list {
-            font-family: 'Helvetica', Arial, sans-serif;
-            font-size: 22pt;
+        .samples-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 4mm 0;
+        }
+        .samples-table td {
+            width: 33.33%;
+            text-align: center;
+            vertical-align: top;
+        }
+        .sample-card {
+            background: #fff;
+            padding: 3mm;
+            border: 1pt solid #E8DDC8;
+        }
+        .sample-card img {
+            display: block;
+            width: 100%;
+            height: 50mm;
+            object-fit: cover;
+        }
+        .sample-empty {
+            background: #F5E6D3;
+            border: 1pt dashed #D4AF7A;
+            height: 50mm;
+            line-height: 50mm;
+            color: #8B7355;
+            font-size: 9pt;
+            font-style: italic;
+        }
+        .sample-label {
+            margin-top: 2.5mm;
+            font-size: 11pt;
             font-weight: 900;
             color: #2C2416;
-            line-height: 1.25;
-        }
-        .themes-list .sep {
-            color: #D4AF7A;
-            font-weight: 400;
-            margin: 0 4mm;
-        }
-        .themes-sub {
-            margin-top: 3mm;
-            font-size: 10pt;
-            color: #5C4F3C;
-            font-style: italic;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         /* Filet décoratif */
@@ -162,35 +169,35 @@
         /* Bloc QR */
         .qr-zone {
             position: absolute;
-            top: 192mm; left: 0; right: 0;
+            top: 207mm; left: 0; right: 0;
             text-align: center;
         }
         .qr-card {
             display: inline-block;
-            padding: 5mm;
+            padding: 4mm;
             background: #fff;
             border: 2pt solid #2C2416;
         }
         .qr-card img {
             display: block;
-            width: 45mm; height: 45mm;
+            width: 38mm; height: 38mm;
         }
         .url {
-            margin-top: 5mm;
+            margin-top: 4mm;
             font-family: 'Helvetica', Arial, sans-serif;
-            font-size: 22pt;
+            font-size: 20pt;
             font-weight: 900;
             color: #2C2416;
             letter-spacing: 0.05em;
         }
         .url-prefix {
-            font-size: 10pt;
+            font-size: 9.5pt;
             font-weight: 600;
             color: #8B7355;
             letter-spacing: 0.3em;
             text-transform: uppercase;
             display: block;
-            margin-bottom: 1.5mm;
+            margin-bottom: 1mm;
         }
 
         /* Footer */
@@ -223,42 +230,43 @@
         <div class="tagline">Humour, fromage et jeux de société</div>
     </div>
 
-    {# Présentation #}
+    {# Intro #}
     <div class="intro">
-        <table class="intro-table">
-            <tr>
-                <td class="intro-img-cell">
-                    {% if heroBase64 %}
-                        <img src="{{ heroBase64 }}" alt="Manu, créateur TDBR">
-                    {% endif %}
-                </td>
-                <td class="intro-text-cell">
-                    <span class="salut">TDBR, qui es-tu&nbsp;?</span>
-                    Je m'appelle Manu et je suis le créateur de <strong>TDBR</strong>.
-                    Je décline mes obsessions sur t-shirts, mugs et goodies&nbsp;:
-                    le <strong>fromage</strong> (toujours), les <strong>jeux de société</strong>,
-                    et plus largement les <strong>fanarts</strong> qui me font sourire.
-                    L'<strong>intelligence artificielle</strong> est mon partenaire de
-                    création — pour explorer plus de pistes et tester plus d'idées,
-                    sans jamais perdre la patte de chaque visuel.
-                    <span class="signature">— Manu</span>
-                </td>
-            </tr>
-        </table>
+        <span class="salut">TDBR, qui es-tu&nbsp;?</span>
+        <div class="body-text">
+            Je m'appelle Manu et je suis le créateur de <strong>TDBR</strong>.
+            Je décline mes obsessions sur t-shirts, mugs et goodies&nbsp;:
+            le <strong>fromage</strong> (toujours), les <strong>jeux de société</strong>,
+            et plus largement les <strong>fanarts</strong> qui me font sourire.
+            L'<strong>intelligence artificielle</strong> est mon partenaire de
+            création — pour explorer plus de pistes et tester plus d'idées,
+            sans jamais perdre la patte de chaque visuel.
+            <span class="signature">— Manu</span>
+        </div>
     </div>
 
-    {# Filet entre intro et thèmes #}
-    <div class="divider" style="top: 142mm;"></div>
+    {# Filet sous l'intro #}
+    <div class="divider" style="top: 122mm;"></div>
 
-    {# Thèmes phares #}
-    <div class="themes">
-        <div class="themes-title">L'univers TDBR</div>
-        <div class="themes-list">
-            Fromage <span class="sep">·</span>
-            Jeux de société <span class="sep">·</span>
-            Fanarts
-        </div>
-        <div class="themes-sub">… et bien d'autres surprises sur le site</div>
+    {# Grille des 3 visuels d'illustration #}
+    <div class="samples">
+        <div class="samples-title">Quelques créations</div>
+        <table class="samples-table">
+            <tr>
+                {% for sample in samples %}
+                    <td>
+                        <div class="sample-card">
+                            {% if sample.image %}
+                                <img src="{{ sample.image }}" alt="{{ sample.label }}">
+                            {% else %}
+                                <div class="sample-empty">À déposer</div>
+                            {% endif %}
+                        </div>
+                        <div class="sample-label">{{ sample.label }}</div>
+                    </td>
+                {% endfor %}
+            </tr>
+        </table>
     </div>
 
     {# QR + URL #}
@@ -266,7 +274,7 @@
         <div class="qr-card">
             <img src="{{ qrDataUri }}" alt="QR code vers tedybear.fr">
         </div>
-        <div style="margin-top:4mm;">
+        <div style="margin-top:3mm;">
             <span class="url-prefix">Scannez ou tapez</span>
             <span class="url">{{ siteLabel }}</span>
         </div>

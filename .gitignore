@@ -41,6 +41,7 @@
 !/public/uploads/general/
 !/public/uploads/temp/
 !/public/uploads/templates/
+!/public/uploads/marketing/
 /public/uploads/articles/*
 !/public/uploads/articles/.gitkeep
 /public/uploads/categories/*
@@ -54,4 +55,6 @@
 !/public/uploads/temp/.gitkeep
 /public/uploads/templates/*
 !/public/uploads/templates/.gitkeep
+/public/uploads/marketing/*
+!/public/uploads/marketing/.gitkeep
 ###< Uploads ###

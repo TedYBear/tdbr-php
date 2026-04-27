@@ -49,9 +49,42 @@ class MarketingAdminController extends AbstractController
     public function afficheTdbr(Request $request): Response
     {
         $url     = $request->query->get('url', self::SITE_URL);
-        $context = $this->buildPosterContext($url);
+        $context = $this->buildPosterContext($url) + [
+            'samples' => $this->loadProductSamples(),
+        ];
 
         return $this->renderPoster('admin/marketing/affiche_tdbr.html.twig', $context, $request, 'tdbr-affiche-marque');
+    }
+
+    /**
+     * Charge les 3 visuels d'illustration thématiques (fromage / fanart / jeux).
+     * Les fichiers attendus dans public/uploads/marketing/ :
+     *   - sample-fromage.png|jpg|webp
+     *   - sample-fanart.png|jpg|webp
+     *   - sample-jeux.png|jpg|webp
+     * Si un fichier manque, l'entrée correspondante reste null.
+     */
+    private function loadProductSamples(): array
+    {
+        $themes = [
+            'fromage' => 'Fromage',
+            'fanart'  => 'Fanarts',
+            'jeux'    => 'Jeux de société',
+        ];
+        $exts = ['png', 'jpg', 'jpeg', 'webp'];
+        $base = '/public/uploads/marketing/';
+
+        $samples = [];
+        foreach ($themes as $key => $label) {
+            $imgB64 = null;
+            foreach ($exts as $ext) {
+                $candidate = $base . 'sample-' . $key . '.' . $ext;
+                $b64 = $this->fileAsBase64($candidate);
+                if ($b64 !== null) { $imgB64 = $b64; break; }
+            }
+            $samples[] = ['label' => $label, 'image' => $imgB64];
+        }
+        return $samples;
     }
 
     private function buildPosterContext(string $url): array
