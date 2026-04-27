@@ -57,4 +57,7 @@
 !/public/uploads/templates/.gitkeep
 /public/uploads/marketing/*
 !/public/uploads/marketing/.gitkeep
+!/public/uploads/marketing/sample-fromage.*
+!/public/uploads/marketing/sample-fanart.*
+!/public/uploads/marketing/sample-jeux.*
 ###< Uploads ###
