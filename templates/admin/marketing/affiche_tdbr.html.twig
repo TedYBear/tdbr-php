@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Affiche TDBR — découverte</title>
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 0;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Helvetica', Arial, sans-serif;
+            color: #2C2416;
+            background: #fff;
+            -webkit-print-color-adjust: exact;
+        }
+
+        .page {
+            width: 210mm;
+            height: 297mm;
+            position: relative;
+            background: #FAF6EE;
+            overflow: hidden;
+        }
+
+        .ribbon-top {
+            position: absolute; top: 0; left: 0; right: 0;
+            height: 12mm; background: #2C2416;
+        }
+        .ribbon-bottom {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            height: 14mm; background: #8B7355;
+        }
+
+        .corner-deco {
+            position: absolute;
+            width: 60mm; height: 60mm;
+            border-radius: 50%;
+            opacity: 0.18;
+        }
+        .corner-deco.tr { top: -30mm; right: -30mm; background: #D4AF7A; }
+        .corner-deco.bl { bottom: 14mm; left: -25mm; background: #D4AF7A; }
+
+        /* En-tête */
+        .header {
+            position: absolute;
+            top: 18mm; left: 0; right: 0;
+            text-align: center;
+        }
+        .header img {
+            max-height: 28mm;
+            width: auto;
+            display: inline-block;
+        }
+        .header .brand-fallback {
+            font-family: 'Helvetica', Arial, sans-serif;
+            font-weight: 900;
+            font-size: 36pt;
+            letter-spacing: 0.15em;
+            color: #2C2416;
+        }
+        .header .tagline {
+            margin-top: 3mm;
+            font-size: 9.5pt;
+            letter-spacing: 0.4em;
+            text-transform: uppercase;
+            color: #8B7355;
+            font-weight: 600;
+        }
+
+        /* Bloc présentation — image à gauche, texte à droite */
+        .intro {
+            position: absolute;
+            top: 65mm;
+            left: 18mm;
+            right: 18mm;
+        }
+        .intro-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        .intro-table td {
+            vertical-align: middle;
+        }
+        .intro-img-cell {
+            width: 65mm;
+            padding-right: 7mm;
+        }
+        .intro-img-cell img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border: 2pt solid #fff;
+            box-shadow: 0 0 0 1pt #D4AF7A;
+        }
+        .intro-text-cell {
+            font-size: 11pt;
+            line-height: 1.55;
+            color: #3D352A;
+        }
+        .intro-text-cell .salut {
+            font-family: 'Helvetica', Arial, sans-serif;
+            font-size: 16pt;
+            font-weight: 900;
+            color: #2C2416;
+            margin-bottom: 3mm;
+            display: block;
+        }
+        .intro-text-cell .signature {
+            display: block;
+            margin-top: 4mm;
+            font-style: italic;
+            color: #8B7355;
+            font-weight: 600;
+        }
+
+        /* Liste des thèmes */
+        .themes {
+            position: absolute;
+            top: 148mm; left: 20mm; right: 20mm;
+            text-align: center;
+        }
+        .themes-title {
+            font-size: 11pt;
+            letter-spacing: 0.4em;
+            text-transform: uppercase;
+            color: #8B7355;
+            font-weight: 600;
+            margin-bottom: 4mm;
+        }
+        .themes-list {
+            font-family: 'Helvetica', Arial, sans-serif;
+            font-size: 22pt;
+            font-weight: 900;
+            color: #2C2416;
+            line-height: 1.25;
+        }
+        .themes-list .sep {
+            color: #D4AF7A;
+            font-weight: 400;
+            margin: 0 4mm;
+        }
+        .themes-sub {
+            margin-top: 3mm;
+            font-size: 10pt;
+            color: #5C4F3C;
+            font-style: italic;
+        }
+
+        /* Filet décoratif */
+        .divider {
+            position: absolute;
+            left: 50%;
+            margin-left: -25mm;
+            width: 50mm;
+            height: 1pt;
+            background: #D4AF7A;
+        }
+
+        /* Bloc QR */
+        .qr-zone {
+            position: absolute;
+            top: 192mm; left: 0; right: 0;
+            text-align: center;
+        }
+        .qr-card {
+            display: inline-block;
+            padding: 5mm;
+            background: #fff;
+            border: 2pt solid #2C2416;
+        }
+        .qr-card img {
+            display: block;
+            width: 45mm; height: 45mm;
+        }
+        .url {
+            margin-top: 5mm;
+            font-family: 'Helvetica', Arial, sans-serif;
+            font-size: 22pt;
+            font-weight: 900;
+            color: #2C2416;
+            letter-spacing: 0.05em;
+        }
+        .url-prefix {
+            font-size: 10pt;
+            font-weight: 600;
+            color: #8B7355;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 1.5mm;
+        }
+
+        /* Footer */
+        .footer {
+            position: absolute;
+            bottom: 4mm; left: 0; right: 0;
+            text-align: center;
+            color: #FAF6EE;
+            font-size: 9pt;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+        }
+        .footer strong { font-weight: 700; color: #fff; }
+    </style>
+</head>
+<body>
+<div class="page">
+    <div class="ribbon-top"></div>
+    <div class="corner-deco tr"></div>
+    <div class="corner-deco bl"></div>
+    <div class="ribbon-bottom"></div>
+
+    {# Logo + tagline #}
+    <div class="header">
+        {% if logoBase64 %}
+            <img src="{{ logoBase64 }}" alt="TDBR">
+        {% else %}
+            <div class="brand-fallback">TDBR</div>
+        {% endif %}
+        <div class="tagline">Humour, fromage et jeux de société</div>
+    </div>
+
+    {# Présentation #}
+    <div class="intro">
+        <table class="intro-table">
+            <tr>
+                <td class="intro-img-cell">
+                    {% if heroBase64 %}
+                        <img src="{{ heroBase64 }}" alt="Manu, créateur TDBR">
+                    {% endif %}
+                </td>
+                <td class="intro-text-cell">
+                    <span class="salut">TDBR, qui es-tu&nbsp;?</span>
+                    Je m'appelle Manu et je suis le créateur de <strong>TDBR</strong>.
+                    Je décline mes obsessions sur t-shirts, mugs et goodies&nbsp;:
+                    le <strong>fromage</strong> (toujours), les <strong>jeux de société</strong>,
+                    et plus largement les <strong>fanarts</strong> qui me font sourire.
+                    L'<strong>intelligence artificielle</strong> est mon partenaire de
+                    création — pour explorer plus de pistes et tester plus d'idées,
+                    sans jamais perdre la patte de chaque visuel.
+                    <span class="signature">— Manu</span>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    {# Filet entre intro et thèmes #}
+    <div class="divider" style="top: 142mm;"></div>
+
+    {# Thèmes phares #}
+    <div class="themes">
+        <div class="themes-title">L'univers TDBR</div>
+        <div class="themes-list">
+            Fromage <span class="sep">·</span>
+            Jeux de société <span class="sep">·</span>
+            Fanarts
+        </div>
+        <div class="themes-sub">… et bien d'autres surprises sur le site</div>
+    </div>
+
+    {# QR + URL #}
+    <div class="qr-zone">
+        <div class="qr-card">
+            <img src="{{ qrDataUri }}" alt="QR code vers tedybear.fr">
+        </div>
+        <div style="margin-top:4mm;">
+            <span class="url-prefix">Scannez ou tapez</span>
+            <span class="url">{{ siteLabel }}</span>
+        </div>
+    </div>
+
+    {# Footer #}
+    <div class="footer">
+        <strong>Découvrez la collection complète en ligne</strong>
+    </div>
+</div>
+</body>
+</html>

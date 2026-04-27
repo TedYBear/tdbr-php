@@ -35,24 +35,43 @@ class MarketingAdminController extends AbstractController
         $depotNom = $request->query->get('depot', 'Du fromage au dessert');
         $url      = $request->query->get('url', self::SITE_URL);
 
-        $qrDataUri  = $this->generateQrDataUri($url);
-        $logoBase64 = $this->fileAsBase64('/public/build/images/TDBR.png');
-        $heroBase64 = $this->fileAsBase64('/public/build/images/patron.png');
-
-        $context = [
-            'depotNom'   => $depotNom,
-            'siteUrl'    => $url,
-            'siteLabel'  => preg_replace('#^https?://#', '', $url),
-            'qrDataUri'  => $qrDataUri,
-            'logoBase64' => $logoBase64,
-            'heroBase64' => $heroBase64,
+        $context = $this->buildPosterContext($url) + [
+            'depotNom' => $depotNom,
         ];
 
+        return $this->renderPoster('admin/marketing/affiche_depot.html.twig', $context, $request, 'tdbr-affiche-' . $this->slug($depotNom));
+    }
+
+    /**
+     * Affiche TDBR généraliste : présentation de la marque et des thèmes.
+     */
+    #[Route('/affiche-tdbr', name: 'admin_marketing_affiche_tdbr')]
+    public function afficheTdbr(Request $request): Response
+    {
+        $url     = $request->query->get('url', self::SITE_URL);
+        $context = $this->buildPosterContext($url);
+
+        return $this->renderPoster('admin/marketing/affiche_tdbr.html.twig', $context, $request, 'tdbr-affiche-marque');
+    }
+
+    private function buildPosterContext(string $url): array
+    {
+        return [
+            'siteUrl'    => $url,
+            'siteLabel'  => preg_replace('#^https?://#', '', $url),
+            'qrDataUri'  => $this->generateQrDataUri($url),
+            'logoBase64' => $this->fileAsBase64('/public/build/images/TDBR.png'),
+            'heroBase64' => $this->fileAsBase64('/public/build/images/patron.png'),
+        ];
+    }
+
+    private function renderPoster(string $template, array $context, Request $request, string $filename): Response
+    {
         if ($request->query->get('format') === 'html') {
-            return $this->render('admin/marketing/affiche_depot.html.twig', $context);
+            return $this->render($template, $context);
         }
 
-        $html = $this->renderView('admin/marketing/affiche_depot.html.twig', $context);
+        $html = $this->renderView($template, $context);
 
         $options = new Options();
         $options->set('isRemoteEnabled', true);
@@ -65,7 +84,7 @@ class MarketingAdminController extends AbstractController
 
         return new Response($dompdf->output(), 200, [
             'Content-Type'        => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="tdbr-affiche-' . $this->slug($depotNom) . '.pdf"',
+            'Content-Disposition' => 'inline; filename="' . $filename . '.pdf"',
         ]);
     }
 

@@ -1,39 +1,69 @@
 {% extends 'admin/base_admin.html.twig' %}
 
 {% block title %}Marketing — Affiches{% endblock %}
-{% block page_title %}Affiches dépôt-vente{% endblock %}
+{% block page_title %}Affiches{% endblock %}
 {% block page_subtitle %}
-    <p class="text-sm text-gray-600">Génère un PDF A4 prêt à imprimer pour les points de vente partenaires.</p>
+    <p class="text-sm text-gray-600">Génère des PDF A4 prêts à imprimer.</p>
 {% endblock %}
 
 {% block body %}
-<div class="card p-6 max-w-2xl">
-    <h2 class="text-xl font-bold mb-1">Affiche dépôt-vente</h2>
-    <p class="text-sm text-gray-500 mb-5">
-        Le PDF inclut un QR code menant vers <strong>tedybear.fr</strong>, le logo TDBR et un visuel.
-        Personnalise éventuellement le nom du dépôt avant de générer.
-    </p>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-    <form method="get" action="{{ path('admin_marketing_affiche_depot') }}" target="_blank" class="space-y-4">
-        <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1">Nom du dépôt</label>
-            <input type="text" name="depot" value="Du fromage au dessert"
-                   class="w-full border border-gray-300 rounded-lg px-3 py-2">
-            <p class="text-xs text-gray-500 mt-1">Affiché en pied de page : « Vu chez … »</p>
-        </div>
+    {# Affiche dépôt-vente #}
+    <div class="card p-6">
+        <h2 class="text-xl font-bold mb-1">Affiche dépôt-vente</h2>
+        <p class="text-sm text-gray-500 mb-5">
+            Pour les boutiques partenaires : mot d'introduction, présentation
+            de la genèse de TDBR, QR vers le site et mention du dépôt en pied.
+        </p>
 
-        <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1">URL cible du QR code</label>
-            <input type="url" name="url" value="https://tedybear.fr"
-                   class="w-full border border-gray-300 rounded-lg px-3 py-2">
-        </div>
+        <form method="get" action="{{ path('admin_marketing_affiche_depot') }}" target="_blank" class="space-y-4">
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Nom du dépôt</label>
+                <input type="text" name="depot" value="Du fromage au dessert"
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                <p class="text-xs text-gray-500 mt-1">Affiché en pied de page : « Vu chez … »</p>
+            </div>
 
-        <div class="flex items-center gap-3 pt-2">
-            <button type="submit" class="btn-primary">Télécharger le PDF</button>
-            <button type="submit" name="format" value="html" class="btn-outline" formtarget="_blank">
-                Aperçu HTML
-            </button>
-        </div>
-    </form>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">URL cible du QR code</label>
+                <input type="url" name="url" value="https://tedybear.fr"
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2">
+            </div>
+
+            <div class="flex items-center gap-3 pt-2">
+                <button type="submit" class="btn-primary">Télécharger PDF</button>
+                <button type="submit" name="format" value="html" class="btn-outline" formtarget="_blank">
+                    Aperçu HTML
+                </button>
+            </div>
+        </form>
+    </div>
+
+    {# Affiche découverte TDBR #}
+    <div class="card p-6">
+        <h2 class="text-xl font-bold mb-1">Affiche découverte TDBR</h2>
+        <p class="text-sm text-gray-500 mb-5">
+            Affiche généraliste pour faire découvrir la marque : présentation,
+            mise en avant des thèmes (fromage, jeux de société, fanarts) et QR
+            vers le site.
+        </p>
+
+        <form method="get" action="{{ path('admin_marketing_affiche_tdbr') }}" target="_blank" class="space-y-4">
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">URL cible du QR code</label>
+                <input type="url" name="url" value="https://tedybear.fr"
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2">
+            </div>
+
+            <div class="flex items-center gap-3 pt-2">
+                <button type="submit" class="btn-primary">Télécharger PDF</button>
+                <button type="submit" name="format" value="html" class="btn-outline" formtarget="_blank">
+                    Aperçu HTML
+                </button>
+            </div>
+        </form>
+    </div>
+
 </div>
 {% endblock %}
