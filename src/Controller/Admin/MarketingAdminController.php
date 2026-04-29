@@ -68,7 +68,7 @@ class MarketingAdminController extends AbstractController
     {
         $themes = [
             'fromage' => 'Fromage',
-            'fanart'  => 'Fanarts',
+            'fanart'  => 'Fanart',
             'jeux'    => 'Jeux de société',
         ];
         $exts = ['png', 'jpg', 'jpeg', 'webp'];
