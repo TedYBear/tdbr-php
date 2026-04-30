@@ -1173,6 +1173,40 @@ class PublicController extends AbstractController
         ]);
     }
 
+    #[Route('/profil/mot-de-passe', name: 'profil_password', methods: ['POST'])]
+    public function changePassword(Request $request, UserPasswordHasherInterface $passwordHasher): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_USER');
+
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $actuel   = $request->request->get('password_actuel', '');
+        $nouveau  = $request->request->get('password_nouveau', '');
+        $confirm  = $request->request->get('password_confirm', '');
+
+        if (!$passwordHasher->isPasswordValid($user, $actuel)) {
+            $this->addFlash('error', 'Le mot de passe actuel est incorrect.');
+            return $this->redirectToRoute('profil');
+        }
+
+        if (strlen($nouveau) < 8) {
+            $this->addFlash('error', 'Le nouveau mot de passe doit contenir au moins 8 caractères.');
+            return $this->redirectToRoute('profil');
+        }
+
+        if ($nouveau !== $confirm) {
+            $this->addFlash('error', 'Les deux mots de passe ne correspondent pas.');
+            return $this->redirectToRoute('profil');
+        }
+
+        $user->setPassword($passwordHasher->hashPassword($user, $nouveau));
+        $this->em->flush();
+
+        $this->addFlash('success', 'Mot de passe mis à jour avec succès.');
+        return $this->redirectToRoute('profil');
+    }
+
     #[Route('/logout', name: 'logout')]
     public function logout(): void
     {
