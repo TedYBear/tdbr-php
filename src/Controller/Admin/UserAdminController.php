@@ -135,6 +135,29 @@ class UserAdminController extends AbstractController
         ]);
     }
 
+    #[Route('/{id}/toggle-depot-vente', name: '_toggle_depot_vente', methods: ['POST'])]
+    public function toggleDepotVente(int $id): Response
+    {
+        $user = $this->userRepo->find($id);
+        if (!$user) {
+            throw $this->createNotFoundException();
+        }
+
+        $roles = array_values(array_filter($user->getRoles(), fn($r) => $r !== 'ROLE_USER'));
+
+        if (in_array('ROLE_DEPOT_VENTE', $roles, true)) {
+            $user->setRoles(array_values(array_filter($roles, fn($r) => $r !== 'ROLE_DEPOT_VENTE')));
+            $this->addFlash('success', $user->getPrenom() . ' ' . $user->getNom() . ' n\'a plus accès à l\'espace dépôt-vente.');
+        } else {
+            $roles[] = 'ROLE_DEPOT_VENTE';
+            $user->setRoles($roles);
+            $this->addFlash('success', $user->getPrenom() . ' ' . $user->getNom() . ' a maintenant accès à l\'espace dépôt-vente.');
+        }
+
+        $this->em->flush();
+        return $this->redirectToRoute('admin_utilisateurs');
+    }
+
     #[Route('/{id}/toggle-admin', name: '_toggle_admin', methods: ['POST'])]
     public function toggleAdmin(int $id): Response
     {
