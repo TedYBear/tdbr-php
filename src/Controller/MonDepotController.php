@@ -3,8 +3,11 @@
 namespace App\Controller;
 
 use App\Entity\DepotVente;
+use App\Entity\DepotVenteStockItem;
 use App\Entity\DepotVenteTransaction;
 use App\Entity\DepotVenteTransactionLigne;
+use App\Repository\ArticleRepository;
+use App\Repository\CategoryRepository;
 use App\Repository\DepotVenteRepository;
 use App\Repository\DepotVenteStockItemRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -22,6 +25,8 @@ class MonDepotController extends AbstractController
         private DepotVenteRepository $depotRepo,
         private DepotVenteStockItemRepository $stockRepo,
         private EntityManagerInterface $em,
+        private ArticleRepository $articleRepo,
+        private CategoryRepository $categoryRepo,
     ) {}
 
     private function getDepotOrRedirect(): DepotVente|Response
@@ -45,16 +50,165 @@ class MonDepotController extends AbstractController
         if ($result instanceof Response) return $result;
         $depot = $result;
 
-        $stockItems = array_values(array_filter(
-            $depot->getStockItems()->toArray(),
-            fn($item) => $item->getQuantite() > 0
-        ));
+        $articles = $this->articleRepo->findBy(['actif' => true], ['nom' => 'ASC']);
+
+        $stockMap = [];
+        foreach ($depot->getStockItems() as $item) {
+            $stockMap[$item->getVariante()->getId()] = $item;
+        }
+
+        $prixMap = [];
+        foreach ($articles as $article) {
+            foreach ($article->getVariantes() as $variante) {
+                $prixMap[$variante->getId()] = $this->resolveUnitPrice($article, $variante, 1);
+            }
+        }
+
+        $articlesAvecStock = [];
+        foreach ($articles as $article) {
+            foreach ($article->getVariantes() as $variante) {
+                $item = $stockMap[$variante->getId()] ?? null;
+                if ($item && $item->getQuantite() > 0) {
+                    $articlesAvecStock[] = $article;
+                    break;
+                }
+            }
+        }
+
+        $articlesAvecStockItems = [];
+        foreach ($articles as $article) {
+            foreach ($article->getVariantes() as $variante) {
+                if (isset($stockMap[$variante->getId()])) {
+                    $articlesAvecStockItems[] = $article;
+                    break;
+                }
+            }
+        }
+
+        $categories = $this->categoryRepo->findBy(['actif' => true], ['ordre' => 'ASC', 'nom' => 'ASC']);
 
         return $this->render('mon_depot/index.html.twig', [
-            'depot'        => $depot,
-            'stockItems'   => $stockItems,
-            'transactions' => $depot->getTransactions()->slice(0, 20),
+            'depot'                  => $depot,
+            'articles'               => $articlesAvecStock,
+            'articlesAvecStockItems' => $articlesAvecStockItems,
+            'categories'             => $categories,
+            'stockMap'               => $stockMap,
+            'prixMap'                => $prixMap,
+            'transactions'           => $depot->getTransactions()->slice(0, 30),
         ]);
+    }
+
+    #[Route('/ajout', name: '_ajout', methods: ['POST'])]
+    public function ajout(Request $request): Response
+    {
+        $result = $this->getDepotOrRedirect();
+        if ($result instanceof Response) return $result;
+        $depot = $result;
+
+        $articleIds = $request->request->all('articles');
+        $added = 0;
+
+        foreach ($articleIds as $articleId) {
+            $article = $this->articleRepo->find((int)$articleId);
+            if (!$article) continue;
+
+            foreach ($article->getVariantes() as $variante) {
+                if (!$variante->isActif()) continue;
+
+                $existing = $this->stockRepo->findOneByDepotAndVariante($depot, $variante);
+                if ($existing) continue;
+
+                $stockItem = (new DepotVenteStockItem())
+                    ->setDepotVente($depot)
+                    ->setVariante($variante)
+                    ->setQuantite(0);
+                $this->em->persist($stockItem);
+                $added++;
+            }
+        }
+
+        if ($added > 0) {
+            $this->em->flush();
+            $this->addFlash('success', $added . ' variante(s) ajoutée(s) au suivi.');
+        } else {
+            $this->addFlash('success', 'Aucune nouvelle variante à ajouter.');
+        }
+
+        return $this->redirectToRoute('mon_depot');
+    }
+
+    #[Route('/modifier-stock', name: '_modifier_stock', methods: ['POST'])]
+    public function modifierStock(Request $request): Response
+    {
+        $result = $this->getDepotOrRedirect();
+        if ($result instanceof Response) return $result;
+        $depot = $result;
+
+        $lignesData = $request->request->all('lignes');
+        $note = trim($request->request->get('note', ''));
+
+        /** @var \App\Entity\User $user */
+        $user = $this->getUser();
+
+        $transaction = (new DepotVenteTransaction())
+            ->setDepotVente($depot)
+            ->setType(DepotVenteTransaction::TYPE_REASSORT)
+            ->setNote($note ?: null)
+            ->setCreatedBy($user);
+
+        $hasChanges = false;
+
+        foreach ($lignesData as $stockItemId => $qty) {
+            $qty = max(0, (int)$qty);
+            $stockItem = $this->stockRepo->find((int)$stockItemId);
+            if (!$stockItem || $stockItem->getDepotVente() !== $depot) continue;
+
+            $ancien = $stockItem->getQuantite();
+            if ($ancien === $qty) continue;
+
+            $delta = $qty - $ancien;
+            $stockItem->setQuantite($qty);
+
+            $label = $stockItem->getVariante()->getArticle()->getNom() . ' — ' . $stockItem->getVariante()->getNom();
+            $ligne = (new DepotVenteTransactionLigne())
+                ->setVariante($stockItem->getVariante())
+                ->setVarianteLabel($label)
+                ->setQuantite($delta);
+            $transaction->addLigne($ligne);
+            $hasChanges = true;
+        }
+
+        if ($hasChanges) {
+            $this->em->persist($transaction);
+            $this->em->flush();
+            $this->addFlash('success', 'Stock mis à jour.');
+        } else {
+            $this->addFlash('success', 'Aucune modification.');
+        }
+
+        return $this->redirectToRoute('mon_depot');
+    }
+
+    #[Route('/supprimer-article/{articleId}', name: '_supprimer_article', methods: ['POST'])]
+    public function supprimerArticle(int $articleId): Response
+    {
+        $result = $this->getDepotOrRedirect();
+        if ($result instanceof Response) return $result;
+        $depot = $result;
+
+        $article = $this->articleRepo->find($articleId);
+        if ($article) {
+            foreach ($article->getVariantes() as $variante) {
+                $stockItem = $this->stockRepo->findOneByDepotAndVariante($depot, $variante);
+                if ($stockItem) {
+                    $this->em->remove($stockItem);
+                }
+            }
+            $this->em->flush();
+            $this->addFlash('success', '« ' . $article->getNom() . ' » retiré du suivi.');
+        }
+
+        return $this->redirectToRoute('mon_depot');
     }
 
     #[Route('/vente', name: '_vente', methods: ['POST'])]
@@ -91,7 +245,8 @@ class MonDepotController extends AbstractController
                 continue;
             }
 
-            $prixReel = isset($data['prixReel']) && $data['prixReel'] !== '' ? (float)$data['prixReel'] : null;
+            $prixEstime = isset($data['prixEstime']) && $data['prixEstime'] !== '' ? (float)$data['prixEstime'] : null;
+            $prixReel   = isset($data['prixReel'])   && $data['prixReel'] !== ''   ? (float)$data['prixReel']   : null;
 
             $stockItem->addQuantite(-$qty);
 
@@ -100,6 +255,7 @@ class MonDepotController extends AbstractController
                 ->setVariante($stockItem->getVariante())
                 ->setVarianteLabel($label)
                 ->setQuantite($qty)
+                ->setPrixEstime($prixEstime !== null ? $prixEstime * $qty : null)
                 ->setPrixReel($prixReel !== null ? $prixReel * $qty : null);
 
             $transaction->addLigne($ligne);
@@ -160,5 +316,24 @@ class MonDepotController extends AbstractController
         $this->addFlash('success', sprintf('%.2f € %s au fond de caisse.', $montant, $label));
 
         return $this->redirectToRoute('mon_depot');
+    }
+
+    private function resolveUnitPrice(\App\Entity\Article $article, \App\Entity\Variante $variante, int $qty = 1): ?float
+    {
+        $grille = $article->getGrillePrix();
+        if (!$grille) {
+            return $article->getPrixBase() + ($variante->getDeltaPrix() ?? 0.0);
+        }
+
+        $paliers = $grille->getPaliers();
+        $resolved = null;
+        foreach ($paliers as $palier) {
+            if ($qty >= ($palier['min'] ?? 0) && isset($palier['prixVente']) && $palier['prixVente'] !== null) {
+                $resolved = (float)$palier['prixVente'];
+            }
+        }
+
+        if ($resolved === null) return null;
+        return $resolved + ($variante->getDeltaPrix() ?? 0.0);
     }
 }

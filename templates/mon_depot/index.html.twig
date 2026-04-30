@@ -2,118 +2,355 @@
 {% block title %}{{ depot.nom }}{% endblock %}
 
 {% block body %}
-<div x-data="{ tab: 'stock', openFond: false, fondSens: 'ajout' }">
+<div x-data="{
+    openFond: false,
+    openVente: false,
+    fondSens: 'ajout',
+    panel: null,
+    collectionId: null,
+    togglePanel(name) { this.panel = this.panel === name ? null : name; }
+}">
 
-    {# ── En-tête ─────────────────────────────────────────────────────────── #}
+    {# ── En-tête ──────────────────────────────────────────────────────────── #}
     <div class="mb-6">
         <h1 class="text-2xl font-bold text-gray-900">{{ depot.nom }}</h1>
-        {% if depot.ville %}
-            <p class="text-sm text-gray-500 mt-0.5">{{ depot.codePostal }} {{ depot.ville }}</p>
-        {% endif %}
+        {% if depot.ville %}<p class="text-sm text-gray-500 mt-0.5">{{ depot.codePostal }} {{ depot.ville }}</p>{% endif %}
     </div>
 
-    {# ── KPI ─────────────────────────────────────────────────────────────── #}
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-        <div class="bg-white rounded-xl border border-gray-200 p-5">
-            <div class="flex items-center justify-between mb-2">
+    {# ── Cartes KPI ───────────────────────────────────────────────────────── #}
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div class="card p-5">
+            <div class="flex items-center justify-between mb-3">
                 <p class="text-sm text-gray-500">Fond de caisse</p>
-                <button @click="openFond = true; fondSens = 'ajout'"
-                        class="text-xs font-semibold px-2 py-1 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 transition">
+                <button @click="openFond = true"
+                        class="px-2 py-1 rounded text-xs font-medium bg-primary/10 text-primary hover:bg-primary hover:text-white transition">
                     Ajuster
                 </button>
             </div>
             <p class="text-3xl font-bold text-gray-900">{{ depot.fondDeCaisse|number_format(2, ',', ' ') }} €</p>
         </div>
 
-        <div class="bg-white rounded-xl border border-gray-200 p-5">
-            <p class="text-sm text-gray-500 mb-2">Articles en stock</p>
+        <div class="card p-5">
+            <p class="text-sm text-gray-500 mb-3">Articles en stock</p>
             <p class="text-3xl font-bold text-gray-900">{{ depot.totalStock }}</p>
         </div>
-    </div>
 
-    {# ── Modal fond de caisse ─────────────────────────────────────────────── #}
-    <div x-show="openFond" x-cloak
-         style="position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:1rem;"
-         @click.self="openFond = false">
-        <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
-            <h3 class="font-bold text-gray-900 mb-4">Ajustement du fond de caisse</h3>
-            <form method="post" action="{{ path('mon_depot_fond') }}" class="space-y-4">
-                <div class="flex gap-3">
-                    <label class="flex-1 flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="sens" value="ajout" x-model="fondSens" class="text-primary">
-                        <span class="text-sm font-medium">Ajout</span>
-                    </label>
-                    <label class="flex-1 flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="sens" value="retrait" x-model="fondSens" class="text-primary">
-                        <span class="text-sm font-medium">Retrait</span>
-                    </label>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Montant (€)</label>
-                    <input type="number" name="montant" step="0.01" min="0.01" required
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Note (optionnel)</label>
-                    <input type="text" name="note"
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
-                </div>
-                <div class="flex gap-3 pt-2">
-                    <button type="button" @click="openFond = false"
-                            class="flex-1 py-2 rounded-lg border border-gray-300 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition">
-                        Annuler
-                    </button>
-                    <button type="submit"
-                            class="flex-1 py-2 rounded-lg text-sm font-semibold text-white transition"
-                            :class="fondSens === 'retrait' ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'">
-                        Valider
-                    </button>
-                </div>
-            </form>
+        <div class="card p-5 flex flex-col gap-2 justify-center">
+            <button @click="openVente = true"
+                    style="background:#111827;color:#fff;border:none;border-radius:0.5rem;padding:0.5rem 1rem;font-size:0.875rem;font-weight:600;cursor:pointer;font-family:inherit;width:100%;">
+                Réaliser une vente
+            </button>
+            <button @click="togglePanel('ajout')"
+                    :style="panel === 'ajout' ? 'background:#1e40af;color:#fff;border:none;border-radius:0.5rem;padding:0.5rem 1rem;font-size:0.875rem;font-weight:600;cursor:pointer;font-family:inherit;width:100%;' : 'background:#dbeafe;color:#1e40af;border:none;border-radius:0.5rem;padding:0.5rem 1rem;font-size:0.875rem;font-weight:600;cursor:pointer;font-family:inherit;width:100%;'">
+                Ajouter des articles
+            </button>
         </div>
     </div>
 
-    {# ── Onglets ──────────────────────────────────────────────────────────── #}
-    <div class="flex gap-1 border-b border-gray-200 mb-6">
-        <button @click="tab = 'stock'"
-                :class="tab === 'stock' ? 'border-b-2 border-gray-900 text-gray-900 font-semibold' : 'text-gray-500 hover:text-gray-700'"
-                class="px-4 py-2 text-sm transition">
-            Stock
-        </button>
-        <button @click="tab = 'vente'"
-                :class="tab === 'vente' ? 'border-b-2 border-gray-900 text-gray-900 font-semibold' : 'text-gray-500 hover:text-gray-700'"
-                class="px-4 py-2 text-sm transition">
-            Saisir une vente
-        </button>
-        <button @click="tab = 'historique'"
-                :class="tab === 'historique' ? 'border-b-2 border-gray-900 text-gray-900 font-semibold' : 'text-gray-500 hover:text-gray-700'"
-                class="px-4 py-2 text-sm transition">
-            Historique
-        </button>
+    {# ════════════════════════════════════════════════════════════════════════
+       Panel — Ajouter des articles
+    ════════════════════════════════════════════════════════════════════════ #}
+    <div x-show="panel === 'ajout'" x-cloak class="card overflow-hidden mb-6">
+        <div class="px-5 py-4 border-b border-gray-100">
+            <h2 class="font-semibold text-gray-800">Ajouter des articles</h2>
+        </div>
+
+        <form method="post" action="{{ path('mon_depot_ajout') }}">
+            <div class="px-5 pt-4 pb-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Collection</label>
+                <select x-model="collectionId"
+                        class="w-full max-w-sm border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+                    <option value="">— Sélectionner une collection —</option>
+                    {% for categorie in categories %}
+                        {% if categorie.collections|length > 0 %}
+                            <optgroup label="{{ categorie.nom }}">
+                                {% for collection in categorie.collections %}
+                                    {% if collection.actif %}
+                                        <option value="{{ collection.id }}">{{ collection.nom }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </optgroup>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+
+            {% for categorie in categories %}
+                {% for collection in categorie.collections %}
+                    {% if collection.actif %}
+                        <div x-show="collectionId == '{{ collection.id }}'" x-cloak>
+                            <div class="px-5 py-3 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                                {% for article in collection.articles %}
+                                    {% if article.actif %}
+                                        {% set dejaAjoute = false %}
+                                        {% for variante in article.variantes %}
+                                            {% if variante.actif and stockMap[variante.id] is defined %}
+                                                {% set dejaAjoute = true %}
+                                            {% endif %}
+                                        {% endfor %}
+                                        <label class="flex border border-gray-200 rounded-xl overflow-hidden cursor-pointer {{ dejaAjoute ? 'opacity-50 cursor-default' : 'hover:border-blue-300 hover:shadow-sm' }}" style="transition:border-color .15s,box-shadow .15s;">
+                                            {% set imgUrl = article.firstImageUrl %}
+                                            {% if imgUrl %}
+                                                <img src="{{ imgUrl }}" alt="{{ article.nom }}" style="width:90px;flex-shrink:0;object-fit:cover;">
+                                            {% else %}
+                                                <div style="width:90px;flex-shrink:0;background:#f3f4f6;display:flex;align-items:center;justify-content:center;">
+                                                    <svg width="24" height="24" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v13.5A1.5 1.5 0 003.75 21z"/></svg>
+                                                </div>
+                                            {% endif %}
+                                            <div class="flex-1 min-w-0 p-3 flex items-center gap-3">
+                                                <div class="flex-1 min-w-0">
+                                                    <p class="text-sm font-semibold text-gray-900 leading-snug">{{ article.nom }}</p>
+                                                    {% if dejaAjoute %}
+                                                        <p class="text-xs text-gray-400 italic mt-0.5">déjà ajouté</p>
+                                                    {% endif %}
+                                                </div>
+                                                <input type="checkbox" name="articles[]" value="{{ article.id }}"
+                                                       {{ dejaAjoute ? 'checked disabled' : '' }}
+                                                       class="rounded border-gray-300 flex-shrink-0 w-4 h-4">
+                                            </div>
+                                        </label>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            {% endfor %}
+
+            <div class="px-5 py-4 border-t border-gray-100 flex justify-end">
+                <button type="submit"
+                        style="background:#1e40af;color:#fff;border:none;border-radius:0.5rem;padding:0.5rem 1.25rem;font-size:0.875rem;font-weight:600;cursor:pointer;font-family:inherit;">
+                    Enregistrer la sélection
+                </button>
+            </div>
+        </form>
     </div>
 
-    {# ── Tab : Stock ──────────────────────────────────────────────────────── #}
-    <div x-show="tab === 'stock'">
-        {% if stockItems is empty %}
-            <p class="text-sm text-gray-400 italic">Aucun article en stock pour le moment.</p>
+    {# ── Stock ────────────────────────────────────────────────────────────── #}
+    <div class="card overflow-hidden mb-6">
+        <div class="px-5 py-4 border-b border-gray-100">
+            <h2 class="font-semibold text-gray-800">Stock</h2>
+        </div>
+
+        {% if articlesAvecStockItems is empty %}
+            <div class="px-5 py-10 text-center text-gray-400 text-sm">Aucun article suivi.</div>
         {% else %}
-            <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div style="display:grid;grid-template-columns:56px 1fr auto auto;align-items:center;gap:0.75rem;padding:0.5rem 1.25rem;border-bottom:1px solid #f3f4f6;background:#f9fafb;">
+                <div></div>
+                <div style="font-size:0.75rem;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;">Article</div>
+                <div style="font-size:0.75rem;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;text-align:center;">Stock</div>
+                <div></div>
+            </div>
+
+            {% for article in articlesAvecStockItems %}
+                {% set variantesSuivies = [] %}
+                {% set totalQty = 0 %}
+                {% for variante in article.variantes %}
+                    {% if variante.actif %}
+                        {% set stockItem = stockMap[variante.id] ?? null %}
+                        {% if stockItem %}
+                            {% set variantesSuivies = variantesSuivies|merge([{
+                                'variante': variante,
+                                'stockItem': stockItem,
+                                'prix': prixMap[variante.id] ?? null
+                            }]) %}
+                            {% set totalQty = totalQty + stockItem.quantite %}
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+
+                {% if variantesSuivies|length > 0 %}
+                <div x-data="{ openStock: false, confirmDelete: false }">
+
+                    <div style="display:grid;grid-template-columns:56px 1fr auto auto;align-items:center;gap:0.75rem;padding:0.625rem 1.25rem;border-bottom:1px solid #f3f4f6;"
+                         class="hover:bg-gray-50 transition-colors">
+
+                        {% set imgUrl = article.firstImageUrl %}
+                        {% if imgUrl %}
+                            <img src="{{ imgUrl }}" alt="{{ article.nom }}"
+                                 style="width:56px;height:56px;object-fit:cover;border-radius:0.5rem;flex-shrink:0;">
+                        {% else %}
+                            <div style="width:56px;height:56px;border-radius:0.5rem;background:#f3f4f6;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                <svg width="20" height="20" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v13.5A1.5 1.5 0 003.75 21z"/></svg>
+                            </div>
+                        {% endif %}
+
+                        <div>
+                            <p style="font-size:0.875rem;font-weight:600;color:#111827;line-height:1.3;">{{ article.nom }}</p>
+                            <p style="font-size:0.75rem;color:#9ca3af;margin-top:0.1rem;">{{ variantesSuivies|length }} taille{{ variantesSuivies|length > 1 ? 's' : '' }}</p>
+                        </div>
+
+                        <div style="text-align:center;">
+                            <span style="display:inline-flex;align-items:center;justify-content:center;min-width:2rem;height:2rem;padding:0 0.5rem;border-radius:9999px;font-size:0.875rem;font-weight:700;{{ totalQty > 0 ? 'background:#dcfce7;color:#16a34a;' : 'background:#f3f4f6;color:#9ca3af;' }}">
+                                {{ totalQty }}
+                            </span>
+                        </div>
+
+                        <button type="button" @click="openStock = true"
+                                style="display:flex;align-items:center;gap:0.375rem;padding:0.4rem 0.875rem;border:1.5px solid #e5e7eb;border-radius:0.5rem;background:#fff;font-size:0.8rem;font-weight:600;color:#374151;cursor:pointer;font-family:inherit;white-space:nowrap;transition:border-color .15s,background .15s;"
+                                onmouseenter="this.style.borderColor='#111827';this.style.background='#f9fafb';"
+                                onmouseleave="this.style.borderColor='#e5e7eb';this.style.background='#fff';">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
+                            Gérer le stock
+                        </button>
+                    </div>
+
+                    {# ── Modale gestion du stock ── #}
+                    <div x-show="openStock" x-cloak
+                         style="position:fixed;inset:0;z-index:10003;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:1rem;"
+                         @click.self="openStock = false">
+                        <div style="background:#fff;border-radius:1.25rem;width:100%;max-width:26rem;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+
+                            <div style="display:flex;align-items:center;gap:0.75rem;padding:1.25rem 1.5rem;border-bottom:1px solid #f3f4f6;">
+                                {% if imgUrl %}
+                                    <img src="{{ imgUrl }}" alt="{{ article.nom }}"
+                                         style="width:40px;height:40px;object-fit:cover;border-radius:0.375rem;flex-shrink:0;">
+                                {% endif %}
+                                <div style="flex:1;min-width:0;">
+                                    <h3 style="font-size:0.95rem;font-weight:700;color:#111827;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ article.nom }}</h3>
+                                    <p style="font-size:0.75rem;color:#9ca3af;margin:0.1rem 0 0;">Gestion du stock par taille</p>
+                                </div>
+                                <button @click="openStock = false"
+                                        style="background:none;border:none;cursor:pointer;padding:0.25rem;color:#9ca3af;flex-shrink:0;">
+                                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </button>
+                            </div>
+
+                            <form method="post" action="{{ path('mon_depot_modifier_stock') }}"
+                                  style="padding:1.25rem 1.5rem;">
+                                <div style="display:flex;flex-direction:column;gap:0.5rem;margin-bottom:1.25rem;">
+                                    {% for v in variantesSuivies %}
+                                        <div style="display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:0.625rem;padding:0.625rem 0.75rem;border:1px solid #e5e7eb;border-radius:0.625rem;background:#f9fafb;">
+                                            <div>
+                                                <span style="font-size:0.875rem;font-weight:600;color:#111827;">{{ v.variante.nom }}</span>
+                                                {% if v.prix is not null %}
+                                                    <span style="font-size:0.75rem;color:#9ca3af;margin-left:0.375rem;">{{ v.prix|number_format(2, ',', ' ') }} €</span>
+                                                {% endif %}
+                                            </div>
+                                            <div x-data="{ qty: {{ v.stockItem.quantite }} }"
+                                                 style="display:flex;align-items:center;gap:0.25rem;">
+                                                <button type="button" @click="qty = Math.max(0, qty - 1)"
+                                                        style="width:1.75rem;height:1.75rem;border:1.5px solid #d1d5db;border-radius:0.375rem;background:#fff;font-size:1rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;color:#374151;">−</button>
+                                                <input type="number" name="lignes[{{ v.stockItem.id }}]"
+                                                       x-model="qty" min="0" step="1"
+                                                       style="width:3rem;border:1.5px solid #d1d5db;border-radius:0.375rem;padding:0.25rem;font-size:0.875rem;text-align:center;font-family:inherit;">
+                                                <button type="button" @click="qty++"
+                                                        style="width:1.75rem;height:1.75rem;border:1.5px solid #d1d5db;border-radius:0.375rem;background:#fff;font-size:1rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;color:#374151;">+</button>
+                                            </div>
+                                            <span style="display:inline-flex;align-items:center;justify-content:center;width:1.75rem;height:1.75rem;border-radius:9999px;font-size:0.75rem;font-weight:700;{{ v.stockItem.quantite > 0 ? 'background:#dcfce7;color:#16a34a;' : 'background:#f3f4f6;color:#9ca3af;' }}">
+                                                {{ v.stockItem.quantite }}
+                                            </span>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+
+                                <div style="display:flex;gap:0.75rem;align-items:center;">
+                                    <button type="button" @click="openStock = false"
+                                            style="flex:1;padding:0.6rem;border-radius:0.625rem;border:1.5px solid #d1d5db;background:#fff;font-weight:600;cursor:pointer;font-size:0.875rem;font-family:inherit;color:#374151;">
+                                        Annuler
+                                    </button>
+                                    <button type="submit"
+                                            style="flex:2;padding:0.6rem;border-radius:0.625rem;border:none;background:#111827;color:#fff;font-weight:600;cursor:pointer;font-size:0.875rem;font-family:inherit;">
+                                        Enregistrer
+                                    </button>
+                                </div>
+                            </form>
+
+                            {% if totalQty == 0 %}
+                            <div style="padding:0 1.5rem 1.25rem;">
+                                <div x-show="!confirmDelete">
+                                    <button type="button" @click="confirmDelete = true"
+                                            style="width:100%;padding:0.5rem;border:1px solid #fecaca;border-radius:0.625rem;background:#fff5f5;color:#dc2626;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:inherit;">
+                                        Retirer cet article du suivi
+                                    </button>
+                                </div>
+                                <div x-show="confirmDelete" x-cloak
+                                     style="border:1px solid #fecaca;border-radius:0.625rem;padding:0.75rem;background:#fff5f5;">
+                                    <p style="font-size:0.8rem;font-weight:600;color:#111827;text-align:center;margin:0 0 0.625rem;">Confirmer la suppression ?</p>
+                                    <div style="display:flex;gap:0.5rem;">
+                                        <button type="button" @click="confirmDelete = false"
+                                                style="flex:1;padding:0.4rem;border:1.5px solid #d1d5db;border-radius:0.5rem;background:#fff;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:inherit;">Non</button>
+                                        <button type="button" onclick="document.getElementById('del-stock-{{ article.id }}').submit()"
+                                                style="flex:1;padding:0.4rem;border:none;border-radius:0.5rem;background:#dc2626;color:#fff;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:inherit;">Supprimer</button>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                        </div>
+                    </div>
+
+                    <form id="del-stock-{{ article.id }}" method="post"
+                          action="{{ path('mon_depot_supprimer_article', {articleId: article.id}) }}"
+                          style="display:none;"></form>
+
+                </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    {# ── Historique ───────────────────────────────────────────────────────── #}
+    <div class="card overflow-hidden">
+        <div class="px-5 py-4 border-b border-gray-100">
+            <h2 class="font-semibold text-gray-800">Historique</h2>
+        </div>
+        {% if transactions is empty %}
+            <div class="px-5 py-8 text-center text-gray-400 text-sm">Aucune transaction.</div>
+        {% else %}
+            <div class="overflow-x-auto">
                 <table class="w-full text-sm">
-                    <thead class="bg-gray-50 border-b border-gray-200">
+                    <thead class="bg-gray-50 border-b">
                         <tr>
-                            <th class="px-4 py-3 text-left font-semibold text-gray-600">Article</th>
-                            <th class="px-4 py-3 text-left font-semibold text-gray-600">Variante</th>
-                            <th class="px-4 py-3 text-right font-semibold text-gray-600">Qté</th>
+                            <th class="text-left px-5 py-3 font-semibold text-gray-600">Date</th>
+                            <th class="text-left px-4 py-3 font-semibold text-gray-600">Type</th>
+                            <th class="text-left px-4 py-3 font-semibold text-gray-600">Détail</th>
+                            <th class="text-right px-4 py-3 font-semibold text-gray-600">Montant</th>
+                            <th class="text-left px-4 py-3 font-semibold text-gray-600">Par</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
-                        {% for item in stockItems %}
-                            <tr class="hover:bg-gray-50 transition">
-                                <td class="px-4 py-3 font-medium text-gray-900">
-                                    {{ item.variante.article.nom }}
+                        {% for tx in transactions %}
+                            {% set colors = {
+                                'vente':        'bg-blue-100 text-blue-700',
+                                'reassort':     'bg-amber-100 text-amber-700',
+                                'fond_ajout':   'bg-green-100 text-green-700',
+                                'fond_retrait': 'bg-red-100 text-red-700',
+                            } %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-5 py-3 text-gray-400 text-xs whitespace-nowrap">{{ tx.createdAt|date('d/m/Y H:i') }}</td>
+                                <td class="px-4 py-3">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold {{ colors[tx.type] ?? 'bg-gray-100 text-gray-600' }}">
+                                        {{ tx.typeLabel }}
+                                    </span>
                                 </td>
-                                <td class="px-4 py-3 text-gray-600">{{ item.variante.nom }}</td>
-                                <td class="px-4 py-3 text-right font-bold text-gray-900">{{ item.quantite }}</td>
+                                <td class="px-4 py-3 text-gray-600 max-w-xs">
+                                    {% if tx.lignes is not empty %}
+                                        <ul class="space-y-0.5">
+                                            {% for ligne in tx.lignes %}
+                                                <li class="text-xs">
+                                                    {{ ligne.varianteLabel }} × {{ ligne.quantite }}
+                                                    {% if ligne.prixReel %}
+                                                        <span class="text-gray-400">({{ ligne.prixReel|number_format(2, ',', ' ') }} €)</span>
+                                                    {% endif %}
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% endif %}
+                                    {% if tx.note %}<p class="text-xs text-gray-400 mt-0.5 italic">{{ tx.note }}</p>{% endif %}
+                                </td>
+                                <td class="px-4 py-3 text-right font-medium whitespace-nowrap">
+                                    {% if tx.montantFond is not null %}
+                                        <span class="{{ tx.montantFond >= 0 ? 'text-green-600' : 'text-red-600' }}">
+                                            {{ tx.montantFond >= 0 ? '+' : '' }}{{ tx.montantFond|number_format(2, ',', ' ') }} €
+                                        </span>
+                                    {% else %}
+                                        <span class="text-gray-300">—</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-4 py-3 text-xs text-gray-400">
+                                    {{ tx.createdBy ? tx.createdBy.prenom ~ ' ' ~ tx.createdBy.nom : '—' }}
+                                </td>
                             </tr>
                         {% endfor %}
                     </tbody>
@@ -122,104 +359,312 @@
         {% endif %}
     </div>
 
-    {# ── Tab : Vente ──────────────────────────────────────────────────────── #}
-    <div x-show="tab === 'vente'" x-cloak>
-        {% if stockItems is empty %}
-            <p class="text-sm text-gray-400 italic">Aucun article en stock à vendre.</p>
-        {% else %}
-            <form method="post" action="{{ path('mon_depot_vente') }}">
-                <div class="bg-white rounded-xl border border-gray-200 overflow-hidden mb-4">
-                    <table class="w-full text-sm">
-                        <thead class="bg-gray-50 border-b border-gray-200">
-                            <tr>
-                                <th class="px-4 py-3 text-left font-semibold text-gray-600">Article / Variante</th>
-                                <th class="px-4 py-3 text-right font-semibold text-gray-600 w-20">Stock</th>
-                                <th class="px-4 py-3 text-center font-semibold text-gray-600 w-24">Qté vendue</th>
-                                <th class="px-4 py-3 text-center font-semibold text-gray-600 w-28">Prix unitaire (€)</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100">
-                            {% for item in stockItems %}
-                                <tr class="hover:bg-gray-50 transition">
-                                    <td class="px-4 py-3">
-                                        <div class="font-medium text-gray-900">{{ item.variante.article.nom }}</div>
-                                        <div class="text-xs text-gray-500">{{ item.variante.nom }}</div>
-                                    </td>
-                                    <td class="px-4 py-3 text-right text-gray-600">{{ item.quantite }}</td>
-                                    <td class="px-4 py-3 text-center">
-                                        <input type="number" name="lignes[{{ item.id }}][qty]"
-                                               min="0" max="{{ item.quantite }}" value="0"
-                                               class="w-20 border border-gray-300 rounded-lg px-2 py-1 text-center text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
-                                    </td>
-                                    <td class="px-4 py-3 text-center">
-                                        <input type="number" name="lignes[{{ item.id }}][prixReel]"
-                                               min="0" step="0.01" placeholder="0.00"
-                                               class="w-24 border border-gray-300 rounded-lg px-2 py-1 text-center text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="flex items-end gap-4">
-                    <div class="flex-1">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Note (optionnel)</label>
-                        <input type="text" name="note" placeholder="ex : vente du samedi"
-                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+    {# ════════════════════════════════════════════════════════════════════════
+       Modal — Fond de caisse
+    ════════════════════════════════════════════════════════════════════════ #}
+    <div x-show="openFond" x-cloak
+         style="position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:1rem;"
+         @click.self="openFond = false">
+        <div style="background:#fff;border-radius:1.25rem;padding:2rem;max-width:22rem;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+            <h3 style="font-size:1.1rem;font-weight:700;color:#111827;margin:0 0 1.25rem;">Fond de caisse</h3>
+            <form method="post" action="{{ path('mon_depot_fond') }}">
+                <div style="margin-bottom:1rem;">
+                    <label style="display:block;font-size:0.8rem;font-weight:600;color:#374151;margin-bottom:0.35rem;">Opération</label>
+                    <div style="display:flex;gap:0.5rem;">
+                        <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:0.5rem;padding:0.5rem;border:1.5px solid #d1d5db;border-radius:0.5rem;cursor:pointer;font-size:0.85rem;font-weight:600;">
+                            <input type="radio" name="sens" value="ajout" x-model="fondSens" style="accent-color:#16a34a;"> Ajout
+                        </label>
+                        <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:0.5rem;padding:0.5rem;border:1.5px solid #d1d5db;border-radius:0.5rem;cursor:pointer;font-size:0.85rem;font-weight:600;">
+                            <input type="radio" name="sens" value="retrait" x-model="fondSens" style="accent-color:#dc2626;"> Retrait
+                        </label>
                     </div>
+                </div>
+                <div style="margin-bottom:1rem;">
+                    <label style="display:block;font-size:0.8rem;font-weight:600;color:#374151;margin-bottom:0.35rem;">Montant (€)</label>
+                    <input type="number" name="montant" min="0.01" step="0.01" required
+                           style="width:100%;border:1.5px solid #d1d5db;border-radius:0.5rem;padding:0.5rem 0.75rem;font-size:0.9rem;font-family:inherit;box-sizing:border-box;"
+                           placeholder="0.00">
+                </div>
+                <div style="margin-bottom:1.5rem;">
+                    <label style="display:block;font-size:0.8rem;font-weight:600;color:#374151;margin-bottom:0.35rem;">Note (optionnel)</label>
+                    <input type="text" name="note"
+                           style="width:100%;border:1.5px solid #d1d5db;border-radius:0.5rem;padding:0.5rem 0.75rem;font-size:0.9rem;font-family:inherit;box-sizing:border-box;"
+                           placeholder="Ex : versement">
+                </div>
+                <div style="display:flex;gap:0.75rem;">
+                    <button type="button" @click="openFond = false"
+                            style="flex:1;padding:0.6rem;border-radius:0.625rem;border:1.5px solid #d1d5db;background:#fff;font-weight:600;cursor:pointer;font-size:0.875rem;font-family:inherit;">
+                        Annuler
+                    </button>
                     <button type="submit"
-                            class="px-5 py-2 rounded-lg bg-gray-900 text-white text-sm font-semibold hover:bg-gray-700 transition">
-                        Enregistrer la vente
+                            style="flex:1;padding:0.6rem;border-radius:0.625rem;border:none;background:#111827;color:#fff;font-weight:600;cursor:pointer;font-size:0.875rem;font-family:inherit;">
+                        Confirmer
                     </button>
                 </div>
             </form>
-        {% endif %}
+        </div>
     </div>
 
-    {# ── Tab : Historique ─────────────────────────────────────────────────── #}
-    <div x-show="tab === 'historique'" x-cloak>
-        {% if transactions is empty %}
-            <p class="text-sm text-gray-400 italic">Aucune transaction enregistrée.</p>
-        {% else %}
-            <div class="space-y-3">
-                {% for tx in transactions %}
-                    <div class="bg-white rounded-xl border border-gray-200 p-4">
-                        <div class="flex items-start justify-between gap-4">
-                            <div>
-                                <span class="inline-block text-xs font-semibold px-2 py-0.5 rounded-full mb-1
-                                    {% if tx.type == 'vente' %}bg-green-100 text-green-700
-                                    {% elseif tx.type == 'reassort' %}bg-blue-100 text-blue-700
-                                    {% else %}bg-gray-100 text-gray-600{% endif %}">
-                                    {{ tx.typeLabel }}
-                                </span>
-                                {% if tx.note %}
-                                    <p class="text-sm text-gray-600">{{ tx.note }}</p>
-                                {% endif %}
-                                {% if tx.lignes|length > 0 %}
-                                    <ul class="mt-1 space-y-0.5">
-                                        {% for ligne in tx.lignes %}
-                                            <li class="text-xs text-gray-500">
-                                                {{ ligne.varianteLabel }} × {{ ligne.quantite|abs }}
-                                                {% if ligne.prixReel %}— {{ ligne.prixReel|number_format(2, ',', ' ') }} €{% endif %}
-                                            </li>
-                                        {% endfor %}
-                                    </ul>
-                                {% endif %}
+    {# ════════════════════════════════════════════════════════════════════════
+       Modal — Réaliser une vente
+    ════════════════════════════════════════════════════════════════════════ #}
+    {% set venteData = [] %}
+    {% for article in articles %}
+        {% set variantesData = [] %}
+        {% for variante in article.variantes %}
+            {% if variante.actif %}
+                {% set stockItem = stockMap[variante.id] ?? null %}
+                {% if stockItem and stockItem.quantite > 0 %}
+                    {% set variantesData = variantesData|merge([{
+                        id: variante.id,
+                        nom: variante.nom,
+                        stock: stockItem.quantite,
+                        stockItemId: stockItem.id,
+                        deltaPrix: variante.deltaPrix ?? 0
+                    }]) %}
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+        {% if variantesData|length > 0 %}
+            {% set venteData = venteData|merge([{
+                id: article.id,
+                nom: article.nom,
+                prixBase: article.prixBase,
+                paliers: article.grillePrix ? article.grillePrix.paliers : [],
+                grillePrixId: article.grillePrix ? article.grillePrix.id : null,
+                variantes: variantesData
+            }]) %}
+        {% endif %}
+    {% endfor %}
+
+    <div x-show="openVente" x-cloak
+         style="position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:1rem;"
+         @click.self="openVente = false"
+         @close-vente.window="openVente = false">
+
+        <div x-data="{
+                catalogueVente: {{ venteData|json_encode|e('html_attr') }},
+                articleId: '',
+                varianteId: '',
+                qty: 1,
+                lignes: [],
+                note: '',
+
+                get article() { return this.catalogueVente.find(a => a.id == this.articleId) ?? null; },
+                get variantes() { return this.article ? this.article.variantes : []; },
+                get variante() { return this.variantes.find(v => v.id == this.varianteId) ?? null; },
+                get maxStock() { return this.variante ? this.variante.stock : 0; },
+                get canAdd() { return this.variante !== null && this.qty >= 1; },
+                get currentPrix() {
+                    if (!this.article || !this.variante) return null;
+                    return this.getPrixForQty(this.article, this.variante, parseInt(this.qty));
+                },
+                get total() { return this.lignes.reduce((s, l) => s + l.qty * l.prix, 0); },
+
+                getPrixForQty(article, variante, qty) {
+                    const paliers = article.paliers ?? [];
+                    let resolved = null;
+                    for (const p of paliers) {
+                        if (qty >= (p.min ?? 0) && p.prixVente !== null && p.prixVente !== undefined) {
+                            resolved = parseFloat(p.prixVente);
+                        }
+                    }
+                    const base = resolved !== null ? resolved : parseFloat(article.prixBase ?? 0);
+                    return base + parseFloat(variante.deltaPrix ?? 0);
+                },
+
+                onArticleChange() { this.varianteId = ''; this.qty = 1; },
+                onVarianteChange() { this.qty = 1; },
+
+                addLigne() {
+                    if (!this.canAdd) return;
+                    const qty = parseInt(this.qty);
+                    const existing = this.lignes.find(l => l.stockItemId == this.variante.stockItemId);
+                    if (existing) {
+                        existing.qty = Math.min(existing.qty + qty, this.variante.stock);
+                    } else {
+                        this.lignes.push({
+                            articleId: this.article.id,
+                            grillePrixId: this.article.grillePrixId,
+                            articleNom: this.article.nom,
+                            varianteNom: this.variante.nom,
+                            stockItemId: this.variante.stockItemId,
+                            qty: qty,
+                            prix: 0,
+                            maxStock: this.variante.stock
+                        });
+                    }
+                    this.recalcPrixGrille(this.article.grillePrixId, this.article.paliers);
+                    this.articleId = '';
+                    this.varianteId = '';
+                    this.qty = 1;
+                },
+
+                recalcPrixGrille(grillePrixId, paliers) {
+                    if (grillePrixId === null) {
+                        const lignesArticle = this.lignes.filter(l => l.grillePrixId === null && l.articleId == this.article?.id);
+                        const totalQty = lignesArticle.reduce((s, l) => s + l.qty, 0);
+                        lignesArticle.forEach(ligne => {
+                            const art = this.catalogueVente.find(a => a.id == ligne.articleId);
+                            if (!art) return;
+                            const v = art.variantes.find(v => v.stockItemId == ligne.stockItemId);
+                            if (v) ligne.prix = this.getPrixForQty(art, v, totalQty);
+                        });
+                        return;
+                    }
+                    const lignesGrille = this.lignes.filter(l => l.grillePrixId == grillePrixId);
+                    const totalQty = lignesGrille.reduce((s, l) => s + l.qty, 0);
+                    lignesGrille.forEach(ligne => {
+                        const art = this.catalogueVente.find(a => a.id == ligne.articleId);
+                        if (!art) return;
+                        const v = art.variantes.find(v => v.stockItemId == ligne.stockItemId);
+                        if (v) ligne.prix = this.getPrixForQty(art, v, totalQty);
+                    });
+                },
+
+                removeLigne(stockItemId) {
+                    const ligne = this.lignes.find(l => l.stockItemId == stockItemId);
+                    const grillePrixId = ligne ? ligne.grillePrixId : null;
+                    const art = ligne ? this.catalogueVente.find(a => a.id == ligne.articleId) : null;
+                    this.lignes = this.lignes.filter(l => l.stockItemId != stockItemId);
+                    if (art) this.recalcPrixGrille(grillePrixId, art.paliers);
+                },
+
+                cancelVente() {
+                    this.lignes = [];
+                    this.note = '';
+                    this.articleId = '';
+                    this.varianteId = '';
+                    this.qty = 1;
+                    this.$dispatch('close-vente');
+                },
+
+                submitVente(event) {
+                    if (this.lignes.length === 0) { event.preventDefault(); return; }
+                    const form = event.target;
+                    this.lignes.forEach(l => {
+                        [
+                            ['lignes[' + l.stockItemId + '][qty]',        l.qty],
+                            ['lignes[' + l.stockItemId + '][prixEstime]', l.prix ?? 0],
+                            ['lignes[' + l.stockItemId + '][prixReel]',   l.prix ?? 0],
+                        ].forEach(([name, value]) => {
+                            const el = document.createElement('input');
+                            el.type = 'hidden'; el.name = name; el.value = value;
+                            form.appendChild(el);
+                        });
+                    });
+                }
+             }"
+             style="background:#fff;border-radius:1.25rem;width:100%;max-width:30rem;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);display:flex;flex-direction:column;">
+
+            <div style="display:flex;align-items:center;gap:0.75rem;padding:1.25rem 1.5rem;border-bottom:1px solid #f3f4f6;flex-shrink:0;">
+                <h3 style="font-size:1rem;font-weight:700;color:#111827;flex:1;margin:0;">Réaliser une vente</h3>
+                <button @click="cancelVente()" style="background:none;border:none;cursor:pointer;padding:0.25rem;color:#9ca3af;">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <div style="padding:1.25rem 1.5rem;flex:1;overflow-y:auto;">
+                {% if venteData|length == 0 %}
+                    <p style="text-align:center;color:#9ca3af;padding:2rem 0;font-size:0.875rem;">Aucun article en stock.</p>
+                {% else %}
+
+                <div style="margin-bottom:0.75rem;">
+                    <label style="display:block;font-size:0.8rem;font-weight:600;color:#374151;margin-bottom:0.35rem;">Article</label>
+                    <select x-model="articleId" @change="onArticleChange()"
+                            style="width:100%;border:1.5px solid #d1d5db;border-radius:0.5rem;padding:0.5rem 0.75rem;font-size:0.875rem;font-family:inherit;background:#fff;">
+                        <option value="">— Sélectionner un article —</option>
+                        <template x-for="a in catalogueVente" :key="a.id">
+                            <option :value="a.id" x-text="a.nom"></option>
+                        </template>
+                    </select>
+                </div>
+
+                <div x-show="articleId !== ''" x-cloak style="margin-bottom:0.75rem;">
+                    <label style="display:block;font-size:0.8rem;font-weight:600;color:#374151;margin-bottom:0.35rem;">Taille / Variante</label>
+                    <select x-model="varianteId" @change="onVarianteChange()"
+                            style="width:100%;border:1.5px solid #d1d5db;border-radius:0.5rem;padding:0.5rem 0.75rem;font-size:0.875rem;font-family:inherit;background:#fff;">
+                        <option value="">— Sélectionner une taille —</option>
+                        <template x-for="v in variantes" :key="v.id">
+                            <option :value="v.id" x-text="v.nom + ' (stock : ' + v.stock + ')'"></option>
+                        </template>
+                    </select>
+                </div>
+
+                <div x-show="varianteId !== ''" x-cloak style="margin-bottom:1.25rem;">
+                    <div style="display:flex;gap:0.625rem;align-items:flex-end;">
+                        <div style="flex:1;">
+                            <label style="display:block;font-size:0.8rem;font-weight:600;color:#374151;margin-bottom:0.35rem;">Quantité</label>
+                            <select x-model="qty" @change="qty = parseInt($event.target.value)"
+                                    style="width:100%;border:1.5px solid #d1d5db;border-radius:0.5rem;padding:0.5rem 0.75rem;font-size:0.875rem;font-family:inherit;background:#fff;">
+                                <template x-for="n in Array.from({length: maxStock}, (_, i) => i + 1)" :key="n">
+                                    <option :value="n" x-text="n"></option>
+                                </template>
+                            </select>
+                        </div>
+                        <button type="button" @click="addLigne()" :disabled="!canAdd"
+                                style="padding:0.5rem 1.125rem;border:none;border-radius:0.5rem;background:#111827;color:#fff;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;">
+                            + Ajouter
+                        </button>
+                    </div>
+                    <div x-show="currentPrix !== null" x-cloak
+                         style="margin-top:0.4rem;font-size:0.78rem;color:#6b7280;display:flex;gap:0.5rem;align-items:center;">
+                        <span x-text="currentPrix ? currentPrix.toFixed(2).replace('.', ',') + ' €/u' : ''"></span>
+                        <span style="color:#d1d5db;">·</span>
+                        <span style="font-weight:600;color:#111827;"
+                              x-text="currentPrix ? 'Total : ' + (parseInt(qty) * currentPrix).toFixed(2).replace('.', ',') + ' €' : ''"></span>
+                    </div>
+                </div>
+
+                <div x-show="lignes.length > 0" x-cloak>
+                    <div style="font-size:0.8rem;font-weight:600;color:#374151;margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.04em;">Vente en cours</div>
+                    <div style="border:1.5px solid #e5e7eb;border-radius:0.75rem;overflow:hidden;margin-bottom:1rem;">
+                        <template x-for="(ligne, idx) in lignes" :key="ligne.stockItemId">
+                            <div style="display:flex;align-items:center;gap:0.625rem;padding:0.625rem 0.875rem;border-bottom:1px solid #f3f4f6;">
+                                <div style="flex:1;min-width:0;">
+                                    <div style="font-size:0.875rem;font-weight:600;color:#111827;" x-text="ligne.articleNom"></div>
+                                    <div style="font-size:0.75rem;color:#6b7280;"
+                                         x-text="ligne.varianteNom + ' × ' + ligne.qty + ' · ' + ligne.prix.toFixed(2).replace('.', ',') + ' €/u'"></div>
+                                </div>
+                                <div style="font-size:0.875rem;font-weight:700;color:#111827;flex-shrink:0;"
+                                     x-text="(ligne.qty * ligne.prix).toFixed(2).replace('.', ',') + ' €'"></div>
+                                <button type="button" @click="removeLigne(ligne.stockItemId)"
+                                        style="width:1.5rem;height:1.5rem;border:none;border-radius:0.375rem;background:#fef2f2;color:#dc2626;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:inherit;">
+                                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </button>
                             </div>
-                            <div class="text-right shrink-0">
-                                {% if tx.montantFond is not null %}
-                                    <p class="text-sm font-bold {{ tx.montantFond >= 0 ? 'text-green-600' : 'text-red-600' }}">
-                                        {{ tx.montantFond >= 0 ? '+' : '' }}{{ tx.montantFond|number_format(2, ',', ' ') }} €
-                                    </p>
-                                {% endif %}
-                                <p class="text-xs text-gray-400 mt-0.5">{{ tx.createdAt|date('d/m/Y H:i') }}</p>
-                            </div>
+                        </template>
+                        <div style="display:flex;justify-content:space-between;padding:0.625rem 0.875rem;background:#f9fafb;">
+                            <span style="font-size:0.875rem;font-weight:600;color:#374151;">Total</span>
+                            <span style="font-size:0.875rem;font-weight:700;color:#111827;"
+                                  x-text="total.toFixed(2).replace('.', ',') + ' €'"></span>
                         </div>
                     </div>
-                {% endfor %}
+                </div>
+
+                <div style="margin-bottom:0.25rem;">
+                    <label style="display:block;font-size:0.8rem;font-weight:600;color:#374151;margin-bottom:0.35rem;">Note (optionnel)</label>
+                    <input type="text" x-model="note" placeholder="Ex : vente samedi"
+                           style="width:100%;border:1.5px solid #d1d5db;border-radius:0.5rem;padding:0.5rem 0.75rem;font-size:0.875rem;font-family:inherit;box-sizing:border-box;">
+                </div>
+
+                {% endif %}
             </div>
-        {% endif %}
+
+            <div style="padding:1rem 1.5rem;border-top:1px solid #f3f4f6;flex-shrink:0;background:#fff;border-radius:0 0 1.25rem 1.25rem;">
+                <form method="post" action="{{ path('mon_depot_vente') }}"
+                      @submit="submitVente($event)">
+                    <input type="hidden" name="note" :value="note">
+                    <button type="submit"
+                            :disabled="lignes.length === 0"
+                            :style="lignes.length === 0 ? 'opacity:0.35;cursor:not-allowed;background:#15803d;' : 'background:#16a34a;cursor:pointer;'"
+                            style="display:block;width:100%;padding:0.8rem 1rem;border-radius:0.5rem;border:none;color:#fff;font-weight:700;font-size:0.95rem;font-family:inherit;text-align:center;">
+                        Valider la vente
+                    </button>
+                </form>
+            </div>
+
+        </div>
     </div>
 
 </div>
