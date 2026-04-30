@@ -61,6 +61,15 @@
                            {{ (depot is null or depot.actif) ? 'checked' : '' }}>
                     <label for="actif" class="text-sm font-medium text-gray-700">Actif</label>
                 </div>
+
+                <div class="sm:col-span-2 flex items-center gap-2 pt-1 border-t border-gray-100">
+                    <input type="checkbox" name="grantRole" id="grantRole" value="1"
+                           class="rounded border-gray-300 text-primary focus:ring-primary"
+                           {{ depot and depot.user and 'ROLE_DEPOT_VENTE' in depot.user.roles ? 'checked' : '' }}>
+                    <label for="grantRole" class="text-sm font-medium text-gray-700">
+                        Donner accès à l'espace dépôt-vente (<code>ROLE_DEPOT_VENTE</code>)
+                    </label>
+                </div>
             </div>
 
             <div class="flex items-center gap-3 pt-2 border-t border-gray-100">

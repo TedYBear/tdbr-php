@@ -52,8 +52,13 @@ class DepotVenteAdminController extends AbstractController
             $depot = new DepotVente();
             $this->hydrateFromRequest($depot, $request);
             $this->em->persist($depot);
-            $this->em->flush();
 
+            $grantRole = $request->request->getBoolean('grantRole');
+            if ($grantRole && $depot->getUser()) {
+                $this->setDepotVenteRole($depot->getUser(), true);
+            }
+
+            $this->em->flush();
             $this->addFlash('success', 'Dépôt-vente créé.');
             return $this->redirectToRoute('admin_depot_ventes_detail', ['id' => $depot->getId()]);
         }
@@ -70,9 +75,25 @@ class DepotVenteAdminController extends AbstractController
     public function edit(DepotVente $depot, Request $request): Response
     {
         if ($request->isMethod('POST')) {
-            $this->hydrateFromRequest($depot, $request);
-            $this->em->flush();
+            $oldUser   = $depot->getUser();
+            $grantRole = $request->request->getBoolean('grantRole');
 
+            $this->hydrateFromRequest($depot, $request);
+            $newUser = $depot->getUser();
+
+            // Retire le rôle de l'ancien utilisateur s'il a changé
+            if ($oldUser && $oldUser !== $newUser) {
+                $this->setDepotVenteRole($oldUser, false);
+            }
+
+            // Applique le rôle au nouvel utilisateur selon la case à cocher
+            if ($newUser) {
+                $this->setDepotVenteRole($newUser, $grantRole);
+            } elseif ($oldUser && $oldUser === $newUser) {
+                $this->setDepotVenteRole($oldUser, $grantRole);
+            }
+
+            $this->em->flush();
             $this->addFlash('success', 'Dépôt-vente mis à jour.');
             return $this->redirectToRoute('admin_depot_ventes_detail', ['id' => $depot->getId()]);
         }
@@ -396,6 +417,17 @@ class DepotVenteAdminController extends AbstractController
     }
 
     // ─── Helpers ──────────────────────────────────────────────────────────────
+
+    private function setDepotVenteRole(\App\Entity\User $user, bool $grant): void
+    {
+        $roles = array_values(array_filter($user->getRoles(), fn($r) => $r !== 'ROLE_USER'));
+        if ($grant && !in_array('ROLE_DEPOT_VENTE', $roles, true)) {
+            $roles[] = 'ROLE_DEPOT_VENTE';
+        } elseif (!$grant) {
+            $roles = array_values(array_filter($roles, fn($r) => $r !== 'ROLE_DEPOT_VENTE'));
+        }
+        $user->setRoles($roles);
+    }
 
     private function hydrateFromRequest(DepotVente $depot, Request $request): void
     {
