@@ -31,7 +31,7 @@ class MonDepotController extends AbstractController
         $depot = $this->depotRepo->findOneBy(['user' => $user, 'actif' => true]);
 
         if (!$depot) {
-            $this->addFlash('error', 'Aucun dépôt-vente actif n'est associé à votre compte.');
+            $this->addFlash('error', "Aucun dépôt-vente actif n'est associé à votre compte.");
             return $this->redirectToRoute('home');
         }
 
