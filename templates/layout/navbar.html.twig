@@ -60,6 +60,8 @@
                             <a href="{{ path('profil', {}) }}" class="block px-4 py-2 hover:bg-gray-100">Mon profil</a>
                             {% if is_granted('ROLE_ADMIN') %}
                                 <a href="{{ path('admin_dashboard', {}) }}" class="block px-4 py-2 hover:bg-gray-100">Administration</a>
+                            {% elseif is_granted('ROLE_DEPOT_VENTE') %}
+                                <a href="{{ path('mon_depot') }}" class="block px-4 py-2 hover:bg-gray-100">Mon dépôt-vente</a>
                             {% endif %}
                             <a href="{{ path('logout', {}) }}" class="block px-4 py-2 hover:bg-gray-100 text-red-600">Déconnexion</a>
                         </div>
@@ -104,6 +106,8 @@
                     <a href="{{ path('profil', {}) }}" class="block px-3 py-3 rounded-xl hover:bg-gray-50" @click="mobileOpen = false">Mon profil</a>
                     {% if is_granted('ROLE_ADMIN') %}
                         <a href="{{ path('admin_dashboard', {}) }}" class="block px-3 py-3 rounded-xl hover:bg-gray-50" @click="mobileOpen = false">Administration</a>
+                    {% elseif is_granted('ROLE_DEPOT_VENTE') %}
+                        <a href="{{ path('mon_depot') }}" class="block px-3 py-3 rounded-xl hover:bg-gray-50" @click="mobileOpen = false">Mon dépôt-vente</a>
                     {% endif %}
                     <a href="{{ path('logout', {}) }}" class="block px-3 py-3 rounded-xl hover:bg-red-50 text-red-600" @click="mobileOpen = false">Déconnexion</a>
                 {% else %}
