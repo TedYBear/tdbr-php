@@ -16,6 +16,7 @@ use App\Repository\PropositionCommercialeRepository;
 use App\Repository\ProductCollectionRepository;
 use App\Repository\SiteConfigRepository;
 use App\Repository\UserRepository;
+use App\Service\AccountProvisioningService;
 use App\Service\CartService;
 use App\Service\MailerService;
 use App\Service\MollieService;
@@ -68,6 +69,7 @@ class PublicController extends AbstractController
         private MailerService $mailerService,
         private SiteConfigRepository $siteConfigRepo,
         private PrintfulService $printfulService,
+        private AccountProvisioningService $accountProvisioning,
     ) {
     }
 
@@ -621,6 +623,9 @@ class PublicController extends AbstractController
         $commande->setStatut('payee');
         $commande->setUpdatedAt(new \DateTimeImmutable());
         $this->em->flush();
+
+        // Crée (ou rattache) un compte client pour la commande invité
+        $this->accountProvisioning->ensureAccountForCommande($commande);
 
         // Code de réduction
         $codeReductionId = $request->getSession()->get('checkout_code_reduction_id');

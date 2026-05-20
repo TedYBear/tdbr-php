@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Repository\CommandeRepository;
 use App\Repository\PropositionCommercialeRepository;
+use App\Service\AccountProvisioningService;
 use App\Service\MailerService;
 use App\Service\MollieService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -20,6 +21,7 @@ class MollieWebhookController extends AbstractController
         private PropositionCommercialeRepository $propositionRepo,
         private EntityManagerInterface $em,
         private MailerService $mailerService,
+        private AccountProvisioningService $accountProvisioning,
     ) {
     }
 
@@ -72,6 +74,11 @@ class MollieWebhookController extends AbstractController
             }
 
             $this->em->flush();
+
+            // Commande issue du panier (pas d'une proposition) : crée/rattache un compte client
+            if ($proposition === null) {
+                $this->accountProvisioning->ensureAccountForCommande($commande);
+            }
         }
 
         return new Response('OK', 200);
