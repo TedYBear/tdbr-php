@@ -13,8 +13,8 @@
                 <span class="font-heading text-xl md:text-2xl font-bold gradient-text">TDBR</span>
             </a>
 
-            {# Menu Desktop (md+) #}
-            <div class="hidden md:flex items-center space-x-1">
+            {# Menu Desktop (lg+) #}
+            <div class="hidden lg:flex items-center space-x-1">
                 <a href="{{ path('home') }}" class="nav-menu-link hover:text-primary">Accueil</a>
                 <a href="{{ path('presentation') }}" class="nav-menu-link hover:text-primary">Présentation</a>
                 <a href="{{ path('catalogue', {}) }}" class="nav-menu-link hover:text-primary">Catalogue</a>
@@ -50,7 +50,7 @@
 
                 {# User Menu (desktop uniquement) #}
                 {% if app.user %}
-                    <div class="relative hidden md:block" x-data="{ open: false }">
+                    <div class="relative hidden lg:block" x-data="{ open: false }">
                         <button @click="open = !open" @click.away="open = false" class="flex items-center gap-2 hover:text-primary transition">
                             <div class="w-9 h-9 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center text-white text-sm font-bold">
                                 {{ app.user.prenom|first }}{{ app.user.nom|first }}
@@ -67,14 +67,14 @@
                         </div>
                     </div>
                 {% else %}
-                    <div class="hidden md:flex items-center space-x-3">
+                    <div class="hidden lg:flex items-center space-x-3">
                         <a href="{{ path('connexion', {}) }}" class="hover:text-primary transition text-sm">Connexion</a>
                         <a href="{{ path('inscription', {}) }}" class="btn-primary text-sm">S'inscrire</a>
                     </div>
                 {% endif %}
 
-                {# Burger (mobile uniquement) #}
-                <button class="md:hidden p-2 rounded-lg hover:bg-gray-100 transition"
+                {# Burger (mobile et tablette) #}
+                <button class="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition"
                         @click="mobileOpen = !mobileOpen"
                         aria-label="Menu">
                     <svg x-show="!mobileOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -88,8 +88,8 @@
         </div>
     </div>
 
-    {# Drawer mobile #}
-    <div x-show="mobileOpen" x-cloak class="md:hidden border-t border-gray-100 bg-white shadow-lg">
+    {# Drawer mobile et tablette #}
+    <div x-show="mobileOpen" x-cloak class="lg:hidden border-t border-gray-100 bg-white shadow-lg">
         <div class="px-4 py-3 space-y-1">
             <a href="{{ path('home') }}" class="block px-3 py-3 rounded-xl hover:bg-gray-50 font-medium" @click="mobileOpen = false">Accueil</a>
             <a href="{{ path('presentation') }}" class="block px-3 py-3 rounded-xl hover:bg-gray-50 font-medium" @click="mobileOpen = false">Présentation</a>
