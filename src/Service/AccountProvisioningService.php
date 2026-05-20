@@ -78,5 +78,7 @@ class AccountProvisioningService
             $this->mailerService->sendInvitation($user, $inviteUrl);
         } catch (\Throwable $e) {
         }
+
+        return self::RESULT_CREATED;
     }
 }
