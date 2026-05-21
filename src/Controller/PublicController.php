@@ -275,13 +275,22 @@ class PublicController extends AbstractController
     public function addToCart(Request $request): Response
     {
         $data = json_decode($request->getContent(), true);
-        $articleId = $data['articleId'] ?? null;
-        $choices = $data['choices'] ?? [];
-        $variantId = $data['variantId'] ?? null;
-        $quantity = $data['quantity'] ?? 1;
+        if (!is_array($data)) {
+            return $this->json(['error' => 'Données JSON invalides'], 400);
+        }
 
-        if (!$articleId) {
-            return $this->json(['error' => 'Article ID manquant'], 400);
+        // Validation stricte
+        $articleId = isset($data['articleId']) ? (int)$data['articleId'] : null;
+        $quantity = isset($data['quantity']) ? (int)$data['quantity'] : 1;
+        $variantId = isset($data['variantId']) ? (int)$data['variantId'] : null;
+        $choices = is_array($data['choices'] ?? null) ? $data['choices'] : [];
+
+        // Vérifications de sécurité
+        if (!$articleId || $articleId <= 0) {
+            return $this->json(['error' => 'Article ID invalide'], 400);
+        }
+        if ($quantity < 1 || $quantity > 1000) {
+            return $this->json(['error' => 'Quantité invalide'], 400);
         }
 
         $article = $this->articleRepo->find((int)$articleId);

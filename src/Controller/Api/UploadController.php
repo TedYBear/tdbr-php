@@ -2,6 +2,7 @@
 
 namespace App\Controller\Api;
 
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -16,11 +17,13 @@ class UploadController extends AbstractController
 {
     private string $uploadDir;
     private SluggerInterface $slugger;
+    private LoggerInterface $logger;
 
-    public function __construct(string $uploadDir, SluggerInterface $slugger)
+    public function __construct(string $uploadDir, SluggerInterface $slugger, LoggerInterface $logger)
     {
         $this->uploadDir = $uploadDir;
         $this->slugger = $slugger;
+        $this->logger = $logger;
     }
 
     /**
@@ -75,8 +78,9 @@ class UploadController extends AbstractController
             try {
                 $file->move($this->uploadDir, $newFilename);
             } catch (FileException $e) {
+                $this->logger->error('Upload error: ' . $e->getMessage(), ['file' => $file->getClientOriginalName()]);
                 return $this->json(
-                    ['error' => 'Erreur lors de l\'upload: ' . $e->getMessage()],
+                    ['error' => 'Une erreur s\'est produite lors de l\'upload. Veuillez réessayer.'],
                     Response::HTTP_INTERNAL_SERVER_ERROR
                 );
             }
@@ -90,8 +94,9 @@ class UploadController extends AbstractController
                 'filename' => $newFilename
             ], Response::HTTP_CREATED);
         } catch (\Exception $e) {
+            $this->logger->error('Upload exception: ' . $e->getMessage(), ['exception' => $e]);
             return $this->json(
-                ['error' => $e->getMessage()],
+                ['error' => 'Une erreur s\'est produite lors de l\'upload. Veuillez réessayer.'],
                 Response::HTTP_INTERNAL_SERVER_ERROR
             );
         }
@@ -132,8 +137,9 @@ class UploadController extends AbstractController
                 'message' => 'Fichier supprimé avec succès'
             ]);
         } catch (\Exception $e) {
+            $this->logger->error('Upload exception: ' . $e->getMessage(), ['exception' => $e]);
             return $this->json(
-                ['error' => $e->getMessage()],
+                ['error' => 'Une erreur s\'est produite lors de l\'upload. Veuillez réessayer.'],
                 Response::HTTP_INTERNAL_SERVER_ERROR
             );
         }
