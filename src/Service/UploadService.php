@@ -8,6 +8,7 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 
 class UploadService
 {
+    private const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
     private string $uploadsDirectory;
 
     public function __construct(
@@ -22,6 +23,11 @@ class UploadService
      */
     public function upload(UploadedFile $file, string $directory = 'articles'): ?string
     {
+        // Validation de taille
+        if ($file->getSize() > self::MAX_FILE_SIZE) {
+            return null;
+        }
+
         $originalFilename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
         $safeFilename = $this->slugger->slug($originalFilename);
         $newFilename = $safeFilename . '-' . uniqid() . '.' . $file->guessExtension();
@@ -70,7 +76,13 @@ class UploadService
      */
     public function delete(string $path): bool
     {
-        $fullPath = $this->uploadsDirectory . '/../' . $path;
+        // Sécurité: valider que le chemin reste dans le répertoire uploads
+        $fullPath = realpath($this->uploadsDirectory . '/../' . $path);
+        $uploadsBase = realpath($this->uploadsDirectory);
+
+        if (!$fullPath || !$uploadsBase || strpos($fullPath, $uploadsBase) !== 0) {
+            return false; // Path traversal attempt ou fichier inexistant
+        }
 
         if (file_exists($fullPath)) {
             return unlink($fullPath);
@@ -84,7 +96,13 @@ class UploadService
      */
     public function resize(string $path, int $maxWidth = 1200, int $maxHeight = 1200): bool
     {
-        $fullPath = $this->uploadsDirectory . '/../' . $path;
+        // Sécurité: valider que le chemin reste dans le répertoire uploads
+        $fullPath = realpath($this->uploadsDirectory . '/../' . $path);
+        $uploadsBase = realpath($this->uploadsDirectory);
+
+        if (!$fullPath || !$uploadsBase || strpos($fullPath, $uploadsBase) !== 0) {
+            return false; // Path traversal attempt ou fichier inexistant
+        }
 
         if (!file_exists($fullPath)) {
             return false;
