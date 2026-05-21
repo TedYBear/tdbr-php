@@ -4,6 +4,43 @@ Stack : Symfony 6.3, PHP 8.1, MySQL 8 (Doctrine ORM), Twig, Tailwind CSS 3.4, Al
 
 ---
 
+## 🔄 Changements session 2026-05-21
+
+### Création automatique de compte après paiement Mollie
+
+**Nouveauté** : les commandes passées en invité créent maintenant un compte client automatiquement lors du passage en statut `payee`.
+
+**Détails**
+- Service `AccountProvisioningService` (src/Service/) : logique idempotente
+  - Si commande déjà liée à un user → ne fait rien
+  - Si email existe → rattache la commande à ce user (pas d'email)
+  - Sinon → crée user (prenom/nom/telephone de la commande) + invite token (7 jours) + email invitation
+- Appelée dans `PublicController::checkoutRetour()` (retour navigateur Mollie)
+- Appelée dans `MollieWebhookController::handle()` (webhook serveur, sauf propositions)
+- Commande console : `app:commande:rattacher-compte <numero>` — pour rattacher une commande existante (ex: `6A0C3E9E92B57`)
+- Returns : RESULT_ALREADY_LINKED, RESULT_INVALID_EMAIL, RESULT_LINKED_EXISTING, RESULT_CREATED
+
+### Facture : email de contact
+
+**Changement** : le footer de la facture affiche désormais l'email `tdbrlaboutique@gmail.com` comme point de contact principal.
+- Template : `templates/commandes/facture.html.twig` ligne 462
+- Avant : "Pour toute question : formulaire de contact sur tedybear.fr"
+- Après : "Contact : tdbrlaboutique@gmail.com · Formulaire : tedybear.fr"
+
+### Navbar : adaptation tablettes
+
+**Changement 1** : breakpoint de basculement menu desktop/mobile passe de `md` (768px) à `lg` (1024px)
+- Tablettes (768-1024px) gardent le drawer mobile, plus lisible
+- Écrans ≥ 1024px affichent le menu horizontal desktop
+
+**Changement 2** : menu desktop compacté sur tablettes (1024-1440px)
+- Padding réduit : `0.375rem 0.75rem` → `0.25rem 0.5rem`
+- Font-size réduit : `0.95rem` → `0.875rem`
+- Gap items supprimé (0)
+- Template : `templates/layout/navbar.html.twig`
+
+---
+
 ## Controllers
 
 ### Public
