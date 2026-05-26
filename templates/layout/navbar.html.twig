@@ -55,7 +55,7 @@
 
                 {# User Menu (desktop uniquement) #}
                 {% if app.user %}
-                    <div class="relative hidden lg:inline-block" x-data="{ open: false }">
+                    <div class="relative" style="display: none" id="user-menu-desktop" x-data="{ open: false }">
                         <button @click="open = !open" @click.away="open = false" class="flex items-center gap-2 hover:text-primary transition">
                             <div class="w-9 h-9 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center text-white text-sm font-bold">
                                 {{ app.user.prenom|first }}{{ app.user.nom|first }}
@@ -72,7 +72,7 @@
                         </div>
                     </div>
                 {% else %}
-                    <div class="hidden lg:flex items-center space-x-3">
+                    <div class="items-center space-x-3" style="display: none" id="auth-links-desktop">
                         <a href="{{ path('connexion', {}) }}" class="hover:text-primary transition text-sm">Connexion</a>
                         <a href="{{ path('inscription', {}) }}" class="btn-primary text-sm">S'inscrire</a>
                     </div>
