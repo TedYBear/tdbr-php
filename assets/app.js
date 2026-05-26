@@ -20,11 +20,17 @@ function updateDesktopMenuVisibility() {
   const userMenu = document.getElementById('user-menu-desktop');
   const authLinks = document.getElementById('auth-links-desktop');
 
+  console.log('[Desktop Menu] Width:', window.innerWidth, 'isDesktop:', isDesktop);
+  console.log('[Desktop Menu] userMenu found:', !!userMenu);
+  console.log('[Desktop Menu] authLinks found:', !!authLinks);
+
   if (userMenu) {
     userMenu.style.display = isDesktop ? 'block' : 'none';
+    console.log('[Desktop Menu] userMenu display:', userMenu.style.display);
   }
   if (authLinks) {
     authLinks.style.display = isDesktop ? 'flex' : 'none';
+    console.log('[Desktop Menu] authLinks display:', authLinks.style.display);
   }
 }
 
