@@ -404,26 +404,13 @@ img[src*="/uploads/articles/"] {
 
 /* Desktop User Menu & Auth Links */
 @media (min-width: 1024px) {
-  /* Show user menu on desktop */
-  .hidden:where([x-data*="open"]) {
+  /* Show user menu on desktop - only affect elements with x-data */
+  #user-menu-desktop {
     display: inline-block !important;
   }
 
-  /* Show auth links on desktop */
-  .hidden:where(.flex) {
+  /* Show auth links on desktop - only affect the auth links div */
+  #auth-links-desktop {
     display: flex !important;
-  }
-
-  /* Generic rule for hidden elements to show on desktop */
-  nav .hidden {
-    display: block !important;
-  }
-
-  nav .hidden.lg\:flex {
-    display: flex !important;
-  }
-
-  nav .hidden.lg\:inline-block {
-    display: inline-block !important;
   }
 }
