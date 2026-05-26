@@ -136,6 +136,20 @@
                         </svg>
                     </a>
                 </div>
+            {% else %}
+                {% set printfulItems = commande.articles|filter(i => i.printfulVariantId is defined and i.printfulVariantId) %}
+                {% if printfulItems|length > 0 %}
+                    <div class="card p-6">
+                        <h2 class="text-xl font-bold mb-3">Printful</h2>
+                        <p class="text-sm text-gray-600 mb-3">Cette commande contient {{ printfulItems|length }} article(s) Printful.</p>
+                        <form method="post" action="{{ path('admin_commandes_send_to_printful', {id: commande.id}) }}"
+                              onsubmit="window.confirmForm(event, this, 'Envoyer cette commande vers Printful en tant que brouillon ?')">
+                            <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-semibold">
+                                Envoyer vers Printful
+                            </button>
+                        </form>
+                    </div>
+                {% endif %}
             {% endif %}
 
             {# Dates #}

@@ -171,6 +171,41 @@ class CommandeAdminController extends AbstractController
         return $this->redirectToRoute('admin_commandes_detail', ['id' => $id]);
     }
 
+    #[Route('/{id}/send-to-printful', name: 'admin_commandes_send_to_printful', methods: ['POST'])]
+    public function sendToPrintful(int $id): Response
+    {
+        $commande = $this->commandeRepo->find($id);
+
+        if (!$commande) {
+            throw $this->createNotFoundException('Commande introuvable');
+        }
+
+        // Vérifie que la commande n'a pas déjà une commande Printful
+        if ($commande->getPrintfulOrderId()) {
+            $this->addFlash('error', 'Cette commande a déjà été envoyée à Printful.');
+            return $this->redirectToRoute('admin_commandes_detail', ['id' => $id]);
+        }
+
+        // Filtre les articles avec printfulVariantId
+        $printfulItems = array_filter($commande->getArticles(), fn($i) => !empty($i['printfulVariantId']));
+
+        if (empty($printfulItems)) {
+            $this->addFlash('error', 'Aucun article Printful dans cette commande.');
+            return $this->redirectToRoute('admin_commandes_detail', ['id' => $id]);
+        }
+
+        try {
+            $printfulOrderId = $this->printfulService->createDraftOrder($commande, array_values($printfulItems));
+            $commande->setPrintfulOrderId($printfulOrderId);
+            $this->em->flush();
+            $this->addFlash('success', 'Commande envoyée vers Printful en tant que brouillon.');
+        } catch (\Throwable $e) {
+            $this->addFlash('error', 'Erreur lors de l\'envoi à Printful : ' . $e->getMessage());
+        }
+
+        return $this->redirectToRoute('admin_commandes_detail', ['id' => $id]);
+    }
+
     #[Route('/{id}/delete', name: 'admin_commandes_delete', methods: ['POST'])]
     public function delete(int $id): Response
     {
