@@ -2,7 +2,14 @@
 module.exports = {
   content: [
     "./assets/**/*.js",
-    "./templates/**/*.html.twig",
+    "./templates/**/*.{html.twig,twig}",
+  ],
+  safelist: [
+    'hidden',
+    'lg:hidden',
+    'lg:block',
+    'lg:inline-block',
+    'lg:flex',
   ],
   theme: {
     extend: {

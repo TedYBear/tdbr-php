@@ -55,13 +55,13 @@
 
                 {# User Menu (desktop uniquement) #}
                 {% if app.user %}
-                    <div class="relative hidden lg:block" x-data="{ open: false }">
+                    <div class="relative hidden lg:inline-block" x-data="{ open: false }">
                         <button @click="open = !open" @click.away="open = false" class="flex items-center gap-2 hover:text-primary transition">
                             <div class="w-9 h-9 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center text-white text-sm font-bold">
                                 {{ app.user.prenom|first }}{{ app.user.nom|first }}
                             </div>
                         </button>
-                        <div x-show="open" x-transition class="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg py-2">
+                        <div x-show="open" x-transition class="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg py-2 z-50">
                             <a href="{{ path('profil', {}) }}" class="block px-4 py-2 hover:bg-gray-100">Mon profil</a>
                             {% if is_granted('ROLE_ADMIN') %}
                                 <a href="{{ path('admin_dashboard', {}) }}" class="block px-4 py-2 hover:bg-gray-100">Administration</a>

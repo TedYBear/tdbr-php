@@ -401,3 +401,15 @@ img[src*="/uploads/articles/"] {
 *:focus-visible {
   @apply outline-none ring-4 ring-primary/30 ring-offset-2;
 }
+
+/* Desktop User Menu & Auth Links */
+@media (min-width: 1024px) {
+  .hidden.lg\:inline-block,
+  .hidden.lg\:flex {
+    display: block !important;
+  }
+
+  .hidden.lg\:flex {
+    display: flex !important;
+  }
+}
