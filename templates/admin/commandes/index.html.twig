@@ -11,7 +11,7 @@
                 <option value="">Tous les statuts</option>
                 <option value="en_attente" {{ selectedStatut == 'en_attente' ? 'selected' : '' }}>En attente</option>
                 <option value="validee" {{ selectedStatut == 'validee' ? 'selected' : '' }}>Validée</option>
-                <option value="en_cours" {{ selectedStatut == 'en_cours' ? 'selected' : '' }}>En cours</option>
+                <option value="en_production" {{ selectedStatut == 'en_production' ? 'selected' : '' }}>En production</option>
                 <option value="expediee" {{ selectedStatut == 'expediee' ? 'selected' : '' }}>Expédiée</option>
                 <option value="livree" {{ selectedStatut == 'livree' ? 'selected' : '' }}>Livrée</option>
                 <option value="en_attente_virement" {{ selectedStatut == 'en_attente_virement' ? 'selected' : '' }}>Virement en attente</option>
@@ -59,7 +59,7 @@
                                 <span class="px-3 py-1 rounded-full text-xs font-semibold
                                     {% if commande.statut == 'en_attente' %}bg-yellow-100 text-yellow-800
                                     {% elseif commande.statut == 'validee' %}bg-blue-100 text-blue-800
-                                    {% elseif commande.statut == 'en_cours' %}bg-purple-100 text-purple-800
+                                    {% elseif commande.statut == 'en_production' %}bg-purple-100 text-purple-800
                                     {% elseif commande.statut == 'expediee' %}bg-green-100 text-green-800
                                     {% elseif commande.statut == 'livree' %}bg-green-100 text-green-800
                                     {% elseif commande.statut == 'en_attente_virement' %}bg-amber-100 text-amber-800

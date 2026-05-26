@@ -106,7 +106,7 @@ class MailerService
         $statusLabels = [
             'en_attente' => 'En attente',
             'validee' => 'Validée',
-            'en_cours' => 'En cours de préparation',
+            'en_production' => 'En production',
             'expediee' => 'Expédiée',
             'livree' => 'Livrée',
             'annulee' => 'Annulée'

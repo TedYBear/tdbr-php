@@ -42,7 +42,7 @@ class DemandeSurMesureAdminController extends AbstractController
         if (!$devis) throw $this->createNotFoundException();
 
         $statut = $request->request->get('statut');
-        $statutsValides = ['nouveau', 'en_cours', 'envoye', 'accepte', 'refuse'];
+        $statutsValides = ['nouveau', 'en_production', 'envoye', 'accepte', 'refuse'];
 
         if (in_array($statut, $statutsValides)) {
             $devis->setStatut($statut);

@@ -17,7 +17,7 @@
         <div style="font-size: 24px; font-weight: bold; color: #8B7355; margin-bottom: 10px;">
             {% if newStatus == 'validee' %}
                 ✓ Commande Validée
-            {% elseif newStatus == 'en_cours' %}
+            {% elseif newStatus == 'en_production' %}
                 🔨 En cours de préparation
             {% elseif newStatus == 'expediee' %}
                 📦 Commande Expédiée
@@ -38,7 +38,7 @@
             <p style="font-size: 14px; color: #666; margin-top: 15px;">
                 Nous espérons que vous êtes satisfait(e) de votre achat ! N'hésitez pas à nous faire part de vos impressions.
             </p>
-        {% elseif newStatus == 'en_cours' %}
+        {% elseif newStatus == 'en_production' %}
             <p style="font-size: 14px; color: #666; margin-top: 15px;">
                 Nous préparons votre commande avec le plus grand soin. Elle sera bientôt prête pour l'expédition.
             </p>

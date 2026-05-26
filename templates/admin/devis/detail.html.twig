@@ -87,7 +87,7 @@
                         <label class="block text-sm font-semibold text-gray-700 mb-2">Changer le statut</label>
                         <select name="statut" class="form-input">
                             <option value="nouveau" {{ devis.statut == 'nouveau' ? 'selected' : '' }}>Nouveau</option>
-                            <option value="en_cours" {{ devis.statut == 'en_cours' ? 'selected' : '' }}>En cours</option>
+                            <option value="en_production" {{ devis.statut == 'en_production' ? 'selected' : '' }}>En production</option>
                             <option value="envoye" {{ devis.statut == 'envoye' ? 'selected' : '' }}>Réponse envoyée</option>
                             <option value="accepte" {{ devis.statut == 'accepte' ? 'selected' : '' }}>Accepté</option>
                             <option value="refuse" {{ devis.statut == 'refuse' ? 'selected' : '' }}>Refusé</option>
