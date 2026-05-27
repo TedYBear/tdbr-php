@@ -1,0 +1,205 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% block title %}Analytiques{% endblock %}
+{% block page_title %}Analytiques — Trafic du site{% endblock %}
+{% block page_subtitle %}
+    <p class="text-sm text-gray-600">Statistiques de fréquentation anonymisées</p>
+{% endblock %}
+
+{% block body %}
+
+{# ── Filtre de période ────────────────────────────────────────────────────── #}
+<div class="flex gap-2 mb-8">
+    {% for code, label in {'today': "Aujourd'hui", '7j': '7 jours', '30j': '30 jours', 'all': 'Tout le temps'} %}
+        <a href="{{ path('admin_analytics', {periode: code}) }}"
+           class="px-4 py-2 rounded-lg text-sm font-semibold transition
+                  {{ periode == code
+                     ? 'bg-primary text-white'
+                     : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50' }}">
+            {{ label }}
+        </a>
+    {% endfor %}
+</div>
+
+{# ── KPI cards ────────────────────────────────────────────────────────────── #}
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="card p-6 border-l-4 border-primary">
+        <p class="text-sm text-gray-600 mb-1">Total vues (période)</p>
+        <p class="text-3xl font-bold text-gray-900">{{ totalVues }}</p>
+    </div>
+    <div class="card p-6 border-l-4 border-secondary">
+        <p class="text-sm text-gray-600 mb-1">Visiteurs uniques (période)</p>
+        <p class="text-3xl font-bold text-gray-900">{{ totalVisiteurs }}</p>
+    </div>
+    <div class="card p-6 border-l-4 border-blue-500">
+        <p class="text-sm text-gray-600 mb-1">Vues aujourd'hui</p>
+        <p class="text-3xl font-bold text-gray-900">{{ vuesToday }}</p>
+    </div>
+    <div class="card p-6 border-l-4 border-amber-500">
+        <p class="text-sm text-gray-600 mb-1">Page la plus vue</p>
+        <p class="text-lg font-bold text-gray-900 truncate">{{ topPageLabel }}</p>
+    </div>
+</div>
+
+{# ── Top articles + Top pages (deux colonnes) ──────────────────────────────── #}
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+
+    {# Top 10 Articles #}
+    <div class="card overflow-hidden">
+        <div class="px-6 py-4 border-b bg-gray-50">
+            <h2 class="font-heading font-bold text-lg">Top 10 Articles</h2>
+        </div>
+        {% if topArticles|length > 0 %}
+            <table class="w-full">
+                <thead>
+                    <tr class="bg-gray-50 border-b">
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">#</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Article</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Vues</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y">
+                    {% for i, row in topArticles %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-3 text-sm text-gray-400">{{ loop.index }}</td>
+                            <td class="px-6 py-3">
+                                <div class="font-medium text-sm">{{ row.nom }}</div>
+                                <div class="text-xs text-gray-400">{{ row.slug }}</div>
+                            </td>
+                            <td class="px-6 py-3 font-bold text-primary">{{ row.vues }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="text-center text-gray-500 py-10">Aucune donnée</p>
+        {% endif %}
+    </div>
+
+    {# Top 10 Pages générales #}
+    <div class="card overflow-hidden">
+        <div class="px-6 py-4 border-b bg-gray-50">
+            <h2 class="font-heading font-bold text-lg">Top 10 Pages</h2>
+        </div>
+        {% if topPages|length > 0 %}
+            <table class="w-full">
+                <thead>
+                    <tr class="bg-gray-50 border-b">
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">#</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Page</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Vues</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y">
+                    {% for row in topPages %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-3 text-sm text-gray-400">{{ loop.index }}</td>
+                            <td class="px-6 py-3">
+                                <div class="font-medium text-sm">{{ row.label }}</div>
+                                <div class="text-xs text-gray-400">{{ row.routeName }}</div>
+                            </td>
+                            <td class="px-6 py-3 font-bold text-primary">{{ row.vues }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="text-center text-gray-500 py-10">Aucune donnée</p>
+        {% endif %}
+    </div>
+</div>
+
+{# ── Top catégories + Top collections (deux colonnes) ─────────────────────── #}
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+
+    {# Top 5 Catégories #}
+    <div class="card overflow-hidden">
+        <div class="px-6 py-4 border-b bg-gray-50">
+            <h2 class="font-heading font-bold text-lg">Top 5 Catégories</h2>
+        </div>
+        {% if topCategories|length > 0 %}
+            <table class="w-full">
+                <thead>
+                    <tr class="bg-gray-50 border-b">
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">#</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Catégorie</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Vues</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y">
+                    {% for row in topCategories %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-3 text-sm text-gray-400">{{ loop.index }}</td>
+                            <td class="px-6 py-3 font-medium text-sm">{{ row.nom }}</td>
+                            <td class="px-6 py-3 font-bold text-primary">{{ row.vues }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="text-center text-gray-500 py-10">Aucune donnée</p>
+        {% endif %}
+    </div>
+
+    {# Top 5 Collections #}
+    <div class="card overflow-hidden">
+        <div class="px-6 py-4 border-b bg-gray-50">
+            <h2 class="font-heading font-bold text-lg">Top 5 Collections</h2>
+        </div>
+        {% if topCollections|length > 0 %}
+            <table class="w-full">
+                <thead>
+                    <tr class="bg-gray-50 border-b">
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">#</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Collection</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Vues</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y">
+                    {% for row in topCollections %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-3 text-sm text-gray-400">{{ loop.index }}</td>
+                            <td class="px-6 py-3 font-medium text-sm">{{ row.nom }}</td>
+                            <td class="px-6 py-3 font-bold text-primary">{{ row.vues }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="text-center text-gray-500 py-10">Aucune donnée</p>
+        {% endif %}
+    </div>
+</div>
+
+{# ── Vues par jour (tableau) ──────────────────────────────────────────────── #}
+<div class="card overflow-hidden">
+    <div class="px-6 py-4 border-b bg-gray-50">
+        <h2 class="font-heading font-bold text-lg">Vues par jour</h2>
+    </div>
+    {% if viewsByDay|length > 0 %}
+        <table class="w-full">
+            <thead>
+                <tr class="bg-gray-50 border-b">
+                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Date</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Vues</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Visiteurs uniques</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y">
+                {% for row in viewsByDay %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-3 text-sm font-medium text-gray-800">
+                            {{ row.jour|date('d/m/Y') }}
+                        </td>
+                        <td class="px-6 py-3 font-bold text-gray-900">{{ row.vues }}</td>
+                        <td class="px-6 py-3 text-gray-600">{{ row.visiteurs }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="text-center text-gray-500 py-10">Aucune donnée pour cette période</p>
+    {% endif %}
+</div>
+
+{% endblock %}
