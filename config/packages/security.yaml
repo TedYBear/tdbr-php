@@ -30,6 +30,10 @@ security:
                 path: logout
                 target: home
 
+            login_throttling:
+                max_attempts: 5          # max 5 tentatives échouées
+                interval: '15 minutes'   # par fenêtre de 15 min (par IP + identifiant)
+
             remember_me:
                 secret: '%kernel.secret%'
                 lifetime: 604800 # 1 week in seconds
