@@ -123,6 +123,27 @@ Les déploiements suivants reprennent le `git pull` normal.
 
 ## Troubleshooting
 
+### `ClassNotFoundError: DebugBundle` (ou WebProfilerBundle / MakerBundle)
+```
+Attempted to load class "DebugBundle" from namespace "Symfony\Bundle\DebugBundle".
+```
+**Cause** : le serveur tourne en environnement **dev** alors que `composer install --no-dev`
+a retiré les bundles de dev. Symfony cherche `DebugBundle` (déclaré `['dev' => true]` dans
+`config/bundles.php`) qui n'est pas installé.
+
+**Correctif** : forcer l'environnement prod dans `.env.local` :
+```env
+APP_ENV=prod
+APP_DEBUG=0
+```
+puis :
+```bash
+php bin/console cache:clear --env=prod
+php bin/console cache:warmup --env=prod
+```
+Alternative propre : `composer dump-env prod` (compile `.env.local.php` figé en prod),
+à relancer après chaque déploiement qui modifie les fichiers `.env`.
+
 ### Erreur 500
 ```bash
 tail -n 50 ~/public_html/var/log/prod.log
