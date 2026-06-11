@@ -37,6 +37,7 @@
                         </h2>
 
                         <form method="post" action="{{ path('profil') }}" class="space-y-4">
+                                            {% include 'components/_csrf.html.twig' %}
                             <div class="form-group">
                                 <label class="block text-sm text-gray-500 mb-1">Prénom</label>
                                 <input type="text" name="prenom" value="{{ user.prenom }}" class="form-input">
@@ -82,17 +83,18 @@
                             </button>
                             <div x-show="open" x-cloak>
                                 <form method="post" action="{{ path('profil_password') }}" class="space-y-3">
+                                            {% include 'components/_csrf.html.twig' %}
                                     <div>
                                         <label class="block text-sm text-gray-500 mb-1">Mot de passe actuel</label>
                                         <input type="password" name="password_actuel" required class="form-input" autocomplete="current-password">
                                     </div>
                                     <div>
                                         <label class="block text-sm text-gray-500 mb-1">Nouveau mot de passe</label>
-                                        <input type="password" name="password_nouveau" required minlength="8" class="form-input" autocomplete="new-password">
+                                        <input type="password" name="password_nouveau" required minlength="12" class="form-input" autocomplete="new-password">
                                     </div>
                                     <div>
                                         <label class="block text-sm text-gray-500 mb-1">Confirmer le nouveau mot de passe</label>
-                                        <input type="password" name="password_confirm" required minlength="8" class="form-input" autocomplete="new-password">
+                                        <input type="password" name="password_confirm" required minlength="12" class="form-input" autocomplete="new-password">
                                     </div>
                                     <button type="submit" class="btn-primary w-full">Mettre à jour le mot de passe</button>
                                 </form>

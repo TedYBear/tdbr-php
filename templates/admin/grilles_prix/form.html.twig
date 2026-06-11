@@ -27,7 +27,7 @@
     {% set lignesJs = lignesJs|merge([{pf: l.prixFournisseur, pv: l.prixVente}]) %}
 {% endfor %}
 
-<script>
+<script nonce="{{ csp_nonce() }}">
     window._grilleFormData = {
         paliers: {{ paliersJs|json_encode|raw }},
         lignes:  {{ lignesJs|json_encode|raw }}
@@ -230,7 +230,7 @@
     </div>
 </form>
 
-<script>
+<script nonce="{{ csp_nonce() }}">
     function grilleForm() {
         const data = window._grilleFormData;
         return {

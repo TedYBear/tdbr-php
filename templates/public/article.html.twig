@@ -8,10 +8,10 @@
 
 {% block javascripts %}
     {#
-     IMPORTANT: ce <script> doit être AVANT {{ parent() }} pour que le listener
+     IMPORTANT: ce <script nonce="{{ csp_nonce() }}"> doit être AVANT {{ parent() }} pour que le listener
      alpine:init soit enregistré avant que le bundle app.js appelle Alpine.start().
     #}
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         document.addEventListener('alpine:init', () => {
             Alpine.data('articlePage', () => ({
                 selectedImage: 0,
@@ -129,7 +129,7 @@
                     try {
                         const response = await fetch('{{ path('panier_add') }}', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content },
                             body: JSON.stringify(data)
                         });
 

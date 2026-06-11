@@ -427,7 +427,7 @@
                     {% for g in grilles %}
                         {% set grillesData = grillesData|merge([{id: g.id, nom: g.nom, lignes: g.lignes}]) %}
                     {% endfor %}
-                    <script>
+                    <script nonce="{{ csp_nonce() }}">
                         const grillesAdminData = {{ grillesData|json_encode|raw }};
                     </script>
                     <div class="form-group mt-4"

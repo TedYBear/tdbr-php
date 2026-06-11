@@ -23,12 +23,6 @@ services:
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
 
-    # JWT Service
-    App\Service\JWTService:
-        arguments:
-            $jwtSecret: '%env(JWT_SECRET)%'
-            $jwtExpiration: '%env(int:JWT_EXPIRATION)%'
-
     # Upload Controller
     App\Controller\Api\UploadController:
         arguments:

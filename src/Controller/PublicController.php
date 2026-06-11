@@ -274,6 +274,10 @@ class PublicController extends AbstractController
     #[Route('/panier/add', name: 'panier_add', methods: ['POST'])]
     public function addToCart(Request $request): Response
     {
+        if (!$this->isCsrfValid($request)) {
+            return $this->json(['error' => 'Token de sécurité invalide, veuillez recharger la page'], 403);
+        }
+
         $data = json_decode($request->getContent(), true);
         if (!is_array($data)) {
             return $this->json(['error' => 'Données JSON invalides'], 400);
@@ -354,8 +358,13 @@ class PublicController extends AbstractController
     }
 
     #[Route('/panier/remove/{itemId}', name: 'panier_remove', methods: ['POST'])]
-    public function removeFromCart(string $itemId): Response
+    public function removeFromCart(string $itemId, Request $request): Response
     {
+        if (!$this->isCsrfValid($request)) {
+            $this->addFlash('error', 'Session expirée, veuillez réessayer.');
+            return $this->redirectToRoute('panier');
+        }
+
         $this->cartService->removeItem($itemId);
         $this->addFlash('success', 'Article retiré du panier');
         return $this->redirectToRoute('panier');
@@ -364,14 +373,24 @@ class PublicController extends AbstractController
     #[Route('/panier/update/{itemId}', name: 'panier_update', methods: ['POST'])]
     public function updateQuantity(string $itemId, Request $request): Response
     {
+        if (!$this->isCsrfValid($request)) {
+            $this->addFlash('error', 'Session expirée, veuillez réessayer.');
+            return $this->redirectToRoute('panier');
+        }
+
         $quantity = (int)$request->request->get('quantity', 1);
         $this->cartService->updateQuantity($itemId, $quantity);
         return $this->redirectToRoute('panier');
     }
 
     #[Route('/panier/clear', name: 'panier_clear', methods: ['POST'])]
-    public function clearCart(): Response
+    public function clearCart(Request $request): Response
     {
+        if (!$this->isCsrfValid($request)) {
+            $this->addFlash('error', 'Session expirée, veuillez réessayer.');
+            return $this->redirectToRoute('panier');
+        }
+
         $this->cartService->clear();
         $this->addFlash('success', 'Panier vidé');
         return $this->redirectToRoute('panier');
@@ -380,6 +399,10 @@ class PublicController extends AbstractController
     #[Route('/checkout/update-livraison', name: 'checkout_update_livraison', methods: ['POST'])]
     public function updateLivraison(Request $request): JsonResponse
     {
+        if (!$this->isCsrfValid($request)) {
+            return $this->json(['error' => 'Token de sécurité invalide, veuillez recharger la page'], 403);
+        }
+
         if ($this->cartService->getTotalQuantity() === 0) {
             return $this->json(['error' => 'Panier vide'], 400);
         }
@@ -405,6 +428,10 @@ class PublicController extends AbstractController
     #[Route('/checkout/apply-code', name: 'checkout_apply_code', methods: ['POST'])]
     public function applyCode(Request $request): JsonResponse
     {
+        if (!$this->isCsrfValid($request)) {
+            return $this->json(['error' => 'Token de sécurité invalide, veuillez recharger la page'], 403);
+        }
+
         if ($this->cartService->getTotalQuantity() === 0) {
             return $this->json(['error' => 'Panier vide'], 400);
         }
@@ -1136,6 +1163,11 @@ class PublicController extends AbstractController
         $user = $this->getUser();
 
         if ($request->isMethod('POST')) {
+            if (!$this->isCsrfValid($request)) {
+                $this->addFlash('error', 'Session expirée, veuillez réessayer.');
+                return $this->redirectToRoute('profil');
+            }
+
             $prenom = trim($request->request->get('prenom', ''));
             $nom    = trim($request->request->get('nom', ''));
             $email  = trim($request->request->get('email', ''));
@@ -1188,12 +1220,17 @@ class PublicController extends AbstractController
     }
 
     #[Route('/profil/mot-de-passe', name: 'profil_password', methods: ['POST'])]
-    public function changePassword(Request $request, UserPasswordHasherInterface $passwordHasher): Response
+    public function changePassword(Request $request, UserPasswordHasherInterface $passwordHasher, \Symfony\Component\Validator\Validator\ValidatorInterface $validator): Response
     {
         $this->denyAccessUnlessGranted('ROLE_USER');
 
         /** @var User $user */
         $user = $this->getUser();
+
+        if (!$this->isCsrfValid($request)) {
+            $this->addFlash('error', 'Session expirée, veuillez réessayer.');
+            return $this->redirectToRoute('profil');
+        }
 
         $actuel   = $request->request->get('password_actuel', '');
         $nouveau  = $request->request->get('password_nouveau', '');
@@ -1204,8 +1241,9 @@ class PublicController extends AbstractController
             return $this->redirectToRoute('profil');
         }
 
-        if (strlen($nouveau) < 8) {
-            $this->addFlash('error', 'Le nouveau mot de passe doit contenir au moins 8 caractères.');
+        $violations = $validator->validate($nouveau, \App\Security\PasswordPolicy::constraints());
+        if (count($violations) > 0) {
+            $this->addFlash('error', $violations[0]->getMessage());
             return $this->redirectToRoute('profil');
         }
 
@@ -1225,6 +1263,17 @@ class PublicController extends AbstractController
     public function logout(): void
     {
         throw new \LogicException('This method can be blank - it will be intercepted by the logout key on your firewall.');
+    }
+
+    /**
+     * Valide le token CSRF 'app' des formulaires manuels (champ _token)
+     * et des appels fetch JSON (header X-CSRF-Token).
+     */
+    private function isCsrfValid(Request $request): bool
+    {
+        $token = (string) ($request->request->get('_token') ?? $request->headers->get('X-CSRF-Token', ''));
+
+        return $this->isCsrfTokenValid('app', $token);
     }
 
     /**
@@ -1357,9 +1406,14 @@ class PublicController extends AbstractController
      * Crée une Commande + paiement Mollie, puis redirige vers la page de paiement.
      */
     #[Route('/proposition/{token}/valider', name: 'proposition_accept', methods: ['POST'])]
-    public function propositionAccept(string $token): Response
+    public function propositionAccept(string $token, Request $request): Response
     {
         $proposition = $this->getPropositionOrDeny($token);
+
+        if (!$this->isCsrfValid($request)) {
+            $this->addFlash('error', 'Session expirée, veuillez réessayer.');
+            return $this->redirectToRoute('proposition_view', ['token' => $token]);
+        }
 
         if (!in_array($proposition->getStatut(), ['envoyee', 'brouillon'])) {
             return $this->redirectToRoute('proposition_view', ['token' => $token]);
@@ -1525,9 +1579,14 @@ class PublicController extends AbstractController
     }
 
     #[Route('/proposition/{token}/virement', name: 'proposition_virement', methods: ['POST'])]
-    public function propositionVirement(string $token): Response
+    public function propositionVirement(string $token, Request $request): Response
     {
         $proposition = $this->getPropositionOrDeny($token);
+
+        if (!$this->isCsrfValid($request)) {
+            $this->addFlash('error', 'Session expirée, veuillez réessayer.');
+            return $this->redirectToRoute('proposition_view', ['token' => $token]);
+        }
 
         if (!in_array($proposition->getStatut(), ['envoyee', 'brouillon'], true)) {
             throw $this->createNotFoundException();

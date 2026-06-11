@@ -113,7 +113,7 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         function togglePassword(btn) {
             const field = btn.closest('.relative').querySelector('input');
             const eyeIcon = btn.querySelector('#eye-icon');

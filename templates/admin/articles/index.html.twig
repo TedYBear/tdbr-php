@@ -36,7 +36,7 @@
     </div>
 
     {# Données fournisseurs pour Alpine #}
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         const fournisseursData = [{% for f in fournisseurs %}{"id":{{ f.id }},"nom":{{ f.nom|json_encode|raw }}}{% if not loop.last %},{% endif %}{% endfor %}];
     </script>
 

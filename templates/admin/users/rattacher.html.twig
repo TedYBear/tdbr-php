@@ -218,7 +218,7 @@
     </div>
     {% endif %}
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
     document.querySelectorAll('.check-all').forEach(master => {
         master.addEventListener('change', () => {
             document.querySelectorAll(`.check-item[data-group="${master.dataset.group}"]`)

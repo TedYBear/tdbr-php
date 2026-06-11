@@ -86,7 +86,7 @@
     </form>
 </div>
 
-<script>
+<script nonce="{{ csp_nonce() }}">
 function toggleUserField(type) {
     document.getElementById('userField').style.display = type === 'user' ? '' : 'none';
 }

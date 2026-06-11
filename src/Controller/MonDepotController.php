@@ -29,6 +29,19 @@ class MonDepotController extends AbstractController
         private CategoryRepository $categoryRepo,
     ) {}
 
+    /**
+     * Valide le token CSRF 'app' des formulaires POST du dépôt-vente.
+     */
+    private function checkCsrf(Request $request): ?Response
+    {
+        if (!$this->isCsrfTokenValid('app', (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Session expirée, veuillez réessayer.');
+            return $this->redirectToRoute('mon_depot');
+        }
+
+        return null;
+    }
+
     private function getDepotOrRedirect(): DepotVente|Response
     {
         /** @var \App\Entity\User $user */
@@ -101,6 +114,8 @@ class MonDepotController extends AbstractController
     #[Route('/ajout', name: '_ajout', methods: ['POST'])]
     public function ajout(Request $request): Response
     {
+        if ($csrfError = $this->checkCsrf($request)) return $csrfError;
+
         $result = $this->getDepotOrRedirect();
         if ($result instanceof Response) return $result;
         $depot = $result;
@@ -140,6 +155,8 @@ class MonDepotController extends AbstractController
     #[Route('/modifier-stock', name: '_modifier_stock', methods: ['POST'])]
     public function modifierStock(Request $request): Response
     {
+        if ($csrfError = $this->checkCsrf($request)) return $csrfError;
+
         $result = $this->getDepotOrRedirect();
         if ($result instanceof Response) return $result;
         $depot = $result;
@@ -190,8 +207,10 @@ class MonDepotController extends AbstractController
     }
 
     #[Route('/supprimer-article/{articleId}', name: '_supprimer_article', methods: ['POST'])]
-    public function supprimerArticle(int $articleId): Response
+    public function supprimerArticle(int $articleId, Request $request): Response
     {
+        if ($csrfError = $this->checkCsrf($request)) return $csrfError;
+
         $result = $this->getDepotOrRedirect();
         if ($result instanceof Response) return $result;
         $depot = $result;
@@ -214,6 +233,8 @@ class MonDepotController extends AbstractController
     #[Route('/vente', name: '_vente', methods: ['POST'])]
     public function vente(Request $request): Response
     {
+        if ($csrfError = $this->checkCsrf($request)) return $csrfError;
+
         $result = $this->getDepotOrRedirect();
         if ($result instanceof Response) return $result;
         $depot = $result;
@@ -279,6 +300,8 @@ class MonDepotController extends AbstractController
     #[Route('/fond', name: '_fond', methods: ['POST'])]
     public function fond(Request $request): Response
     {
+        if ($csrfError = $this->checkCsrf($request)) return $csrfError;
+
         $result = $this->getDepotOrRedirect();
         if ($result instanceof Response) return $result;
         $depot = $result;

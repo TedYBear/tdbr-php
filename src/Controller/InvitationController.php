@@ -3,12 +3,14 @@
 namespace App\Controller;
 
 use App\Repository\UserRepository;
+use App\Security\PasswordPolicy;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class InvitationController extends AbstractController
 {
@@ -16,6 +18,7 @@ class InvitationController extends AbstractController
         private UserRepository $userRepo,
         private EntityManagerInterface $em,
         private UserPasswordHasherInterface $hasher,
+        private ValidatorInterface $validator,
     ) {}
 
     #[Route('/invitation/{token}', name: 'invitation_set_password', methods: ['GET', 'POST'])]
@@ -32,8 +35,9 @@ class InvitationController extends AbstractController
             $password  = $request->request->get('password', '');
             $password2 = $request->request->get('password2', '');
 
-            if (strlen($password) < 8) {
-                $this->addFlash('error', 'Le mot de passe doit contenir au moins 8 caractères.');
+            $violations = $this->validator->validate($password, PasswordPolicy::constraints());
+            if (count($violations) > 0) {
+                $this->addFlash('error', $violations[0]->getMessage());
                 return $this->redirectToRoute('invitation_set_password', ['token' => $token]);
             }
 

@@ -3,16 +3,34 @@
 namespace App\EventSubscriber;
 
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 class SecurityHeadersSubscriber implements EventSubscriberInterface
 {
+    public const NONCE_ATTRIBUTE = 'csp_nonce';
+
     public static function getSubscribedEvents(): array
     {
         return [
+            // Priorité haute : le nonce doit exister avant le rendu des templates
+            KernelEvents::REQUEST => ['onKernelRequest', 100],
             KernelEvents::RESPONSE => 'onKernelResponse',
         ];
+    }
+
+    public function onKernelRequest(RequestEvent $event): void
+    {
+        if (!$event->isMainRequest()) {
+            return;
+        }
+
+        // Nonce CSP unique par requête, exposé aux templates via csp_nonce()
+        $event->getRequest()->attributes->set(
+            self::NONCE_ATTRIBUTE,
+            base64_encode(random_bytes(16))
+        );
     }
 
     public function onKernelResponse(ResponseEvent $event): void
@@ -22,6 +40,7 @@ class SecurityHeadersSubscriber implements EventSubscriberInterface
         }
 
         $response = $event->getResponse();
+        $nonce = (string) $event->getRequest()->attributes->get(self::NONCE_ATTRIBUTE, '');
 
         // Prévient le clickjacking
         $response->headers->set('X-Frame-Options', 'DENY');
@@ -32,27 +51,32 @@ class SecurityHeadersSubscriber implements EventSubscriberInterface
         // Force HTTPS
         $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
 
-        // Protection XSS (deprecated dans les navigateurs modernes mais utile)
-        $response->headers->set('X-XSS-Protection', '1; mode=block');
-
         // Contrôle des référeurs
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
 
-        // Content Security Policy (CSP) - politique permissive pour démarrer, à restreindre
+        // Content Security Policy (CSP)
+        // - script-src avec nonce : seuls les <script> portant le nonce de la requête
+        //   s'exécutent ; bloque les scripts injectés (XSS) et les scripts tiers.
+        // - 'unsafe-eval' requis par Alpine.js (build standard) ; à supprimer si
+        //   migration vers @alpinejs/csp.
+        // - script-src-attr 'unsafe-inline' : tolère les handlers onclick=/onsubmit=
+        //   existants ; à supprimer une fois ces handlers migrés vers Alpine.
         $response->headers->set(
             'Content-Security-Policy',
             "default-src 'self'; " .
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' cdn.jsdelivr.net unpkg.com; " .
-            "style-src 'self' 'unsafe-inline' fonts.googleapis.com; " .
-            "font-src 'self' fonts.gstatic.com; " .
+            "script-src 'self' 'nonce-{$nonce}' 'unsafe-eval'; " .
+            "script-src-attr 'unsafe-inline'; " .
+            "style-src 'self' 'unsafe-inline'; " .
             "img-src 'self' data: https:; " .
-            "connect-src 'self' *.mollie.com *.googleapis.com; " .
+            "font-src 'self'; " .
+            "connect-src 'self'; " .
+            "object-src 'none'; " .
             "frame-ancestors 'none'; " .
             "base-uri 'self'; " .
             "form-action 'self'"
         );
 
-        // Permissions Policy (ex Permissions Policy)
+        // Permissions Policy
         $response->headers->set('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
     }
 }

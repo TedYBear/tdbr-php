@@ -2,7 +2,9 @@
 
 namespace App\Twig;
 
+use App\EventSubscriber\SecurityHeadersSubscriber;
 use App\Repository\SiteConfigRepository;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Twig\Extension\AbstractExtension;
 use Twig\Extension\GlobalsInterface;
 use Twig\TwigFilter;
@@ -12,6 +14,7 @@ class AppExtension extends AbstractExtension implements GlobalsInterface
 {
     public function __construct(
         private SiteConfigRepository $siteConfigRepo,
+        private RequestStack $requestStack,
     ) {
     }
 
@@ -36,7 +39,19 @@ class AppExtension extends AbstractExtension implements GlobalsInterface
     {
         return [
             new TwigFunction('asset_exists', [$this, 'assetExists']),
+            new TwigFunction('csp_nonce', [$this, 'cspNonce']),
         ];
+    }
+
+    /**
+     * Nonce CSP de la requête courante, pour les balises <script> inline.
+     * Doit correspondre au nonce envoyé dans le header Content-Security-Policy.
+     */
+    public function cspNonce(): string
+    {
+        $request = $this->requestStack->getMainRequest();
+
+        return $request?->attributes->get(SecurityHeadersSubscriber::NONCE_ATTRIBUTE, '') ?? '';
     }
 
     /**

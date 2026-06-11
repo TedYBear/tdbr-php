@@ -115,7 +115,7 @@
         </div>
     </div>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
     document.getElementById('bannerTitre').addEventListener('input', function() {
         document.getElementById('preview-titre').textContent = this.value || 'Titre';
     });
@@ -238,7 +238,7 @@
         </form>
     </div>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
     document.getElementById('giftType').addEventListener('change', function() {
         document.getElementById('gift-unit').textContent = this.value === 'pourcentage' ? '%' : '€';
     });

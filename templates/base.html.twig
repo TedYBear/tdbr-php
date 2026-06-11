@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}TDBR - Goodies Personnalisés{% endblock %}</title>
     <meta name="description" content="{% block description %}TDBR - Goodies et accessoires personnalisés : t-shirts, mugs et créations inspirées du street art{% endblock %}">
+    <meta name="csrf-token" content="{{ csrf_token('app') }}">
 
     {% block stylesheets %}
         <link rel="stylesheet" href="{{ asset('build/app.76d8f153.css') }}">
@@ -65,7 +66,7 @@
             </div>
         </div>
     </div>
-    <script>
+    <script nonce="{{ csp_nonce() }}">
     window.showToast = function(message, type) {
         var container = document.getElementById('toast-container');
         if (!container) return;

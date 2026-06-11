@@ -59,7 +59,7 @@
                 </div>
             </div>
 
-            <script>
+            <script nonce="{{ csp_nonce() }}">
             function clientSearch() {
                 return {
                     query: '',
@@ -179,7 +179,7 @@
 
         </form>
 
-        <script>
+        <script nonce="{{ csp_nonce() }}">
         function propositionForm() {
             return {
                 coutDesign: {{ proposition and proposition.coutDesign is not null ? proposition.coutDesign : 0 }},

@@ -44,7 +44,7 @@
     </section>
 
     {# Script Alpine — défini avant Alpine.start() #}
-    <script>
+    <script nonce="{{ csp_nonce() }}">
     function checkoutApp() {
         return {
             mode: 'domicile',
@@ -69,7 +69,7 @@
                 try {
                     const resp = await fetch('/checkout/update-livraison', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content },
                         body: JSON.stringify({ modeLivraison: m, codeReductionId: this.selectedCodeId })
                     });
                     if (resp.ok) {
@@ -84,7 +84,7 @@
                 try {
                     const resp = await fetch('/checkout/apply-code', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content },
                         body: JSON.stringify({ codeReductionId: codeId, modeLivraison: this.mode })
                     });
                     if (resp.ok) {

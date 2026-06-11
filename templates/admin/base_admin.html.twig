@@ -54,7 +54,7 @@
                     </div>
                 </div>
             </div>
-            <script>
+            <script nonce="{{ csp_nonce() }}">
             window.showToast = function(message, type) {
                 var container = document.getElementById('toast-container');
                 if (!container) return;

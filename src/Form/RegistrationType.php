@@ -84,13 +84,7 @@ class RegistrationType extends AbstractType
                     ]
                 ],
                 'invalid_message' => 'Les mots de passe doivent correspondre',
-                'constraints' => [
-                    new Assert\NotBlank(['message' => 'Le mot de passe est requis']),
-                    new Assert\Length([
-                        'min' => 8,
-                        'minMessage' => 'Le mot de passe doit contenir au moins {{ limit }} caractères'
-                    ])
-                ]
+                'constraints' => \App\Security\PasswordPolicy::constraints(),
             ]);
     }
 

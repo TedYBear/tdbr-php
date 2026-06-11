@@ -42,18 +42,42 @@ Symfony 6.3 + Twig + MySQL (Doctrine). Repo : github.com/TedYBear/tdbr-php.
 - Tester ensuite : login, parcours panier/checkout, paiement Mollie (webhook), espace admin.
 - Évaluer Symfony 7.x plus tard (6.4 LTS laisse le temps jusqu'à fin 2026).
 
-## ⏳ Phase 3 — Durcissements (plus rapides)
+## ✅ Phase 3 — FAIT (2026-06-11)
 
-- [ ] **CSP** : retirer `'unsafe-inline'` / `'unsafe-eval'` de `script-src`
-  dans `SecurityHeadersSubscriber.php` (passer les scripts inline à des nonces).
-- [ ] **Sous-système JWT legacy** : `JWTService` + `JWTAuthenticationSubscriber` comparent
-  `role === 'admin'` (et non `ROLE_ADMIN`), HS256 avec secret potentiellement faible.
-  Vérifier s'il est encore utilisé (routes `/api/*`) → supprimer si mort, sinon sécuriser.
-- [ ] **CSRF** : tokens explicites sur routes POST/JSON sensibles
-  (`/panier/*`, `/mon-depot/*`, `/proposition/{token}/*`). Aujourd'hui mitigé seulement
-  par `cookie_samesite=strict`.
-- [ ] **Politique mot de passe** : passer le minimum de 8 → 12 caractères + complexité
-  (ex. `InvitationController`).
+- **JWT legacy supprimé entièrement** : `JWTService`, `JWTAuthenticationSubscriber`,
+  entrée `services.yaml`, variables `JWT_*` du `.env`, et `composer remove firebase/php-jwt`.
+  C'était du code mort : il ne protégeait que des routes `/api/admin` et `/api/auth/*`
+  inexistantes (reliquat de l'époque Vue/MongoDB). La seule vraie route API
+  (`/api/uploads`) est protégée par la session Symfony (`ROLE_ADMIN`).
+  → La variable `JWT_SECRET` du `.env.local` serveur devient inutile (sans danger).
+- **Politique de mot de passe** : classe unique `App\Security\PasswordPolicy`
+  (12 caractères min + contrainte `PasswordStrength` Symfony) appliquée à
+  l'inscription (`RegistrationType`), l'invitation (`InvitationController`) et le
+  changement de mot de passe (`PublicController::changePassword`). Hints templates à jour.
+- **CSRF explicite** (token `'app'`, défense en profondeur en plus de `samesite=strict`) :
+  - Formulaires HTML (include `components/_csrf.html.twig`) : mon-depot ×5,
+    proposition valider/virement, panier update/remove/clear, profil info/mot de passe.
+  - Fetch JSON (meta `csrf-token` dans `base.html.twig` + header `X-CSRF-Token`) :
+    panier/add, checkout/update-livraison, checkout/apply-code.
+  - `checkout_virement` et `checkout_admin_validate` étaient déjà couverts
+    (passent par `CheckoutType` + `handleRequest`/`isValid`).
+- **CSP durcie avec nonces** : nonce par requête généré dans
+  `SecurityHeadersSubscriber`, exposé via la fonction Twig `csp_nonce()`, appliqué
+  aux 18 scripts inline. `'unsafe-inline'` retiré de `script-src`. CDN inutilisés
+  retirés (jsdelivr, unpkg, googleapis, mollie connect). Ajout `object-src 'none'`.
+- **Code mort supprimé** : `templates/public/proposition_payer.html.twig`
+  (ancien flux Stripe, référençait une route `proposition_confirm` inexistante —
+  la page aurait fait un 500 si elle avait été rendue ; le paiement passe par Mollie).
+- Vérifié : lint:container, lint:twig (96), lint:yaml, cache:warmup prod, composer audit = 0.
+
+### Limites résiduelles assumées (prochaine itération éventuelle)
+- `script-src 'unsafe-eval'` conservé : requis par le build standard d'Alpine.js.
+  À supprimer en migrant vers `@alpinejs/csp` (impose de réécrire les expressions x-data).
+- `script-src-attr 'unsafe-inline'` conservé : ~42 handlers `onclick=`/`onsubmit=`
+  dans les templates. À supprimer après migration de ces handlers vers Alpine/addEventListener.
+- `style-src 'unsafe-inline'` conservé (styles inline omniprésents dans les templates).
+- Les ~40 formulaires POST de l'admin restent protégés par session + `samesite=strict`
+  uniquement (pas de token explicite) — couverture complète possible plus tard.
 
 ## Points déjà OK (vérifiés)
 - Anti-IDOR dépôt-vente correct (`MonDepotController` vérifie l'ownership).

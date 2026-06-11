@@ -36,7 +36,7 @@
 
                 {# Feed Instagram via Behold.so #}
                 <behold-widget feed-id="g5ChEaCKK1zs98xWwxZO"></behold-widget>
-                <script>
+                <script nonce="{{ csp_nonce() }}">
                     (() => {
                         const d=document,s=d.createElement("script");s.type="module";
                         s.src="https://w.behold.so/widget.js";d.head.append(s);

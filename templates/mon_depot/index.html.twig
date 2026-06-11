@@ -56,6 +56,7 @@
         </div>
 
         <form method="post" action="{{ path('mon_depot_ajout') }}">
+                                            {% include 'components/_csrf.html.twig' %}
             <div class="px-5 pt-4 pb-2">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Collection</label>
                 <select x-model="collectionId"
@@ -218,6 +219,7 @@
 
                             <form method="post" action="{{ path('mon_depot_modifier_stock') }}"
                                   style="padding:1.25rem 1.5rem;">
+                                {% include 'components/_csrf.html.twig' %}
                                 <div style="display:flex;flex-direction:column;gap:0.5rem;margin-bottom:1.25rem;">
                                     {% for v in variantesSuivies %}
                                         <div style="display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:0.625rem;padding:0.625rem 0.75rem;border:1px solid #e5e7eb;border-radius:0.625rem;background:#f9fafb;">
@@ -282,7 +284,7 @@
 
                     <form id="del-stock-{{ article.id }}" method="post"
                           action="{{ path('mon_depot_supprimer_article', {articleId: article.id}) }}"
-                          style="display:none;"></form>
+                          style="display:none;">{% include 'components/_csrf.html.twig' %}</form>
 
                 </div>
                 {% endif %}
@@ -368,6 +370,7 @@
         <div style="background:#fff;border-radius:1.25rem;padding:2rem;max-width:22rem;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
             <h3 style="font-size:1.1rem;font-weight:700;color:#111827;margin:0 0 1.25rem;">Fond de caisse</h3>
             <form method="post" action="{{ path('mon_depot_fond') }}">
+                                            {% include 'components/_csrf.html.twig' %}
                 <div style="margin-bottom:1rem;">
                     <label style="display:block;font-size:0.8rem;font-weight:600;color:#374151;margin-bottom:0.35rem;">Opération</label>
                     <div style="display:flex;gap:0.5rem;">
@@ -654,6 +657,7 @@
             <div style="padding:1rem 1.5rem;border-top:1px solid #f3f4f6;flex-shrink:0;background:#fff;border-radius:0 0 1.25rem 1.25rem;">
                 <form method="post" action="{{ path('mon_depot_vente') }}"
                       @submit="submitVente($event)">
+                    {% include 'components/_csrf.html.twig' %}
                     <input type="hidden" name="note" :value="note">
                     <button type="submit"
                             :disabled="lignes.length === 0"
