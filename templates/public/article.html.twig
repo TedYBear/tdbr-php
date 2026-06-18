@@ -153,6 +153,66 @@
                     } finally {
                         this.addingToCart = false;
                     }
+                },
+
+                // --- Modale de demande de personnalisation sur-mesure ---
+                persoOpen: false,
+                persoSubmitting: false,
+                persoSubmitted: false,
+                persoError: '',
+                isLogged: {{ app.user ? 'true' : 'false' }},
+                perso: {
+                    nom: '', email: '', modele: '', couleur: '', taille: '',
+                    autre: '', commentaire: '', quantite: 1, website: ''
+                },
+
+                openPerso() {
+                    this.persoSubmitted = false;
+                    this.persoError = '';
+                    this.persoOpen = true;
+                },
+
+                async submitPerso() {
+                    this.persoError = '';
+                    if (!this.perso.modele) { this.persoError = 'Veuillez choisir un modèle.'; return; }
+                    if (!this.isLogged) {
+                        if (this.perso.nom.trim().length < 2) { this.persoError = 'Veuillez indiquer votre nom.'; return; }
+                        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(this.perso.email)) { this.persoError = 'Adresse email invalide.'; return; }
+                    }
+                    if (this.perso.quantite < 1 || this.perso.quantite > 10) { this.persoError = 'Quantité invalide (1 à 10).'; return; }
+
+                    this.persoSubmitting = true;
+                    try {
+                        const response = await fetch('{{ path('demande_personnalisation') }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+                            },
+                            body: JSON.stringify({
+                                articleId: {{ article.id }},
+                                nom: this.perso.nom,
+                                email: this.perso.email,
+                                modele: this.perso.modele,
+                                couleur: this.perso.couleur,
+                                taille: this.perso.taille,
+                                autre: this.perso.autre,
+                                commentaire: this.perso.commentaire,
+                                quantite: this.perso.quantite,
+                                website: this.perso.website
+                            })
+                        });
+                        const result = await response.json();
+                        if (response.ok && result.success) {
+                            this.persoSubmitted = true;
+                        } else {
+                            this.persoError = result.error || 'Une erreur est survenue. Merci de réessayer.';
+                        }
+                    } catch (e) {
+                        this.persoError = 'Erreur réseau. Merci de réessayer.';
+                    } finally {
+                        this.persoSubmitting = false;
+                    }
                 }
             }));
         });
@@ -462,6 +522,21 @@
                         </div>
                     </div>
 
+                    {# Demande de personnalisation sur-mesure (tous les produits) #}
+                    <div class="pt-2">
+                        <button type="button"
+                                @click="openPerso()"
+                                class="w-full py-4 text-lg border-2 border-primary text-primary rounded-xl font-bold hover:bg-primary hover:text-white transition flex items-center justify-center gap-3">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.994 15.994 0 011.622-3.395m3.42 3.42a15.995 15.995 0 004.764-4.648l3.876-5.814a1.151 1.151 0 00-1.597-1.597L14.146 6.32a15.996 15.996 0 00-4.649 4.763m3.42 3.42a6.776 6.776 0 00-3.42-3.42"></path>
+                            </svg>
+                            Personnaliser ce produit
+                        </button>
+                        <p class="text-center text-sm text-gray-500 mt-2">
+                            Une envie particulière (modèle, couleur, taille) ? Envoyez votre demande, réponse au plus vite.
+                        </p>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -503,6 +578,138 @@
                  class="max-w-full max-h-full object-contain rounded-xl"
                  onerror="this.src='{{ article.images[0].url }}'">
         {% endif %}
+    </div>
+
+    {# Modale : demande de personnalisation sur-mesure #}
+    <div x-show="persoOpen"
+         x-cloak
+         @keydown.escape.window="persoOpen = false"
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 overflow-y-auto"
+         @click.self="persoOpen = false">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+
+            {# En-tête #}
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white rounded-t-2xl">
+                <h3 class="font-heading text-xl font-bold text-gray-900">Personnaliser ce produit</h3>
+                <button type="button" @click="persoOpen = false" class="p-2 text-gray-400 hover:text-gray-700 rounded-full hover:bg-gray-100 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            {# Vue formulaire #}
+            <div x-show="!persoSubmitted" class="p-6 space-y-5">
+                <p class="text-sm text-gray-600">
+                    Décrivez la personnalisation souhaitée pour <span class="font-semibold text-gray-800">{{ article.nom }}</span>.
+                    Nous revenons vers vous par email dans les plus brefs délais.
+                </p>
+
+                {# Honeypot anti-spam (caché) #}
+                <input type="text" x-model="perso.website" tabindex="-1" autocomplete="off" aria-hidden="true"
+                       style="position:absolute;left:-9999px;width:0;height:0;overflow:hidden;">
+
+                {# Coordonnées invité #}
+                <template x-if="!isLogged">
+                    <div class="grid sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Nom</label>
+                            <input type="text" x-model="perso.nom" class="form-input" placeholder="Votre nom">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Email</label>
+                            <input type="email" x-model="perso.email" class="form-input" placeholder="votre@email.com">
+                        </div>
+                    </div>
+                </template>
+
+                {# Modèle #}
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Modèle</label>
+                    <select x-model="perso.modele" class="form-input">
+                        <option value="">-- Choisir un modèle --</option>
+                        <option value="Homme">Homme</option>
+                        <option value="Femme">Femme</option>
+                        <option value="Enfant">Enfant</option>
+                    </select>
+                </div>
+
+                {# Couleur / Taille #}
+                <div class="grid sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Couleur</label>
+                        <input type="text" x-model="perso.couleur" class="form-input" placeholder="Ex. bordeaux">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Taille</label>
+                        <input type="text" x-model="perso.taille" class="form-input" placeholder="Ex. M, 38, 6 ans…">
+                    </div>
+                </div>
+
+                {# Autre #}
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Autre précision <span class="text-gray-400 font-normal">(optionnel)</span></label>
+                    <input type="text" x-model="perso.autre" class="form-input" placeholder="Matière, finition, contrainte particulière…">
+                </div>
+
+                {# Commentaire #}
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Commentaire</label>
+                    <textarea x-model="perso.commentaire" rows="3" class="form-input" placeholder="Décrivez votre demande de personnalisation…"></textarea>
+                </div>
+
+                {# Quantité #}
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Quantité</label>
+                    <select x-model.number="perso.quantite" class="form-input">
+                        <template x-for="n in 10" :key="n">
+                            <option :value="n" x-text="n"></option>
+                        </template>
+                    </select>
+                </div>
+
+                {# Contact #}
+                <div class="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 rounded-lg px-3 py-2">
+                    <svg class="w-5 h-5 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                    </svg>
+                    Vous serez recontacté(e) par email.
+                </div>
+
+                {# Erreur #}
+                <p x-show="persoError" x-text="persoError" x-cloak
+                   class="text-sm text-red-600 font-medium bg-red-50 rounded-lg px-3 py-2"></p>
+
+                {# Actions #}
+                <div class="flex gap-3 pt-2">
+                    <button type="button" @click="persoOpen = false"
+                            class="px-5 py-3 rounded-xl border-2 border-gray-200 text-gray-600 font-semibold hover:bg-gray-50 transition">
+                        Annuler
+                    </button>
+                    <button type="button" @click="submitPerso()" :disabled="persoSubmitting"
+                            class="btn-primary flex-1 py-3 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span x-show="!persoSubmitting">Envoyer ma demande</span>
+                        <span x-show="persoSubmitting" x-cloak>Envoi en cours…</span>
+                    </button>
+                </div>
+            </div>
+
+            {# Vue confirmation #}
+            <div x-show="persoSubmitted" x-cloak class="p-8 text-center space-y-4">
+                <div class="w-16 h-16 mx-auto rounded-full bg-green-100 flex items-center justify-center">
+                    <svg class="w-9 h-9 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+                <h4 class="font-heading text-2xl font-bold text-gray-900">Demande envoyée !</h4>
+                <p class="text-gray-600">
+                    Merci, votre demande de personnalisation a bien été enregistrée.
+                    Nous vous répondrons par email dans les plus brefs délais.
+                </p>
+                <button type="button" @click="persoOpen = false" class="btn-primary px-8 py-3">Fermer</button>
+            </div>
+
+        </div>
     </div>
 </div>
 {% endblock %}

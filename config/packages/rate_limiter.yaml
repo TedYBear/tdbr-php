@@ -1,0 +1,10 @@
+framework:
+    rate_limiter:
+        # Limite les soumissions de demandes sur-mesure / personnalisation (routes ouvertes aux invités).
+        # 5 demandes par tranche glissante de 10 minutes et par client (IP).
+        demande_sur_mesure:
+            policy: 'sliding_window'
+            limit: 5
+            interval: '10 minutes'
+            # Pas de verrou distribué (évite la dépendance symfony/lock) — suffisant pour de l'anti-spam.
+            lock_factory: null
