@@ -2,18 +2,26 @@
 namespace App\Controller;
 
 use App\Entity\DemandeSurMesure;
+use App\Entity\User;
 use App\Form\DemandeSurMesureType;
+use App\Repository\ArticleRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Annotation\Route;
 
 class DemandeSurMesureController extends AbstractController
 {
-    public function __construct(private EntityManagerInterface $em) {}
+    public function __construct(
+        private EntityManagerInterface $em,
+        private ArticleRepository $articleRepo,
+        private RateLimiterFactory $demandeSurMesureLimiter,
+    ) {
+    }
 
     #[Route('/devis', name: 'devis', methods: ['GET', 'POST'])]
     public function devis(Request $request, MailerInterface $mailer): Response
@@ -38,6 +46,18 @@ class DemandeSurMesureController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Honeypot anti-spam : champ caché qui doit rester vide
+            if ($request->request->get('website')) {
+                $this->addFlash('success', 'Votre demande sur-mesure a été envoyée ! Nous vous contacterons dans les plus brefs délais.');
+                return $this->redirectToRoute('devis');
+            }
+
+            // Limitation du débit (anti-spam)
+            if (!$this->demandeSurMesureLimiter->create($request->getClientIp() ?? 'anon')->consume(1)->isAccepted()) {
+                $this->addFlash('error', 'Trop de demandes envoyées. Merci de réessayer dans quelques minutes.');
+                return $this->redirectToRoute('devis');
+            }
+
             $data = $form->getData();
 
             // Récupérer les supports depuis la requête (checkboxes)
@@ -45,6 +65,7 @@ class DemandeSurMesureController extends AbstractController
             $supports = array_values(array_filter($supportsRaw));
 
             $demande = new DemandeSurMesure();
+            $demande->setSource('devis');
             $demande->setNom($data['nom']);
             $demande->setEmail($data['email']);
             $demande->setTelephone($data['telephone'] ?? null);
@@ -56,37 +77,23 @@ class DemandeSurMesureController extends AbstractController
             $demande->setMoyenContact($data['moyenContact']);
             $demande->setMessageAdditionnel($data['messageAdditionnel'] ?? null);
 
+            // Rattachement au compte + complétion des infos manquantes du compte (sans écraser l'existant)
+            $user = $this->getUser();
+            if ($user instanceof User) {
+                $demande->setUser($user);
+
+                if (!$user->getTelephone() && !empty($data['telephone'])) {
+                    $user->setTelephone($data['telephone']);
+                }
+                if (!$user->getPrenom() && !$user->getNom() && !empty($data['nom'])) {
+                    $user->setNom($data['nom']);
+                }
+            }
+
             $this->em->persist($demande);
             $this->em->flush();
 
-            // Notification email
-            try {
-                $from = $_ENV['MAILER_FROM'] ?? 'tdbrlaboutique@gmail.com';
-                $corps = "Nouvelle demande sur-mesure\n\n"
-                    . "Nom : " . $demande->getNom() . "\n"
-                    . "Email : " . $demande->getEmail() . "\n"
-                    . ($demande->getTelephone() ? "Téléphone : " . $demande->getTelephone() . "\n" : "")
-                    . "\nProjet :\n" . $demande->getConcept() . "\n"
-                    . ($demande->getContexte() ? "\nContexte : " . $demande->getContexte() . "\n" : "")
-                    . "\nSupports souhaités : " . implode(', ', $demande->getSupports()) . "\n"
-                    . "Quantité : " . $demande->getQuantite() . "\n"
-                    . "Contact préféré : " . $demande->getMoyenContact() . "\n"
-                    . ($demande->getMessageAdditionnel() ? "\nMessage : " . $demande->getMessageAdditionnel() . "\n" : "");
-
-                $email = (new Email())
-                    ->from($from)
-                    ->to($from)
-                    ->replyTo($demande->getEmail())
-                    ->subject('[TDBR Sur-mesure] Nouvelle demande de ' . $demande->getNom())
-                    ->text($corps);
-                $mailer->send($email);
-            } catch (\Throwable $e) {
-                file_put_contents(
-                    __DIR__ . '/../../var/log/mail_error.log',
-                    date('Y-m-d H:i:s') . ' - ' . $e->getMessage() . "\n",
-                    FILE_APPEND
-                );
-            }
+            $this->notifierAtelier($mailer, $demande);
 
             $this->addFlash('success', 'Votre demande sur-mesure a été envoyée ! Nous vous contacterons dans les plus brefs délais.');
             return $this->redirectToRoute('devis');
@@ -95,5 +102,167 @@ class DemandeSurMesureController extends AbstractController
         return $this->render('public/devis.html.twig', [
             'form' => $form->createView(),
         ]);
+    }
+
+    /**
+     * Demande de personnalisation soumise depuis la modale d'une fiche produit (AJAX JSON).
+     * Ouverte aux invités ; rattachée au compte si l'utilisateur est connecté.
+     */
+    #[Route('/demande-personnalisation', name: 'demande_personnalisation', methods: ['POST'])]
+    public function personnalisation(Request $request, MailerInterface $mailer): Response
+    {
+        if (!$this->isCsrfValid($request)) {
+            return $this->json(['error' => 'Token de sécurité invalide, veuillez recharger la page'], 403);
+        }
+
+        $data = json_decode($request->getContent(), true);
+        if (!is_array($data)) {
+            return $this->json(['error' => 'Données invalides'], 400);
+        }
+
+        // Honeypot : champ qui doit rester vide. Rempli => bot. On simule un succès pour ne pas l'informer.
+        if (!empty($data['website'])) {
+            return $this->json(['success' => true]);
+        }
+
+        // Limitation du débit (anti-spam)
+        if (!$this->demandeSurMesureLimiter->create($request->getClientIp() ?? 'anon')->consume(1)->isAccepted()) {
+            return $this->json(['error' => 'Trop de demandes. Merci de réessayer dans quelques minutes.'], 429);
+        }
+
+        // Produit
+        $articleId = isset($data['articleId']) ? (int) $data['articleId'] : 0;
+        $article = $articleId > 0 ? $this->articleRepo->find($articleId) : null;
+        if (!$article || !$article->isActif()) {
+            return $this->json(['error' => 'Produit introuvable'], 404);
+        }
+
+        // Identité : autoritaire depuis le compte si connecté, sinon saisie invité
+        $user = $this->getUser();
+        if ($user instanceof User) {
+            $nom = $user->getFullName() ?: (string) $user->getEmail();
+            $email = (string) $user->getEmail();
+            $telephone = $user->getTelephone();
+        } else {
+            $nom = trim((string) ($data['nom'] ?? ''));
+            $email = trim((string) ($data['email'] ?? ''));
+            $telephone = null;
+            if (mb_strlen($nom) < 2) {
+                return $this->json(['error' => 'Merci d’indiquer votre nom.'], 400);
+            }
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                return $this->json(['error' => 'Adresse email invalide.'], 400);
+            }
+        }
+
+        // Personnalisation
+        $modele = (string) ($data['modele'] ?? '');
+        if (!in_array($modele, ['Homme', 'Femme', 'Enfant'], true)) {
+            return $this->json(['error' => 'Veuillez choisir un modèle (Homme, Femme ou Enfant).'], 400);
+        }
+
+        $couleur = mb_substr(trim((string) ($data['couleur'] ?? '')), 0, 100) ?: null;
+        $taille = mb_substr(trim((string) ($data['taille'] ?? '')), 0, 100) ?: null;
+        $autre = mb_substr(trim((string) ($data['autre'] ?? '')), 0, 200) ?: null;
+        $commentaire = mb_substr(trim((string) ($data['commentaire'] ?? '')), 0, 2000) ?: null;
+
+        $quantite = isset($data['quantite']) ? (int) $data['quantite'] : 0;
+        if ($quantite < 1 || $quantite > 10) {
+            return $this->json(['error' => 'Quantité invalide (1 à 10).'], 400);
+        }
+
+        $demande = new DemandeSurMesure();
+        $demande->setSource('fiche_produit');
+        $demande->setUser($user instanceof User ? $user : null);
+        $demande->setArticle($article);
+        $demande->setNom($nom);
+        $demande->setEmail($email);
+        $demande->setTelephone($telephone);
+        $demande->setPersonnalisation([
+            'modele' => $modele,
+            'couleur' => $couleur,
+            'taille' => $taille,
+            'autre' => $autre,
+        ]);
+        $demande->setQuantite((string) $quantite);
+        $demande->setMoyenContact('email');
+        $demande->setMessageAdditionnel($commentaire);
+
+        $this->em->persist($demande);
+        $this->em->flush();
+
+        $this->notifierAtelier($mailer, $demande);
+
+        return $this->json(['success' => true]);
+    }
+
+    /**
+     * Valide le token CSRF 'app' des appels fetch JSON (header X-CSRF-Token) ou des formulaires (_token).
+     */
+    private function isCsrfValid(Request $request): bool
+    {
+        $token = (string) ($request->request->get('_token') ?? $request->headers->get('X-CSRF-Token', ''));
+
+        return $this->isCsrfTokenValid('app', $token);
+    }
+
+    /**
+     * Envoie l'email de notification à l'atelier. Les erreurs sont journalisées sans bloquer la demande.
+     */
+    private function notifierAtelier(MailerInterface $mailer, DemandeSurMesure $demande): void
+    {
+        try {
+            $from = $_ENV['MAILER_FROM'] ?? 'tdbrlaboutique@gmail.com';
+
+            $corps = "Nouvelle demande " . ($demande->getSource() === 'fiche_produit' ? 'de personnalisation produit' : 'sur-mesure') . "\n\n"
+                . "Nom : " . $demande->getNom() . "\n"
+                . "Email : " . $demande->getEmail() . "\n"
+                . ($demande->getTelephone() ? "Téléphone : " . $demande->getTelephone() . "\n" : "")
+                . ($demande->getUser() ? "Compte : #" . $demande->getUser()->getId() . "\n" : "Compte : invité\n");
+
+            if ($demande->getArticle()) {
+                $corps .= "\nProduit : " . $demande->getArticle()->getNom() . " (#" . $demande->getArticle()->getId() . ")\n";
+            }
+
+            if ($p = $demande->getPersonnalisation()) {
+                $corps .= "\nPersonnalisation :\n"
+                    . "  Modèle : " . ($p['modele'] ?? '-') . "\n"
+                    . "  Couleur : " . ($p['couleur'] ?? '-') . "\n"
+                    . "  Taille : " . ($p['taille'] ?? '-') . "\n"
+                    . ($p['autre'] ?? null ? "  Autre : " . $p['autre'] . "\n" : "");
+            }
+
+            if ($demande->getConcept()) {
+                $corps .= "\nProjet :\n" . $demande->getConcept() . "\n";
+            }
+            if ($demande->getContexte()) {
+                $corps .= "\nContexte : " . $demande->getContexte() . "\n";
+            }
+            if ($demande->getSupports()) {
+                $corps .= "Supports souhaités : " . implode(', ', $demande->getSupports()) . "\n";
+            }
+
+            $corps .= "Quantité : " . $demande->getQuantite() . "\n"
+                . "Contact préféré : " . $demande->getMoyenContact() . "\n"
+                . ($demande->getMessageAdditionnel() ? "\nMessage : " . $demande->getMessageAdditionnel() . "\n" : "");
+
+            $sujet = $demande->getSource() === 'fiche_produit'
+                ? '[TDBR Personnalisation] Nouvelle demande de ' . $demande->getNom()
+                : '[TDBR Sur-mesure] Nouvelle demande de ' . $demande->getNom();
+
+            $email = (new Email())
+                ->from($from)
+                ->to($from)
+                ->replyTo($demande->getEmail())
+                ->subject($sujet)
+                ->text($corps);
+            $mailer->send($email);
+        } catch (\Throwable $e) {
+            file_put_contents(
+                __DIR__ . '/../../var/log/mail_error.log',
+                date('Y-m-d H:i:s') . ' - ' . $e->getMessage() . "\n",
+                FILE_APPEND
+            );
+        }
     }
 }

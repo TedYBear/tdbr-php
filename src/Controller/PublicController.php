@@ -11,6 +11,7 @@ use App\Repository\CategoryRepository;
 use App\Repository\BoutiqueRelaisRepository;
 use App\Repository\CodeReductionRepository;
 use App\Repository\CommandeRepository;
+use App\Repository\DemandeSurMesureRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\PropositionCommercialeRepository;
 use App\Repository\ProductCollectionRepository;
@@ -66,6 +67,7 @@ class PublicController extends AbstractController
         private BoutiqueRelaisRepository $boutiqueRelaisRepo,
         private FournisseurRepository $fournisseurRepo,
         private PropositionCommercialeRepository $propositionRepo,
+        private DemandeSurMesureRepository $demandeSurMesureRepo,
         private MailerService $mailerService,
         private SiteConfigRepository $siteConfigRepo,
         private PrintfulService $printfulService,
@@ -1211,11 +1213,17 @@ class PublicController extends AbstractController
 
         $propositions = $this->propositionRepo->findByUser($user);
 
+        $demandesSurMesure = $this->demandeSurMesureRepo->findBy(
+            ['user' => $user],
+            ['createdAt' => 'DESC']
+        );
+
         return $this->render('auth/profil.html.twig', [
-            'user'           => $user,
-            'commandes'      => $commandes,
-            'codesReduction' => $codesReduction,
-            'propositions'   => $propositions,
+            'user'              => $user,
+            'commandes'         => $commandes,
+            'codesReduction'    => $codesReduction,
+            'propositions'      => $propositions,
+            'demandesSurMesure' => $demandesSurMesure,
         ]);
     }
 

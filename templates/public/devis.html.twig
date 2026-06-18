@@ -68,6 +68,13 @@
 
                 {{ form_start(form, {'attr': {'class': 'space-y-8', 'novalidate': 'novalidate'}}) }}
 
+                {# Honeypot anti-spam : invisible et ignoré des humains, ne pas remplir #}
+                <div aria-hidden="true" style="position:absolute;left:-9999px;top:-9999px;height:0;width:0;overflow:hidden;">
+                    <label>Ne pas remplir ce champ
+                        <input type="text" name="website" tabindex="-1" autocomplete="off">
+                    </label>
+                </div>
+
                 {# Section 1 : Contact #}
                 <div class="card p-8">
                     <h2 class="font-heading text-2xl font-bold mb-6 flex items-center gap-3">
