@@ -37,13 +37,9 @@
                             <td class="px-6 py-4 max-w-xs">
                                 {% if d.source == 'fiche_produit' %}
                                     {% if d.article %}<p class="text-sm font-semibold text-gray-800">{{ d.article.nom }}</p>{% endif %}
-                                    {% if d.personnalisation %}
-                                        {% set p = d.personnalisation %}
+                                    {% if d.personnalisation and d.personnalisation.type is defined %}
                                         <div class="flex flex-wrap gap-1 mt-1">
-                                            {% if p.modele %}<span class="px-2 py-0.5 bg-accent text-primary rounded text-xs">{{ p.modele }}</span>{% endif %}
-                                            {% if p.couleur %}<span class="px-2 py-0.5 bg-accent text-primary rounded text-xs">{{ p.couleur }}</span>{% endif %}
-                                            {% if p.taille %}<span class="px-2 py-0.5 bg-accent text-primary rounded text-xs">{{ p.taille }}</span>{% endif %}
-                                            {% if p.autre %}<span class="px-2 py-0.5 bg-accent text-primary rounded text-xs">{{ p.autre }}</span>{% endif %}
+                                            <span class="px-2 py-0.5 bg-accent text-primary rounded text-xs">{{ d.personnalisation.type }}</span>
                                         </div>
                                     {% endif %}
                                     {% if d.messageAdditionnel %}<p class="text-sm text-gray-500 line-clamp-2 mt-1">{{ d.messageAdditionnel }}</p>{% endif %}

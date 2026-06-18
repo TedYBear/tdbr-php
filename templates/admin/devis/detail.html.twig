@@ -61,7 +61,9 @@
                     {% else %}
                         <p class="text-sm text-amber-600 mb-4">Produit supprimé depuis.</p>
                     {% endif %}
-                    {% if devis.personnalisation %}
+                    {% if devis.personnalisation and devis.personnalisation.type is defined %}
+                        <div class="text-sm"><span class="text-gray-500">Type de demande :</span> <span class="font-semibold">{{ devis.personnalisation.type }}</span></div>
+                    {% elseif devis.personnalisation %}
                         {% set p = devis.personnalisation %}
                         <div class="grid sm:grid-cols-2 gap-3 text-sm">
                             <div><span class="text-gray-500">Modèle :</span> <span class="font-semibold">{{ p.modele ?: '—' }}</span></div>

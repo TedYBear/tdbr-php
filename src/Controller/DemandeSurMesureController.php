@@ -130,6 +130,12 @@ class DemandeSurMesureController extends AbstractController
             return $this->json(['error' => 'Trop de demandes. Merci de réessayer dans quelques minutes.'], 429);
         }
 
+        // Réservé aux utilisateurs connectés
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            return $this->json(['error' => 'Vous devez être connecté pour envoyer une demande de personnalisation.'], 401);
+        }
+
         // Produit
         $articleId = isset($data['articleId']) ? (int) $data['articleId'] : 0;
         $article = $articleId > 0 ? $this->articleRepo->find($articleId) : null;
@@ -137,54 +143,35 @@ class DemandeSurMesureController extends AbstractController
             return $this->json(['error' => 'Produit introuvable'], 404);
         }
 
-        // Identité : autoritaire depuis le compte si connecté, sinon saisie invité
-        $user = $this->getUser();
-        if ($user instanceof User) {
-            $nom = $user->getFullName() ?: (string) $user->getEmail();
-            $email = (string) $user->getEmail();
-            $telephone = $user->getTelephone();
-        } else {
-            $nom = trim((string) ($data['nom'] ?? ''));
-            $email = trim((string) ($data['email'] ?? ''));
-            $telephone = null;
-            if (mb_strlen($nom) < 2) {
-                return $this->json(['error' => 'Merci d’indiquer votre nom.'], 400);
-            }
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                return $this->json(['error' => 'Adresse email invalide.'], 400);
-            }
+        // Type de demande (liste fermée)
+        $typesValides = [
+            'Couleur différente',
+            'Taille non répertoriée',
+            'Modèle de T-shirt - H/F/Enfant',
+        ];
+        $typeDemande = (string) ($data['typeDemande'] ?? '');
+        if (!in_array($typeDemande, $typesValides, true)) {
+            return $this->json(['error' => 'Veuillez choisir un type de demande.'], 400);
         }
 
-        // Personnalisation
-        $modele = (string) ($data['modele'] ?? '');
-        if (!in_array($modele, ['Homme', 'Femme', 'Enfant'], true)) {
-            return $this->json(['error' => 'Veuillez choisir un modèle (Homme, Femme ou Enfant).'], 400);
-        }
-
-        $couleur = mb_substr(trim((string) ($data['couleur'] ?? '')), 0, 100) ?: null;
-        $taille = mb_substr(trim((string) ($data['taille'] ?? '')), 0, 100) ?: null;
-        $autre = mb_substr(trim((string) ($data['autre'] ?? '')), 0, 200) ?: null;
         $commentaire = mb_substr(trim((string) ($data['commentaire'] ?? '')), 0, 2000) ?: null;
 
-        $quantite = isset($data['quantite']) ? (int) $data['quantite'] : 0;
-        if ($quantite < 1 || $quantite > 10) {
-            return $this->json(['error' => 'Quantité invalide (1 à 10).'], 400);
-        }
+        // Description : nom de l'article + ID, puis type de demande et commentaire
+        $description = 'Article : ' . $article->getNom() . ' (#' . $article->getId() . ')' . "\n"
+            . 'Type de demande : ' . $typeDemande . "\n"
+            . 'Commentaire : ' . ($commentaire ?? '—');
 
+        // Coordonnées autoritaires depuis le compte
         $demande = new DemandeSurMesure();
         $demande->setSource('fiche_produit');
-        $demande->setUser($user instanceof User ? $user : null);
+        $demande->setUser($user);
         $demande->setArticle($article);
-        $demande->setNom($nom);
-        $demande->setEmail($email);
-        $demande->setTelephone($telephone);
-        $demande->setPersonnalisation([
-            'modele' => $modele,
-            'couleur' => $couleur,
-            'taille' => $taille,
-            'autre' => $autre,
-        ]);
-        $demande->setQuantite((string) $quantite);
+        $demande->setNom($user->getFullName() ?: (string) $user->getEmail());
+        $demande->setEmail((string) $user->getEmail());
+        $demande->setTelephone($user->getTelephone());
+        $demande->setConcept($description);
+        $demande->setPersonnalisation(['type' => $typeDemande]);
+        $demande->setQuantite('1');
         $demande->setMoyenContact('email');
         $demande->setMessageAdditionnel($commentaire);
 
@@ -225,11 +212,16 @@ class DemandeSurMesureController extends AbstractController
             }
 
             if ($p = $demande->getPersonnalisation()) {
-                $corps .= "\nPersonnalisation :\n"
-                    . "  Modèle : " . ($p['modele'] ?? '-') . "\n"
-                    . "  Couleur : " . ($p['couleur'] ?? '-') . "\n"
-                    . "  Taille : " . ($p['taille'] ?? '-') . "\n"
-                    . ($p['autre'] ?? null ? "  Autre : " . $p['autre'] . "\n" : "");
+                if (!empty($p['type'])) {
+                    $corps .= "\nType de demande : " . $p['type'] . "\n";
+                } else {
+                    // Ancien format structuré (modèle/couleur/taille)
+                    $corps .= "\nPersonnalisation :\n"
+                        . "  Modèle : " . ($p['modele'] ?? '-') . "\n"
+                        . "  Couleur : " . ($p['couleur'] ?? '-') . "\n"
+                        . "  Taille : " . ($p['taille'] ?? '-') . "\n"
+                        . ($p['autre'] ?? null ? "  Autre : " . $p['autre'] . "\n" : "");
+                }
             }
 
             if ($demande->getConcept()) {

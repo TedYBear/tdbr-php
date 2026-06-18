@@ -160,11 +160,7 @@
                 persoSubmitting: false,
                 persoSubmitted: false,
                 persoError: '',
-                isLogged: {{ app.user ? 'true' : 'false' }},
-                perso: {
-                    nom: '', email: '', modele: '', couleur: '', taille: '',
-                    autre: '', commentaire: '', quantite: 1, website: ''
-                },
+                perso: { typeDemande: '', commentaire: '', website: '' },
 
                 openPerso() {
                     this.persoSubmitted = false;
@@ -174,12 +170,7 @@
 
                 async submitPerso() {
                     this.persoError = '';
-                    if (!this.perso.modele) { this.persoError = 'Veuillez choisir un modèle.'; return; }
-                    if (!this.isLogged) {
-                        if (this.perso.nom.trim().length < 2) { this.persoError = 'Veuillez indiquer votre nom.'; return; }
-                        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(this.perso.email)) { this.persoError = 'Adresse email invalide.'; return; }
-                    }
-                    if (this.perso.quantite < 1 || this.perso.quantite > 10) { this.persoError = 'Quantité invalide (1 à 10).'; return; }
+                    if (!this.perso.typeDemande) { this.persoError = 'Veuillez choisir un type de demande.'; return; }
 
                     this.persoSubmitting = true;
                     try {
@@ -191,14 +182,8 @@
                             },
                             body: JSON.stringify({
                                 articleId: {{ article.id }},
-                                nom: this.perso.nom,
-                                email: this.perso.email,
-                                modele: this.perso.modele,
-                                couleur: this.perso.couleur,
-                                taille: this.perso.taille,
-                                autre: this.perso.autre,
+                                typeDemande: this.perso.typeDemande,
                                 commentaire: this.perso.commentaire,
-                                quantite: this.perso.quantite,
                                 website: this.perso.website
                             })
                         });
@@ -522,19 +507,32 @@
                         </div>
                     </div>
 
-                    {# Demande de personnalisation sur-mesure (tous les produits) #}
+                    {# Demande de personnalisation sur-mesure (réservée aux utilisateurs connectés) #}
                     <div class="pt-2">
-                        <button type="button"
-                                @click="openPerso()"
-                                class="w-full py-4 text-lg border-2 border-primary text-primary rounded-xl font-bold hover:bg-primary hover:text-white transition flex items-center justify-center gap-3">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.994 15.994 0 011.622-3.395m3.42 3.42a15.995 15.995 0 004.764-4.648l3.876-5.814a1.151 1.151 0 00-1.597-1.597L14.146 6.32a15.996 15.996 0 00-4.649 4.763m3.42 3.42a6.776 6.776 0 00-3.42-3.42"></path>
-                            </svg>
-                            Personnaliser ce produit
-                        </button>
-                        <p class="text-center text-sm text-gray-500 mt-2">
-                            Une envie particulière (modèle, couleur, taille) ? Envoyez votre demande, réponse au plus vite.
-                        </p>
+                        {% if app.user %}
+                            <button type="button"
+                                    @click="openPerso()"
+                                    class="w-full py-4 text-lg border-2 border-primary text-primary rounded-xl font-bold hover:bg-primary hover:text-white transition flex items-center justify-center gap-3">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.994 15.994 0 011.622-3.395m3.42 3.42a15.995 15.995 0 004.764-4.648l3.876-5.814a1.151 1.151 0 00-1.597-1.597L14.146 6.32a15.996 15.996 0 00-4.649 4.763m3.42 3.42a6.776 6.776 0 00-3.42-3.42"></path>
+                                </svg>
+                                Personnaliser ce produit
+                            </button>
+                            <p class="text-center text-sm text-gray-500 mt-2">
+                                Une envie particulière (couleur, taille, modèle) ? Envoyez votre demande, réponse au plus vite.
+                            </p>
+                        {% else %}
+                            <button type="button" disabled
+                                    class="w-full py-4 text-lg border-2 border-gray-200 text-gray-400 rounded-xl font-bold cursor-not-allowed flex items-center justify-center gap-3">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.994 15.994 0 011.622-3.395m3.42 3.42a15.995 15.995 0 004.764-4.648l3.876-5.814a1.151 1.151 0 00-1.597-1.597L14.146 6.32a15.996 15.996 0 00-4.649 4.763m3.42 3.42a6.776 6.776 0 00-3.42-3.42"></path>
+                                </svg>
+                                Personnaliser ce produit
+                            </button>
+                            <p class="text-center text-sm text-gray-500 mt-2">
+                                <a href="{{ path('connexion', {redirect: app.request.pathinfo}) }}" class="text-primary font-semibold hover:underline">Connectez-vous</a> pour demander une personnalisation.
+                            </p>
+                        {% endif %}
                     </div>
 
                 </div>
@@ -609,63 +607,21 @@
                 <input type="text" x-model="perso.website" tabindex="-1" autocomplete="off" aria-hidden="true"
                        style="position:absolute;left:-9999px;width:0;height:0;overflow:hidden;">
 
-                {# Coordonnées invité #}
-                <template x-if="!isLogged">
-                    <div class="grid sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Nom</label>
-                            <input type="text" x-model="perso.nom" class="form-input" placeholder="Votre nom">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Email</label>
-                            <input type="email" x-model="perso.email" class="form-input" placeholder="votre@email.com">
-                        </div>
-                    </div>
-                </template>
-
-                {# Modèle #}
+                {# Type de demande #}
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Modèle</label>
-                    <select x-model="perso.modele" class="form-input">
-                        <option value="">-- Choisir un modèle --</option>
-                        <option value="Homme">Homme</option>
-                        <option value="Femme">Femme</option>
-                        <option value="Enfant">Enfant</option>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Type de demande</label>
+                    <select x-model="perso.typeDemande" class="form-input">
+                        <option value="">-- Choisir --</option>
+                        <option value="Couleur différente">Couleur différente</option>
+                        <option value="Taille non répertoriée">Taille non répertoriée</option>
+                        <option value="Modèle de T-shirt - H/F/Enfant">Modèle de T-shirt - H/F/Enfant</option>
                     </select>
-                </div>
-
-                {# Couleur / Taille #}
-                <div class="grid sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Couleur</label>
-                        <input type="text" x-model="perso.couleur" class="form-input" placeholder="Ex. bordeaux">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Taille</label>
-                        <input type="text" x-model="perso.taille" class="form-input" placeholder="Ex. M, 38, 6 ans…">
-                    </div>
-                </div>
-
-                {# Autre #}
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Autre précision <span class="text-gray-400 font-normal">(optionnel)</span></label>
-                    <input type="text" x-model="perso.autre" class="form-input" placeholder="Matière, finition, contrainte particulière…">
                 </div>
 
                 {# Commentaire #}
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Commentaire</label>
-                    <textarea x-model="perso.commentaire" rows="3" class="form-input" placeholder="Décrivez votre demande de personnalisation…"></textarea>
-                </div>
-
-                {# Quantité #}
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Quantité</label>
-                    <select x-model.number="perso.quantite" class="form-input">
-                        <template x-for="n in 10" :key="n">
-                            <option :value="n" x-text="n"></option>
-                        </template>
-                    </select>
+                    <textarea x-model="perso.commentaire" rows="4" class="form-input" placeholder="Précisez votre demande de personnalisation…"></textarea>
                 </div>
 
                 {# Contact #}

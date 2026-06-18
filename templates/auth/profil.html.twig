@@ -280,7 +280,9 @@
                                             <p class="font-semibold text-gray-800">
                                                 {% if demande.article %}{{ demande.article.nom }}{% else %}Demande sur-mesure{% endif %}
                                             </p>
-                                            {% if demande.personnalisation %}
+                                            {% if demande.personnalisation and demande.personnalisation.type is defined %}
+                                                <p class="text-sm text-gray-600 mt-1">{{ demande.personnalisation.type }}</p>
+                                            {% elseif demande.personnalisation %}
                                                 {% set p = demande.personnalisation %}
                                                 <p class="text-sm text-gray-600 mt-1">
                                                     {% set parts = [] %}
@@ -294,7 +296,6 @@
                                             {% if demande.messageAdditionnel %}
                                                 <p class="text-sm text-gray-500 mt-1 line-clamp-2">{{ demande.messageAdditionnel }}</p>
                                             {% endif %}
-                                            <p class="text-xs text-gray-400 mt-2">Quantité : {{ demande.quantite }}</p>
                                         </div>
                                         <div class="flex-shrink-0">
                                             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold
