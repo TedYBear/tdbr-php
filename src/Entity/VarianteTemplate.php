@@ -29,9 +29,16 @@ class VarianteTemplate
     #[ORM\JoinTable(name: 'template_caracteristiques')]
     private Collection $caracteristiques;
 
+    /** Types de personnalisation proposés pour les articles utilisant ce template (peut être vide). */
+    #[ORM\ManyToMany(targetEntity: TypePersonnalisation::class)]
+    #[ORM\JoinTable(name: 'template_personnalisations')]
+    #[ORM\OrderBy(['ordre' => 'ASC', 'nom' => 'ASC'])]
+    private Collection $personnalisations;
+
     public function __construct()
     {
         $this->caracteristiques = new ArrayCollection();
+        $this->personnalisations = new ArrayCollection();
     }
 
     public function getId(): ?int { return $this->id; }
@@ -44,4 +51,8 @@ class VarianteTemplate
     public function getCaracteristiques(): Collection { return $this->caracteristiques; }
     public function addCaracteristique(Caracteristique $c): static { if (!$this->caracteristiques->contains($c)) { $this->caracteristiques->add($c); } return $this; }
     public function removeCaracteristique(Caracteristique $c): static { $this->caracteristiques->removeElement($c); return $this; }
+
+    public function getPersonnalisations(): Collection { return $this->personnalisations; }
+    public function addPersonnalisation(TypePersonnalisation $p): static { if (!$this->personnalisations->contains($p)) { $this->personnalisations->add($p); } return $this; }
+    public function removePersonnalisation(TypePersonnalisation $p): static { $this->personnalisations->removeElement($p); return $this; }
 }

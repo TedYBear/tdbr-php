@@ -1,0 +1,47 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% block title %}{{ personnalisation ? 'Modifier' : 'Nouvelle' }} personnalisation{% endblock %}
+
+{% block page_title %}{{ personnalisation ? 'Modifier' : 'Nouvelle' }} personnalisation{% endblock %}
+
+{% block body %}
+<form method="post" class="max-w-xl">
+    <div class="card p-6 space-y-4">
+        <div class="form-group">
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Nom *</label>
+            <input type="text"
+                   name="nom"
+                   value="{{ personnalisation ? personnalisation.nom : '' }}"
+                   required
+                   placeholder="ex : Couleur différente, Taille non répertoriée…"
+                   class="form-input">
+        </div>
+
+        <div class="form-group">
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Ordre d'affichage</label>
+            <input type="number"
+                   name="ordre"
+                   value="{{ personnalisation ? personnalisation.ordre : 0 }}"
+                   class="form-input w-32">
+            <p class="text-xs text-gray-500 mt-1">Les plus petits nombres apparaissent en premier dans la liste déroulante.</p>
+        </div>
+
+        <div class="form-group">
+            <label class="inline-flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" name="actif" value="1"
+                       {{ (personnalisation is null or personnalisation.actif) ? 'checked' : '' }}
+                       class="w-4 h-4 text-primary rounded">
+                <span class="text-sm font-semibold text-gray-700">Actif</span>
+            </label>
+            <p class="text-xs text-gray-500 mt-1">Une personnalisation inactive n'est proposée sur aucune fiche produit.</p>
+        </div>
+    </div>
+
+    <div class="flex gap-3 mt-6">
+        <button type="submit" class="btn-primary">
+            {{ personnalisation ? 'Mettre à jour' : 'Créer' }}
+        </button>
+        <a href="{{ path('admin_personnalisations') }}" class="btn-outline">Annuler</a>
+    </div>
+</form>
+{% endblock %}

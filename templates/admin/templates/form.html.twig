@@ -122,6 +122,41 @@
             {% endif %}
         </div>
 
+        {# Personnalisations proposables #}
+        <div class="card p-6">
+            <h2 class="text-xl font-bold mb-1">Personnalisations proposables</h2>
+            <p class="text-sm text-gray-500 mb-4">
+                Cochez les demandes de personnalisation proposées sur la fiche des articles utilisant ce template.
+                Si aucune n'est cochée, le bouton « Personnaliser » n'apparaît pas.
+            </p>
+
+            {% if personnalisations|length > 0 %}
+                <div class="space-y-3">
+                    {% for perso in personnalisations %}
+                        {% set isChecked = template and perso in template.personnalisations %}
+                        <label class="flex items-center gap-3 p-3 rounded-lg border hover:border-primary/30 hover:bg-accent/20 cursor-pointer transition-colors {{ isChecked ? 'border-primary/30 bg-accent/20' : 'border-gray-200' }}">
+                            <input type="checkbox"
+                                   name="personnalisations[]"
+                                   value="{{ perso.id }}"
+                                   {{ isChecked ? 'checked' : '' }}
+                                   class="w-4 h-4 text-primary rounded">
+                            <span class="font-semibold text-dark">{{ perso.nom }}</span>
+                            {% if not perso.actif %}
+                                <span class="px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-xs">Inactif</span>
+                            {% endif %}
+                        </label>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-8 bg-gray-50 rounded-lg">
+                    <p class="text-gray-500 text-sm mb-3">Aucune personnalisation disponible.</p>
+                    <a href="{{ path('admin_personnalisations_new') }}" class="text-primary hover:text-secondary text-sm font-medium">
+                        Créer des personnalisations d'abord →
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
         {# Actions #}
         <div class="flex gap-3">
             <button type="submit" class="btn-primary">

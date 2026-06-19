@@ -6,6 +6,10 @@
 {% set prixBase = 0 %}
 {% if article.grillePrix %}{% for p in article.grillePrix.paliers %}{% if p.min == 1 and p.prixVente is not null and prixBase == 0 %}{% set prixBase = p.prixVente %}{% endif %}{% endfor %}{% endif %}
 
+{# Personnalisations proposables = celles (actives) du template de l'article #}
+{% set persoList = [] %}
+{% if article.varianteTemplate %}{% for p in article.varianteTemplate.personnalisations %}{% if p.actif %}{% set persoList = persoList|merge([p]) %}{% endif %}{% endfor %}{% endif %}
+
 {% block javascripts %}
     {#
      IMPORTANT: ce <script nonce="{{ csp_nonce() }}"> doit être AVANT {{ parent() }} pour que le listener
@@ -507,7 +511,8 @@
                         </div>
                     </div>
 
-                    {# Demande de personnalisation sur-mesure (réservée aux utilisateurs connectés) #}
+                    {# Demande de personnalisation sur-mesure (uniquement si le template propose des personnalisations) #}
+                    {% if persoList|length > 0 %}
                     <div class="pt-2">
                         {% if app.user %}
                             <button type="button"
@@ -534,6 +539,7 @@
                             </p>
                         {% endif %}
                     </div>
+                    {% endif %}
 
                 </div>
             </div>
@@ -579,6 +585,7 @@
     </div>
 
     {# Modale : demande de personnalisation sur-mesure #}
+    {% if persoList|length > 0 %}
     <div x-show="persoOpen"
          x-cloak
          @keydown.escape.window="persoOpen = false"
@@ -607,14 +614,14 @@
                 <input type="text" x-model="perso.website" tabindex="-1" autocomplete="off" aria-hidden="true"
                        style="position:absolute;left:-9999px;width:0;height:0;overflow:hidden;">
 
-                {# Type de demande #}
+                {# Type de demande (issu du template de l'article) #}
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Type de demande</label>
                     <select x-model="perso.typeDemande" class="form-input">
                         <option value="">-- Choisir --</option>
-                        <option value="Couleur différente">Couleur différente</option>
-                        <option value="Taille non répertoriée">Taille non répertoriée</option>
-                        <option value="Modèle de T-shirt - H/F/Enfant">Modèle de T-shirt - H/F/Enfant</option>
+                        {% for p in persoList %}
+                            <option value="{{ p.nom }}">{{ p.nom }}</option>
+                        {% endfor %}
                     </select>
                 </div>
 
@@ -667,5 +674,6 @@
 
         </div>
     </div>
+    {% endif %}
 </div>
 {% endblock %}

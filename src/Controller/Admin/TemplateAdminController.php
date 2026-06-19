@@ -4,6 +4,7 @@ namespace App\Controller\Admin;
 
 use App\Entity\VarianteTemplate;
 use App\Repository\CaracteristiqueRepository;
+use App\Repository\TypePersonnalisationRepository;
 use App\Repository\VarianteTemplateRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -25,6 +26,7 @@ class TemplateAdminController extends AbstractController
         private EntityManagerInterface $em,
         private VarianteTemplateRepository $templateRepo,
         private CaracteristiqueRepository $caracRepo,
+        private TypePersonnalisationRepository $persoRepo,
     ) {
     }
 
@@ -42,6 +44,7 @@ class TemplateAdminController extends AbstractController
     public function new(Request $request, SluggerInterface $slugger): Response
     {
         $caracteristiques = $this->caracRepo->findBy([], ['nom' => 'ASC']);
+        $personnalisations = $this->persoRepo->findBy([], ['ordre' => 'ASC', 'nom' => 'ASC']);
 
         if ($request->isMethod('POST')) {
             $data = $request->request->all();
@@ -60,6 +63,14 @@ class TemplateAdminController extends AbstractController
                 }
             }
 
+            $persoIds = array_filter((array)($data['personnalisations'] ?? []), fn($v) => !empty($v));
+            foreach ($persoIds as $persoId) {
+                $perso = $this->persoRepo->find((int)$persoId);
+                if ($perso) {
+                    $template->addPersonnalisation($perso);
+                }
+            }
+
             $this->em->persist($template);
             $this->em->flush();
 
@@ -68,8 +79,9 @@ class TemplateAdminController extends AbstractController
         }
 
         return $this->render('admin/templates/form.html.twig', [
-            'template'         => null,
-            'caracteristiques' => $caracteristiques,
+            'template'          => null,
+            'caracteristiques'  => $caracteristiques,
+            'personnalisations' => $personnalisations,
         ]);
     }
 
@@ -83,6 +95,7 @@ class TemplateAdminController extends AbstractController
         }
 
         $caracteristiques = $this->caracRepo->findBy([], ['nom' => 'ASC']);
+        $personnalisations = $this->persoRepo->findBy([], ['ordre' => 'ASC', 'nom' => 'ASC']);
 
         if ($request->isMethod('POST')) {
             $data = $request->request->all();
@@ -104,6 +117,18 @@ class TemplateAdminController extends AbstractController
                 }
             }
 
+            // Reset personnalisations
+            foreach ($template->getPersonnalisations()->toArray() as $p) {
+                $template->removePersonnalisation($p);
+            }
+            $persoIds = array_filter((array)($data['personnalisations'] ?? []), fn($v) => !empty($v));
+            foreach ($persoIds as $persoId) {
+                $perso = $this->persoRepo->find((int)$persoId);
+                if ($perso) {
+                    $template->addPersonnalisation($perso);
+                }
+            }
+
             $this->em->flush();
 
             $this->addFlash('success', 'Template modifié avec succès');
@@ -111,8 +136,9 @@ class TemplateAdminController extends AbstractController
         }
 
         return $this->render('admin/templates/form.html.twig', [
-            'template'         => $template,
-            'caracteristiques' => $caracteristiques,
+            'template'          => $template,
+            'caracteristiques'  => $caracteristiques,
+            'personnalisations' => $personnalisations,
         ]);
     }
 

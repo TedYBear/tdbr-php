@@ -143,15 +143,21 @@ class DemandeSurMesureController extends AbstractController
             return $this->json(['error' => 'Produit introuvable'], 404);
         }
 
-        // Type de demande (liste fermée)
-        $typesValides = [
-            'Couleur différente',
-            'Taille non répertoriée',
-            'Modèle de T-shirt - H/F/Enfant',
-        ];
+        // Type de demande = parmi les personnalisations actives du template de l'article
+        $typesValides = [];
+        if ($template = $article->getVarianteTemplate()) {
+            foreach ($template->getPersonnalisations() as $tp) {
+                if ($tp->isActif()) {
+                    $typesValides[] = $tp->getNom();
+                }
+            }
+        }
+        if (count($typesValides) === 0) {
+            return $this->json(['error' => 'Aucune personnalisation n’est proposée pour ce produit.'], 400);
+        }
         $typeDemande = (string) ($data['typeDemande'] ?? '');
         if (!in_array($typeDemande, $typesValides, true)) {
-            return $this->json(['error' => 'Veuillez choisir un type de demande.'], 400);
+            return $this->json(['error' => 'Veuillez choisir un type de demande valide.'], 400);
         }
 
         $commentaire = mb_substr(trim((string) ($data['commentaire'] ?? '')), 0, 2000) ?: null;

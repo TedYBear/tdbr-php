@@ -1,0 +1,58 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% block title %}Personnalisations{% endblock %}
+
+{% block page_title %}Types de personnalisation{% endblock %}
+
+{% block body %}
+    <div class="flex items-center justify-between mb-6">
+        <p class="text-sm text-gray-500">
+            Liste des demandes de personnalisation proposables. Associez-les ensuite à un
+            <a href="{{ path('admin_templates') }}" class="text-primary hover:underline">template</a> pour qu'elles apparaissent sur les fiches produit.
+        </p>
+        <a href="{{ path('admin_personnalisations_new') }}" class="btn-primary whitespace-nowrap">+ Nouvelle personnalisation</a>
+    </div>
+
+    <div class="card overflow-hidden">
+        {% if personnalisations|length > 0 %}
+            <table class="w-full">
+                <thead class="bg-gray-50 border-b">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Ordre</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Nom</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Statut</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y">
+                    {% for perso in personnalisations %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 text-gray-500">{{ perso.ordre }}</td>
+                            <td class="px-6 py-4 font-semibold">{{ perso.nom }}</td>
+                            <td class="px-6 py-4">
+                                {% if perso.actif %}
+                                    <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">Actif</span>
+                                {% else %}
+                                    <span class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-semibold">Inactif</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex gap-2">
+                                    <a href="{{ path('admin_personnalisations_edit', {id: perso.id}) }}" class="text-primary hover:text-secondary">Modifier</a>
+                                    <form method="post" action="{{ path('admin_personnalisations_delete', {id: perso.id}) }}" onsubmit="window.confirmForm(event, this, 'Supprimer cette personnalisation ?')">
+                                        <button type="submit" class="text-red-600 hover:text-red-700">Supprimer</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="text-center py-16">
+                <p class="text-gray-500 mb-4">Aucune personnalisation définie</p>
+                <a href="{{ path('admin_personnalisations_new') }}" class="btn-primary">Créer la première personnalisation</a>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
