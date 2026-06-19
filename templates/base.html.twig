@@ -8,7 +8,9 @@
     <meta name="csrf-token" content="{{ csrf_token('app') }}">
 
     {% block stylesheets %}
-        <link rel="stylesheet" href="{{ asset('build/app.e6597658.css') }}">
+        {% for href in encore_entry('app', 'css') %}
+            <link rel="stylesheet" href="{{ href }}">
+        {% endfor %}
     {% endblock %}
 </head>
 <body class="bg-white text-dark font-sans antialiased">
@@ -118,9 +120,9 @@
     {% include 'layout/footer.html.twig' %}
 
     {% block javascripts %}
-        <script src="{{ asset('build/runtime.f073a35a.js') }}"></script>
-        <script src="{{ asset('build/705.31b65463.js') }}"></script>
-        <script src="{{ asset('build/app.6f8cc793.js') }}"></script>
+        {% for src in encore_entry('app', 'js') %}
+            <script src="{{ src }}" nonce="{{ csp_nonce() }}"></script>
+        {% endfor %}
     {% endblock %}
 </body>
 </html>

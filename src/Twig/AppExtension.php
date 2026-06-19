@@ -12,6 +12,9 @@ use Twig\TwigFunction;
 
 class AppExtension extends AbstractExtension implements GlobalsInterface
 {
+    /** @var array<string, array<string, string[]>>|null Cache des entrypoints Webpack Encore */
+    private ?array $entrypoints = null;
+
     public function __construct(
         private SiteConfigRepository $siteConfigRepo,
         private RequestStack $requestStack,
@@ -40,7 +43,27 @@ class AppExtension extends AbstractExtension implements GlobalsInterface
         return [
             new TwigFunction('asset_exists', [$this, 'assetExists']),
             new TwigFunction('csp_nonce', [$this, 'cspNonce']),
+            new TwigFunction('encore_entry', [$this, 'encoreEntry']),
         ];
+    }
+
+    /**
+     * Liste des fichiers (type 'js' ou 'css') d'un point d'entrée Webpack Encore,
+     * lue depuis public/build/entrypoints.json. Évite de coder les hash en dur dans
+     * les templates : après chaque `npm run build`, le bon hash est servi automatiquement.
+     *
+     * @return string[]
+     */
+    public function encoreEntry(string $entry, string $type): array
+    {
+        if ($this->entrypoints === null) {
+            $file = __DIR__ . '/../../public/build/entrypoints.json';
+            $this->entrypoints = is_file($file)
+                ? (json_decode((string) file_get_contents($file), true)['entrypoints'] ?? [])
+                : [];
+        }
+
+        return $this->entrypoints[$entry][$type] ?? [];
     }
 
     /**
