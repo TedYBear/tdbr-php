@@ -3,21 +3,21 @@
 {% block header_title %}Un cadeau pour vous !{% endblock %}
 
 {% block content %}
-    <h2 style="color: #2C1117; margin-top: 0;">Merci pour votre commande !</h2>
+    <h2 style="color: #243B1E; margin-top: 0;">Merci pour votre commande !</h2>
 
     <p style="font-size: 16px; line-height: 1.6; color: #333;">
         Votre soutien compte énormément pour nous. Pour vous remercier d'avoir fait confiance à TDBR,
         voici un code cadeau à utiliser sur votre prochaine commande :
     </p>
 
-    <div style="background-color: #F8EAED; padding: 28px; border-radius: 12px; margin: 28px 0; text-align: center;">
-        <div style="font-size: 13px; color: #7A2E3F; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; font-weight: 600;">
+    <div style="background-color: #FAF1D8; padding: 28px; border-radius: 12px; margin: 28px 0; text-align: center;">
+        <div style="font-size: 13px; color: #4F8A3D; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; font-weight: 600;">
             Votre code cadeau
         </div>
-        <div style="font-size: 2rem; font-weight: 800; color: #2C1117; letter-spacing: 0.15em; font-family: monospace; background: #fff; display: inline-block; padding: 12px 28px; border-radius: 8px; border: 2px dashed #B65C6E;">
+        <div style="font-size: 2rem; font-weight: 800; color: #243B1E; letter-spacing: 0.15em; font-family: monospace; background: #fff; display: inline-block; padding: 12px 28px; border-radius: 8px; border: 2px dashed #E2802F;">
             {{ code }}
         </div>
-        <div style="margin-top: 16px; font-size: 18px; font-weight: 700; color: #7A2E3F;">
+        <div style="margin-top: 16px; font-size: 18px; font-weight: 700; color: #4F8A3D;">
             {% if type == 'pourcentage' %}
                 {{ montant|number_format(0, ',', ' ') }} % de réduction
             {% else %}

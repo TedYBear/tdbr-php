@@ -138,10 +138,10 @@ img[src*="/uploads/articles/"] {
   .animated-gradient {
     background: linear-gradient(
       -45deg,
-      #F8EAED,
-      #B65C6E,
-      #7A2E3F,
-      #F8EAED
+      #FAF1D8,
+      #E2802F,
+      #4F8A3D,
+      #FAF1D8
     );
     background-size: 400% 400%;
     animation: gradient-shift 15s ease infinite;
@@ -156,7 +156,7 @@ img[src*="/uploads/articles/"] {
   .feature-card::after {
     content: '';
     @apply absolute inset-0 opacity-0 transition-opacity duration-500;
-    background: linear-gradient(135deg, rgba(122, 46, 63, 0.05), rgba(182, 92, 110, 0.05));
+    background: linear-gradient(135deg, rgba(79, 138, 61, 0.05), rgba(226, 128, 47, 0.05));
     border-radius: 1rem;
   }
 
@@ -220,7 +220,7 @@ img[src*="/uploads/articles/"] {
   /* Pricing card */
   .price-tag {
     @apply text-4xl font-bold;
-    background: linear-gradient(135deg, #7A2E3F, #B65C6E);
+    background: linear-gradient(135deg, #4F8A3D, #E2802F);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -258,7 +258,7 @@ img[src*="/uploads/articles/"] {
   /* Gradient border */
   .gradient-border {
     @apply relative p-1 rounded-2xl;
-    background: linear-gradient(135deg, #7A2E3F, #B65C6E, #7A2E3F);
+    background: linear-gradient(135deg, #4F8A3D, #E2802F, #4F8A3D);
     background-size: 200% 200%;
     animation: gradient-shift 3s ease infinite;
   }
@@ -346,13 +346,13 @@ img[src*="/uploads/articles/"] {
   }
 
   .glow {
-    box-shadow: 0 0 20px rgba(122, 46, 63, 0.4),
-                0 0 40px rgba(122, 46, 63, 0.2);
+    box-shadow: 0 0 20px rgba(79, 138, 61, 0.4),
+                0 0 40px rgba(79, 138, 61, 0.2);
   }
 
   .glow-secondary {
-    box-shadow: 0 0 20px rgba(182, 92, 110, 0.4),
-                0 0 40px rgba(182, 92, 110, 0.2);
+    box-shadow: 0 0 20px rgba(226, 128, 47, 0.4),
+                0 0 40px rgba(226, 128, 47, 0.2);
   }
 }
 
