@@ -3,17 +3,17 @@
 {% block header_title %}Nouveau Message Contact{% endblock %}
 
 {% block content %}
-    <h2 style="color: #2C2416; margin-top: 0;">Nouveau message de contact</h2>
+    <h2 style="color: #2C1117; margin-top: 0;">Nouveau message de contact</h2>
 
-    <div style="background-color: #F5E6D3; padding: 20px; border-radius: 8px; margin: 20px 0;">
+    <div style="background-color: #F8EAED; padding: 20px; border-radius: 8px; margin: 20px 0;">
         <p style="margin: 0 0 10px 0;"><strong>De :</strong> {{ message.nom }}</p>
-        <p style="margin: 0 0 10px 0;"><strong>Email :</strong> <a href="mailto:{{ message.email }}" style="color: #8B7355;">{{ message.email }}</a></p>
+        <p style="margin: 0 0 10px 0;"><strong>Email :</strong> <a href="mailto:{{ message.email }}" style="color: #7A2E3F;">{{ message.email }}</a></p>
         <p style="margin: 0 0 10px 0;"><strong>Sujet :</strong> {{ message.sujet }}</p>
         <p style="margin: 0;"><strong>Date :</strong> {{ message.createdAt|date('d/m/Y à H:i') }}</p>
     </div>
 
-    <h3 style="color: #8B7355;">Message :</h3>
-    <div style="background-color: #f9f9f9; padding: 20px; border-left: 4px solid #8B7355; border-radius: 4px;">
+    <h3 style="color: #7A2E3F;">Message :</h3>
+    <div style="background-color: #f9f9f9; padding: 20px; border-left: 4px solid #7A2E3F; border-radius: 4px;">
         <p style="white-space: pre-line; margin: 0;">{{ message.message }}</p>
     </div>
 

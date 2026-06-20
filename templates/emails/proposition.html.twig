@@ -3,22 +3,22 @@
 {% block header_title %}Proposition Commerciale{% endblock %}
 
 {% block content %}
-    <h2 style="color: #2C2416; margin-top: 0;">Votre proposition sur-mesure</h2>
+    <h2 style="color: #2C1117; margin-top: 0;">Votre proposition sur-mesure</h2>
 
     <p style="font-size: 16px; line-height: 1.6; color: #333;">
         {% if proposition.clientNom %}Bonjour <strong>{{ proposition.clientNom }}</strong>,{% else %}Bonjour,{% endif %}
     </p>
 
     {% if messagePersonnel %}
-    <div style="font-size: 16px; line-height: 1.7; color: #333; white-space: pre-line; margin-bottom: 20px; padding: 16px 20px; background: #fdfaf6; border-left: 3px solid #D4AF7A; border-radius: 0 6px 6px 0;">{{ messagePersonnel }}</div>
+    <div style="font-size: 16px; line-height: 1.7; color: #333; white-space: pre-line; margin-bottom: 20px; padding: 16px 20px; background: #fdfaf6; border-left: 3px solid #B65C6E; border-radius: 0 6px 6px 0;">{{ messagePersonnel }}</div>
     {% else %}
     <p style="font-size: 16px; line-height: 1.6; color: #333;">
         Nous avons le plaisir de vous adresser notre proposition commerciale pour votre projet sur-mesure.
     </p>
     {% endif %}
 
-    <div style="background-color: #F5E6D3; padding: 20px; border-radius: 8px; margin: 20px 0;">
-        <h3 style="margin-top: 0; color: #8B7355;">Détail de la proposition</h3>
+    <div style="background-color: #F8EAED; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <h3 style="margin-top: 0; color: #7A2E3F;">Détail de la proposition</h3>
 
         {% if proposition.description %}
         <div style="font-size: 15px; line-height: 1.7; color: #333; white-space: pre-line; margin-bottom: 16px;">{{ proposition.description }}</div>
@@ -47,9 +47,9 @@
                 <td style="padding: 6px 0; text-align: right; font-weight: 600; color: #15803d;">− {{ proposition.ristourne|number_format(2, ',', ' ') }} €</td>
             </tr>
             {% endif %}
-            <tr style="border-top: 2px solid #D4AF7A;">
-                <td style="padding: 10px 0 4px; font-size: 18px; font-weight: bold; color: #8B7355;">Total TTC</td>
-                <td style="padding: 10px 0 4px; text-align: right; font-size: 22px; font-weight: bold; color: #8B7355;">{{ proposition.prixTotal|number_format(2, ',', ' ') }} €</td>
+            <tr style="border-top: 2px solid #B65C6E;">
+                <td style="padding: 10px 0 4px; font-size: 18px; font-weight: bold; color: #7A2E3F;">Total TTC</td>
+                <td style="padding: 10px 0 4px; text-align: right; font-size: 22px; font-weight: bold; color: #7A2E3F;">{{ proposition.prixTotal|number_format(2, ',', ' ') }} €</td>
             </tr>
         </table>
 
@@ -62,18 +62,18 @@
     </p>
 
     <div style="text-align: center; margin: 30px 0;">
-        <a href="{{ publicUrl }}" class="button" style="display:inline-block;padding:16px 36px;background:linear-gradient(135deg,#8B7355 0%,#D4AF7A 100%);color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:16px;">
+        <a href="{{ publicUrl }}" class="button" style="display:inline-block;padding:16px 36px;background:linear-gradient(135deg,#7A2E3F 0%,#B65C6E 100%);color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:16px;">
             Voir et valider la proposition
         </a>
     </div>
 
     <p style="font-size: 13px; line-height: 1.6; color: #999;">
         Ou copiez ce lien dans votre navigateur :<br>
-        <a href="{{ publicUrl }}" style="color:#8B7355;word-break:break-all;">{{ publicUrl }}</a>
+        <a href="{{ publicUrl }}" style="color:#7A2E3F;word-break:break-all;">{{ publicUrl }}</a>
     </p>
 
     <p style="font-size: 14px; line-height: 1.6; color: #666; margin-top: 30px;">
-        Une question ? <a href="{{ contactUrl }}" style="color:#8B7355;font-weight:600;">Contactez-nous via le formulaire</a>
+        Une question ? <a href="{{ contactUrl }}" style="color:#7A2E3F;font-weight:600;">Contactez-nous via le formulaire</a>
     </p>
 
     <p style="font-size: 16px; line-height: 1.6; color: #333; font-weight: 600;">
