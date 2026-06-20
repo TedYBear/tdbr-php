@@ -25,6 +25,11 @@
   display: none !important;
 }
 
+/* SortableJS — élément en cours de glisser (écran d'organisation admin) */
+.drag-ghost {
+  opacity: 0.4;
+}
+
 /* Images articles - affichage en entier (pas de rognage) */
 .article-image img,
 .article-img,

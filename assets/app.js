@@ -10,6 +10,53 @@ import './styles/app.css';
 // Import Alpine.js for interactivity
 import Alpine from 'alpinejs';
 
+// Drag-and-drop reordering (admin organisation screen)
+import Sortable from 'sortablejs';
+
+function initSortableLists() {
+  document.querySelectorAll('[data-sortable]').forEach((list) => {
+    if (list._sortableInit) return;
+    list._sortableInit = true;
+    new Sortable(list, {
+      handle: list.dataset.handle || undefined,
+      animation: 150,
+      ghostClass: 'drag-ghost',
+      onEnd: () => saveOrder(list),
+    });
+  });
+}
+
+async function saveOrder(list) {
+  const url = list.dataset.reorderUrl;
+  if (!url) return;
+  // Only direct children carry the order for THIS list (avoids nested lists)
+  const ids = Array.from(list.children)
+    .filter((el) => el.dataset && el.dataset.id)
+    .map((el) => el.dataset.id);
+  try {
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': meta ? meta.content : '',
+      },
+      body: JSON.stringify({ ids }),
+    });
+    const data = await res.json();
+    if (data && data.success) {
+      window.showToast && window.showToast('Ordre enregistré');
+    } else {
+      window.showToast && window.showToast((data && data.error) || 'Erreur lors de l\'enregistrement', 'error');
+    }
+  } catch (e) {
+    window.showToast && window.showToast('Erreur réseau', 'error');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', initSortableLists);
+if (document.readyState !== 'loading') initSortableLists();
+
 // Start Alpine
 window.Alpine = Alpine;
 Alpine.start();

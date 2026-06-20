@@ -141,7 +141,7 @@ class PublicController extends AbstractController
         $categories = $this->categoryRepo->findBy(['actif' => true], ['ordre' => 'ASC']);
 
         foreach ($categories as $category) {
-            $collections = $this->collectionRepo->findBy(['actif' => true, 'categorie' => $category]);
+            $collections = $this->collectionRepo->findBy(['actif' => true, 'categorie' => $category], ['ordre' => 'ASC']);
             $count = 0;
             foreach ($collections as $col) {
                 $count += $this->articleRepo->count(['actif' => true, 'collection' => $col]);
@@ -207,7 +207,7 @@ class PublicController extends AbstractController
 
         $articles = $this->articleRepo->findBy(
             ['actif' => true, 'collection' => $collection],
-            ['createdAt' => 'DESC'],
+            ['ordre' => 'ASC', 'createdAt' => 'DESC'],
             $limit,
             $offset
         );

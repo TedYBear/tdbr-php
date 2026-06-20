@@ -1,0 +1,96 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% block title %}Organisation du catalogue{% endblock %}
+{% block page_title %}Organisation du catalogue{% endblock %}
+
+{% block body %}
+    <div class="mb-6 flex items-start gap-3 p-4 bg-accent/40 border border-primary/10 rounded-xl text-sm text-gray-700">
+        <svg class="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16M7 5l-3 3 3 3M7 13l-3 3 3 3"></path>
+        </svg>
+        <p>
+            Glissez-déposez par la poignée <span class="inline-block align-middle text-gray-400">⠿</span> pour réordonner.
+            Les <strong>catégories</strong> entre elles, les <strong>collections</strong> dans leur catégorie, les <strong>articles</strong> dans leur collection.
+            L'ordre est <strong>enregistré automatiquement</strong>.
+        </p>
+    </div>
+
+    {% if tree|length == 0 %}
+        <div class="card p-12 text-center text-gray-500">Aucune catégorie à organiser.</div>
+    {% else %}
+        {# ── Niveau 1 : catégories ─────────────────────────────────────────── #}
+        <ul data-sortable data-handle=".handle-cat"
+            data-reorder-url="{{ path('admin_organisation_reorder_categories') }}"
+            class="space-y-3">
+            {% for node in tree %}
+                {% set cat = node.categorie %}
+                <li data-id="{{ cat.id }}" class="card overflow-hidden" x-data="{ open: false }">
+                    <div class="flex items-center gap-3 px-4 py-3">
+                        <button type="button" class="handle-cat cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-600" title="Glisser pour réordonner">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M7 4a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0 6a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0 6a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm9-12a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0 6a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0 6a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"/></svg>
+                        </button>
+                        <button type="button" @click="open = !open" class="flex-1 flex items-center gap-2 text-left">
+                            <svg class="w-4 h-4 text-gray-400 transition-transform" :class="open ? 'rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                            <span class="font-heading font-bold text-gray-900">{{ cat.nom }}</span>
+                            <span class="text-xs text-gray-400">{{ node.collections|length }} collection{{ node.collections|length > 1 ? 's' : '' }}</span>
+                        </button>
+                        <span class="px-2 py-0.5 rounded text-xs font-medium {{ cat.actif ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500' }}">{{ cat.actif ? 'Actif' : 'Inactif' }}</span>
+                    </div>
+
+                    {# ── Niveau 2 : collections de la catégorie ─────────────────── #}
+                    <div x-show="open" x-cloak class="border-t border-gray-100 bg-gray-50 px-4 py-3">
+                        {% if node.collections|length == 0 %}
+                            <p class="text-sm text-gray-400 pl-8">Aucune collection dans cette catégorie.</p>
+                        {% else %}
+                            <ul data-sortable data-handle=".handle-col"
+                                data-reorder-url="{{ path('admin_organisation_reorder_collections') }}"
+                                class="space-y-2">
+                                {% for cnode in node.collections %}
+                                    {% set col = cnode.collection %}
+                                    <li data-id="{{ col.id }}" class="bg-white rounded-lg border border-gray-200 overflow-hidden" x-data="{ openC: false }">
+                                        <div class="flex items-center gap-3 px-3 py-2">
+                                            <button type="button" class="handle-col cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-600" title="Glisser pour réordonner">
+                                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M7 4a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0 6a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0 6a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm9-12a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0 6a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0 6a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"/></svg>
+                                            </button>
+                                            <button type="button" @click="openC = !openC" class="flex-1 flex items-center gap-2 text-left">
+                                                <svg class="w-4 h-4 text-gray-400 transition-transform" :class="openC ? 'rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                                <span class="font-semibold text-gray-800">{{ col.nom }}</span>
+                                                <span class="text-xs text-gray-400">{{ cnode.articles|length }} article{{ cnode.articles|length > 1 ? 's' : '' }}</span>
+                                            </button>
+                                        </div>
+
+                                        {# ── Niveau 3 : articles de la collection ──────────── #}
+                                        <div x-show="openC" x-cloak class="border-t border-gray-100 px-3 py-2">
+                                            {% if cnode.articles|length == 0 %}
+                                                <p class="text-sm text-gray-400 pl-7">Aucun article dans cette collection.</p>
+                                            {% else %}
+                                                <ul data-sortable data-handle=".handle-art"
+                                                    data-reorder-url="{{ path('admin_organisation_reorder_articles') }}"
+                                                    class="space-y-1">
+                                                    {% for art in cnode.articles %}
+                                                        <li data-id="{{ art.id }}" class="flex items-center gap-3 px-2 py-1.5 rounded hover:bg-gray-50">
+                                                            <button type="button" class="handle-art cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-600" title="Glisser pour réordonner">
+                                                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M7 4a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0 6a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0 6a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm9-12a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0 6a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0 6a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"/></svg>
+                                                            </button>
+                                                            {% if art.images|length > 0 %}
+                                                                <img src="{{ (art.images|first).url }}" alt="{{ art.nom }}" class="w-8 h-8 rounded object-cover flex-shrink-0">
+                                                            {% else %}
+                                                                <div class="w-8 h-8 rounded bg-gray-100 flex-shrink-0"></div>
+                                                            {% endif %}
+                                                            <span class="text-sm text-gray-700 flex-1">{{ art.nom }}</span>
+                                                            {% if not art.actif %}<span class="text-xs text-gray-400">inactif</span>{% endif %}
+                                                        </li>
+                                                    {% endfor %}
+                                                </ul>
+                                            {% endif %}
+                                        </div>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endblock %}
