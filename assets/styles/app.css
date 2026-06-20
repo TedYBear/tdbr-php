@@ -99,6 +99,12 @@ img[src*="/uploads/articles/"] {
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   }
 
+  /* Champ de formulaire compact (modales, back-office) — taille réduite + focus de marque */
+  .form-control-sm {
+    @apply w-full px-3 py-2 text-sm bg-white border-[1.5px] border-gray-300 rounded-lg transition-colors;
+    @apply hover:border-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20;
+  }
+
   /* Cards */
   .card {
     @apply bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100;

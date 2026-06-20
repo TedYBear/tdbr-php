@@ -436,13 +436,13 @@
                 <div style="margin-bottom:1rem;">
                     <label style="display:block;font-size:0.8rem;font-weight:600;color:#374151;margin-bottom:0.35rem;">Montant (€)</label>
                     <input type="number" name="montant" min="0.01" step="0.01" required
-                           style="width:100%;border:1.5px solid #d1d5db;border-radius:0.5rem;padding:0.5rem 0.75rem;font-size:0.9rem;font-family:inherit;box-sizing:border-box;"
+                           class="form-control-sm"
                            placeholder="0.00">
                 </div>
                 <div style="margin-bottom:1.5rem;">
                     <label style="display:block;font-size:0.8rem;font-weight:600;color:#374151;margin-bottom:0.35rem;">Note (optionnel)</label>
                     <input type="text" name="note"
-                           style="width:100%;border:1.5px solid #d1d5db;border-radius:0.5rem;padding:0.5rem 0.75rem;font-size:0.9rem;font-family:inherit;box-sizing:border-box;"
+                           class="form-control-sm"
                            placeholder="Ex : versement Myriam">
                 </div>
                 <div style="display:flex;gap:0.75rem;">
@@ -639,7 +639,7 @@
                 <div style="margin-bottom:0.75rem;">
                     <label style="display:block;font-size:0.8rem;font-weight:600;color:#374151;margin-bottom:0.35rem;">Article</label>
                     <select x-model="articleId" @change="onArticleChange()"
-                            style="width:100%;border:1.5px solid #d1d5db;border-radius:0.5rem;padding:0.5rem 0.75rem;font-size:0.875rem;font-family:inherit;background:#fff;">
+                            class="form-control-sm">
                         <option value="">— Sélectionner un article —</option>
                         <template x-for="a in catalogueVente" :key="a.id">
                             <option :value="a.id" x-text="a.nom"></option>
@@ -651,7 +651,7 @@
                 <div x-show="articleId !== ''" x-cloak style="margin-bottom:0.75rem;">
                     <label style="display:block;font-size:0.8rem;font-weight:600;color:#374151;margin-bottom:0.35rem;">Taille / Variante</label>
                     <select x-model="varianteId" @change="onVarianteChange()"
-                            style="width:100%;border:1.5px solid #d1d5db;border-radius:0.5rem;padding:0.5rem 0.75rem;font-size:0.875rem;font-family:inherit;background:#fff;">
+                            class="form-control-sm">
                         <option value="">— Sélectionner une taille —</option>
                         <template x-for="v in variantes" :key="v.id">
                             <option :value="v.id" x-text="v.nom + ' (stock : ' + v.stock + ')'"></option>
@@ -665,7 +665,7 @@
                         <div style="flex:1;">
                             <label style="display:block;font-size:0.8rem;font-weight:600;color:#374151;margin-bottom:0.35rem;">Quantité</label>
                             <select x-model="qty" @change="qty = parseInt($event.target.value)"
-                                    style="width:100%;border:1.5px solid #d1d5db;border-radius:0.5rem;padding:0.5rem 0.75rem;font-size:0.875rem;font-family:inherit;background:#fff;">
+                                    class="form-control-sm">
                                 <template x-for="n in Array.from({length: maxStock}, (_, i) => i + 1)" :key="n">
                                     <option :value="n" x-text="n"></option>
                                 </template>
@@ -717,7 +717,7 @@
                 <div style="margin-bottom:0.25rem;">
                     <label style="display:block;font-size:0.8rem;font-weight:600;color:#374151;margin-bottom:0.35rem;">Note (optionnel)</label>
                     <input type="text" x-model="note" placeholder="Ex : vente samedi marché"
-                           style="width:100%;border:1.5px solid #d1d5db;border-radius:0.5rem;padding:0.5rem 0.75rem;font-size:0.875rem;font-family:inherit;box-sizing:border-box;">
+                           class="form-control-sm">
                 </div>
 
                 {% endif %}
