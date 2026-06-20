@@ -90,6 +90,15 @@ img[src*="/uploads/articles/"] {
   .btn-success:hover { @apply bg-green-700; }
   .btn-success:disabled { @apply opacity-40 cursor-not-allowed bg-green-700; }
 
+  /* Modales — overlay plein écran + panneau (z-index/max-width restent en utilitaires) */
+  .modal-overlay {
+    @apply fixed inset-0 z-[10001] flex items-center justify-center p-4 bg-black/50;
+  }
+  .modal-panel {
+    @apply bg-white rounded-[1.25rem] w-full max-h-[90vh] overflow-y-auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  }
+
   /* Cards */
   .card {
     @apply bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100;

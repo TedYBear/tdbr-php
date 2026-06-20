@@ -197,9 +197,9 @@
 
                     {# ── Modale gestion du stock ── #}
                     <div x-show="openStock" x-cloak
-                         style="position:fixed;inset:0;z-index:10003;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:1rem;"
+                         class="modal-overlay z-[10003]"
                          @click.self="openStock = false">
-                        <div style="background:#fff;border-radius:1.25rem;width:100%;max-width:26rem;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+                        <div class="modal-panel max-w-[26rem]">
 
                             <div style="display:flex;align-items:center;gap:0.75rem;padding:1.25rem 1.5rem;border-bottom:1px solid #f3f4f6;">
                                 {% if imgUrl %}
@@ -362,9 +362,9 @@
        Modal — Fond de caisse
     ════════════════════════════════════════════════════════════════════════ #}
     <div x-show="openFond" x-cloak
-         style="position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:1rem;"
+         class="modal-overlay"
          @click.self="openFond = false">
-        <div style="background:#fff;border-radius:1.25rem;padding:2rem;max-width:22rem;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+        <div class="modal-panel max-w-[22rem] p-8">
             <h3 style="font-size:1.1rem;font-weight:700;color:#111827;margin:0 0 1.25rem;">Fond de caisse</h3>
             <form method="post" action="{{ path('mon_depot_fond') }}">
                                             {% include 'components/_csrf.html.twig' %}
@@ -436,7 +436,7 @@
     {% endfor %}
 
     <div x-show="openVente" x-cloak
-         style="position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:1rem;"
+         class="modal-overlay"
          @click.self="openVente = false"
          @close-vente.window="openVente = false">
 
@@ -553,7 +553,7 @@
                     });
                 }
              }"
-             style="background:#fff;border-radius:1.25rem;width:100%;max-width:30rem;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);display:flex;flex-direction:column;">
+             class="modal-panel max-w-[30rem] flex flex-col">
 
             <div style="display:flex;align-items:center;gap:0.75rem;padding:1.25rem 1.5rem;border-bottom:1px solid #f3f4f6;flex-shrink:0;">
                 <h3 style="font-size:1rem;font-weight:700;color:#111827;flex:1;margin:0;">Réaliser une vente</h3>
