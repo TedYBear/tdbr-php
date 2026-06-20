@@ -398,7 +398,7 @@
                                 </label>
                                 <select x-model="selectedVarianteId"
                                         style="display:block;width:100%;padding:0.75rem 1rem;border:2px solid #e5e7eb;border-radius:0.75rem;font-size:1rem;background:#fff;cursor:pointer;"
-                                        @change="$el.style.borderColor = selectedVarianteId ? '#7c3aed' : '#e5e7eb'">
+                                        @change="$el.style.borderColor = selectedVarianteId ? '#8B7355' : '#e5e7eb'">
                                     <option value="">-- Choisir une variante --</option>
                                     <template x-for="v in variants" :key="v.id">
                                         <option :value="v.id" x-text="v.nom"></option>
@@ -409,7 +409,7 @@
                         <template x-if="variants.length === 1">
                             <div x-init="selectedVarianteId = variants[0].id">
                                 <span style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.5rem 1rem;background:#f3f4f6;border-radius:0.5rem;font-weight:600;color:#374151;">
-                                    <svg style="width:1rem;height:1rem;color:#7c3aed;flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg style="width:1rem;height:1rem;color:#8B7355;flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                     </svg>
                                     <span x-text="variants[0].nom"></span>
@@ -429,7 +429,7 @@
                                 <template x-if="carac.valeurs.length > 1">
                                     <select x-model="choices[carac.nom]"
                                             style="display:block;width:100%;padding:0.75rem 1rem;border:2px solid #e5e7eb;border-radius:0.75rem;font-size:1rem;background:#fff;cursor:pointer;"
-                                            @change="$el.style.borderColor = choices[carac.nom] ? '#7c3aed' : '#e5e7eb'">
+                                            @change="$el.style.borderColor = choices[carac.nom] ? '#8B7355' : '#e5e7eb'">
                                         <option value="" x-text="'-- Choisir ' + carac.nom.toLowerCase() + ' --'"></option>
                                         <template x-for="val in carac.valeurs" :key="val">
                                             <option :value="val" x-text="val"></option>
@@ -441,7 +441,7 @@
                                 <template x-if="carac.valeurs.length === 1">
                                     <div x-init="choices[carac.nom] = carac.valeurs[0]">
                                         <span style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.5rem 1rem;background:#f3f4f6;border-radius:0.5rem;font-weight:600;color:#374151;">
-                                            <svg style="width:1rem;height:1rem;color:#7c3aed;flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <svg style="width:1rem;height:1rem;color:#8B7355;flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                             </svg>
                                             <span x-text="carac.valeurs[0]"></span>
