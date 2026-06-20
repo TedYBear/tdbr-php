@@ -4,7 +4,21 @@
 @tailwind utilities;
 
 /* Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap');
+/* Polices de marque — auto-hébergées (woff2 variables, public/fonts/) */
+@font-face {
+  font-family: 'Hanken Grotesk';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('../fonts/hanken-grotesk-variable.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url('../fonts/bricolage-grotesque-variable.woff2') format('woff2');
+}
 
 /* Alpine.js x-cloak */
 [x-cloak] {
