@@ -38,8 +38,8 @@ module.exports = {
         dark: '#2C1117'
       },
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-        heading: ['Space Grotesk', 'sans-serif']
+        sans: ['Hanken Grotesk', 'sans-serif'],
+        heading: ['Bricolage Grotesque', 'sans-serif']
       }
     },
   },
