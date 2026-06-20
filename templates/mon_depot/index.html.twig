@@ -36,8 +36,7 @@
         </div>
 
         <div class="card p-5 flex flex-col gap-2 justify-center">
-            <button @click="openVente = true"
-                    style="background:#111827;color:#fff;border:none;border-radius:0.5rem;padding:0.5rem 1rem;font-size:0.875rem;font-weight:600;cursor:pointer;font-family:inherit;width:100%;">
+            <button @click="openVente = true" class="btn-dark w-full">
                 Réaliser une vente
             </button>
             <button @click="togglePanel('ajout')"
@@ -247,12 +246,10 @@
                                 </div>
 
                                 <div style="display:flex;gap:0.75rem;align-items:center;">
-                                    <button type="button" @click="openStock = false"
-                                            style="flex:1;padding:0.6rem;border-radius:0.625rem;border:1.5px solid #d1d5db;background:#fff;font-weight:600;cursor:pointer;font-size:0.875rem;font-family:inherit;color:#374151;">
+                                    <button type="button" @click="openStock = false" class="btn-soft flex-1">
                                         Annuler
                                     </button>
-                                    <button type="submit"
-                                            style="flex:2;padding:0.6rem;border-radius:0.625rem;border:none;background:#111827;color:#fff;font-weight:600;cursor:pointer;font-size:0.875rem;font-family:inherit;">
+                                    <button type="submit" class="btn-dark flex-[2]">
                                         Enregistrer
                                     </button>
                                 </div>
@@ -395,12 +392,10 @@
                            placeholder="Ex : versement">
                 </div>
                 <div style="display:flex;gap:0.75rem;">
-                    <button type="button" @click="openFond = false"
-                            style="flex:1;padding:0.6rem;border-radius:0.625rem;border:1.5px solid #d1d5db;background:#fff;font-weight:600;cursor:pointer;font-size:0.875rem;font-family:inherit;">
+                    <button type="button" @click="openFond = false" class="btn-soft flex-1">
                         Annuler
                     </button>
-                    <button type="submit"
-                            style="flex:1;padding:0.6rem;border-radius:0.625rem;border:none;background:#111827;color:#fff;font-weight:600;cursor:pointer;font-size:0.875rem;font-family:inherit;">
+                    <button type="submit" class="btn-dark flex-1">
                         Confirmer
                     </button>
                 </div>
@@ -606,7 +601,7 @@
                             </select>
                         </div>
                         <button type="button" @click="addLigne()" :disabled="!canAdd"
-                                style="padding:0.5rem 1.125rem;border:none;border-radius:0.5rem;background:#111827;color:#fff;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;">
+                                class="btn-dark whitespace-nowrap flex-shrink-0 disabled:opacity-40 disabled:cursor-not-allowed">
                             + Ajouter
                         </button>
                     </div>
@@ -661,8 +656,7 @@
                     <input type="hidden" name="note" :value="note">
                     <button type="submit"
                             :disabled="lignes.length === 0"
-                            :style="lignes.length === 0 ? 'opacity:0.35;cursor:not-allowed;background:#15803d;' : 'background:#16a34a;cursor:pointer;'"
-                            style="display:block;width:100%;padding:0.8rem 1rem;border-radius:0.5rem;border:none;color:#fff;font-weight:700;font-size:0.95rem;font-family:inherit;text-align:center;">
+                            class="btn-success w-full">
                         Valider la vente
                     </button>
                 </form>
