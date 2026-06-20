@@ -3,7 +3,7 @@
 {% block header_title %}Votre facture acquittée{% endblock %}
 
 {% block content %}
-    <h2 style="color: #243B1E; margin-top: 0;">Paiement reçu — merci !</h2>
+    <h2 style="color: #143027; margin-top: 0;">Paiement reçu — merci !</h2>
 
     <p style="font-size: 16px; line-height: 1.6; color: #333;">
         Bonjour <strong>{{ commande.client.prenom ?? '' }} {{ commande.client.nom ?? '' }}</strong>,
@@ -14,7 +14,7 @@
         de votre commande <strong>{{ commande.numero }}</strong>.
     </p>
 
-    <div style="background-color: #FAF1D8; padding: 20px; border-radius: 8px; margin: 20px 0;">
+    <div style="background-color: #E7F4EE; padding: 20px; border-radius: 8px; margin: 20px 0;">
         <table style="width: 100%; font-size: 14px; color: #333;">
             <tr>
                 <td style="padding: 4px 0; color: #666;">Numéro de commande</td>
@@ -25,8 +25,8 @@
                 <td style="padding: 4px 0; text-align: right;">{{ commande.createdAt|date('d/m/Y') }}</td>
             </tr>
             <tr>
-                <td style="padding: 4px 0; color: #666; border-top: 1px solid #E2802F; padding-top: 12px; font-weight: 700; font-size: 16px;">Total payé</td>
-                <td style="padding: 4px 0; text-align: right; border-top: 1px solid #E2802F; padding-top: 12px; font-weight: 700; font-size: 16px; color: #4F8A3D;">{{ commande.total|number_format(2, ',', ' ') }} €</td>
+                <td style="padding: 4px 0; color: #666; border-top: 1px solid #4FB48A; padding-top: 12px; font-weight: 700; font-size: 16px;">Total payé</td>
+                <td style="padding: 4px 0; text-align: right; border-top: 1px solid #4FB48A; padding-top: 12px; font-weight: 700; font-size: 16px; color: #2F7A5B;">{{ commande.total|number_format(2, ',', ' ') }} €</td>
             </tr>
         </table>
     </div>

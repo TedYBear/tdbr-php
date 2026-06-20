@@ -32,10 +32,10 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: '#4F8A3D',
-        secondary: '#E2802F',
-        accent: '#FAF1D8',
-        dark: '#243B1E'
+        primary: '#2F7A5B',
+        secondary: '#4FB48A',
+        accent: '#E7F4EE',
+        dark: '#143027'
       },
       fontFamily: {
         sans: ['Hanken Grotesk', 'sans-serif'],
