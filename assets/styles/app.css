@@ -98,11 +98,12 @@ img[src*="/uploads/articles/"] {
   }
   .btn-soft:hover { @apply border-gray-900 bg-gray-50; }
 
+  /* Action positive / validation — alignée sur le vert de marque (tokens : success = primary) */
   .btn-success {
-    @apply inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-green-600 text-white text-base font-bold cursor-pointer transition-colors;
+    @apply inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-primary text-white text-base font-bold cursor-pointer transition-colors;
   }
-  .btn-success:hover { @apply bg-green-700; }
-  .btn-success:disabled { @apply opacity-40 cursor-not-allowed bg-green-700; }
+  .btn-success:hover { @apply brightness-95; }
+  .btn-success:disabled { @apply opacity-40 cursor-not-allowed; }
 
   /* Modales — overlay plein écran + panneau (z-index/max-width restent en utilitaires) */
   .modal-overlay {
