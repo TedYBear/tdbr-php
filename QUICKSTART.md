@@ -1,214 +1,77 @@
-# TDBR Symfony - Démarrage Rapide
+# 🚀 Démarrage rapide — TDBR (Symfony 6.4 · MySQL · Doctrine)
 
-Guide ultra-rapide pour démarrer l'API Symfony TDBR.
+Stack : Symfony 6.4 LTS, PHP 8.2, MySQL 8 (Doctrine ORM), Twig, Tailwind, Alpine.js, Webpack Encore.
 
-## Installation Express (5 minutes)
-
-### 1. Installer l'extension MongoDB PHP
-
-**Windows (XAMPP/WAMP) :**
-
-1. Télécharger : https://pecl.php.net/package/mongodb (version PHP 8.1 TS x64)
-2. Copier `php_mongodb.dll` dans `C:\xampp\php\ext\`
-3. Éditer `C:\xampp\php\php.ini`, ajouter :
-   ```ini
-   extension=mongodb
-   ```
-4. Redémarrer Apache
+## 1. Prérequis
+- PHP 8.2+ avec extensions `pdo_mysql`, `gd`, `intl`
+- Composer 2.x, Node.js 18+ / npm
+- MySQL 8 (local ou distant)
 
 Vérifier :
 ```bash
-php -m | grep mongodb
+php -v
+php -m | grep -iE "pdo_mysql|gd|intl"
 ```
 
-### 2. Installer les dépendances
-
+## 2. Installation
 ```bash
-cd C:\Users\Manu\Documents\TDBR\site_v3
+git clone https://github.com/TedYBear/tdbr-php.git
+cd tdbr-php
 
-# Désactiver SSL si nécessaire
-composer config secure-http false
-composer config disable-tls true
-
-# Installer
 composer install
+npm install
 ```
 
-Si erreur pour `mongodb/mongodb` ou `firebase/php-jwt`, l'installer manuellement :
+## 3. Configuration
+
+Copier l'env et éditer `.env.local` :
 ```bash
-composer require mongodb/mongodb firebase/php-jwt --no-scripts
+cp .env .env.local
 ```
+```env
+# .env.local
+DATABASE_URL="mysql://user:password@127.0.0.1:3306/tdbr?serverVersion=8&charset=utf8mb4"
+MAILER_DSN="null://null"   # ou gmail://user:pass@default / smtp://...
+APP_ENV=dev
+```
+> Clés Mollie / Printful : à renseigner également si paiement / print on demand utilisés.
 
-### 3. Configuration
-
-Le fichier `.env.local` est déjà configuré avec :
-- MongoDB URI : `mongodb+srv://tdbr_db_user:...@tdbr.x5g60ng.mongodb.net/`
-- Base : `tdbr`
-- JWT Secret : `super_secret_key_to_change_in_production`
-
-**Aucune modification nécessaire !**
-
-### 4. Démarrer le serveur
-
+## 4. Base de données
 ```bash
-# Option 1 : Serveur PHP intégré
-php -S localhost:8000 -t public
-
-# Option 2 : Symfony CLI (si installé)
-symfony server:start
+php bin/console doctrine:database:create
+php bin/console doctrine:migrations:migrate
 ```
 
-### 5. Tester
-
+## 5. Assets
 ```bash
-curl http://localhost:8000/api/health
+npm run build        # ou: npm run watch (dev, hot reload)
 ```
 
-✅ Devrait retourner :
-```json
-{
-  "status": "OK",
-  "database": {
-    "mongodb": "connected"
-  }
-}
-```
-
-## Test rapide de l'API
-
-### Créer un admin
-
+## 6. Lancer
 ```bash
-curl -X POST http://localhost:8000/api/auth/inscription \
-  -H "Content-Type: application/json" \
-  -d '{"email":"admin@tdbr.fr","password":"admin123","prenom":"Admin","nom":"TDBR"}'
+symfony serve        # ou: php -S localhost:8000 -t public
 ```
+→ http://localhost:8000 (admin sous `/admin`).
 
-Retourne un `token`. Copier ce token.
-
-### Se connecter
-
+## 7. Créer un admin
 ```bash
-curl -X POST http://localhost:8000/api/auth/connexion \
-  -H "Content-Type: application/json" \
-  -d '{"email":"admin@tdbr.fr","password":"admin123"}'
+# Donner le rôle admin à un compte existant :
+php bin/console dbal:run-sql "UPDATE users SET roles='[\"ROLE_ADMIN\"]' WHERE email='admin@tdbr.fr'"
 ```
+> Le hash du mot de passe doit être généré par Symfony (`UserPasswordHasher`, bcrypt).
+> Astuce : `php bin/console security:hash-password`.
 
-### Créer une catégorie
-
+## ✅ Vérifications
 ```bash
-curl -X POST http://localhost:8000/api/categories/admin \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer VOTRE_TOKEN_ICI" \
-  -d '{"nom":"Test","slug":"test","description":"Catégorie de test","actif":true}'
+php bin/console lint:twig templates
+php bin/console lint:container
+php bin/console debug:router | grep -i admin
 ```
 
-### Lister les catégories (public)
+## 🩺 Dépannage
+- **Assets non chargés / 404 CSS** : `npm run build` puis `php bin/console cache:clear`.
+  Les balises sont générées via `entrypoints.json` (fonction Twig `encore_entry`) — pas de hash à coder en dur.
+- **Erreur DB** : vérifier `DATABASE_URL` et que MySQL tourne ; `doctrine:migrations:status`.
+- **CSP bloque un script** : utiliser `nonce="{{ csp_nonce() }}"` sur les `<script>` inline.
 
-```bash
-curl http://localhost:8000/api/categories
-```
-
-## Points d'entrée API
-
-### Publics (sans auth)
-
-- `GET /api/health` - Health check
-- `POST /api/auth/inscription` - Créer un compte
-- `POST /api/auth/connexion` - Se connecter
-- `GET /api/categories` - Liste catégories
-- `GET /api/articles` - Liste articles
-- `GET /api/collections` - Liste collections
-
-### Authentifié (Bearer token)
-
-- `GET /api/auth/profil` - Mon profil
-- `PUT /api/auth/profil` - Modifier profil
-
-### Admin (Bearer token + role=admin)
-
-- `GET /api/categories/admin/all` - Toutes catégories
-- `POST /api/categories/admin` - Créer catégorie
-- `PUT /api/categories/admin/{id}` - Modifier
-- `DELETE /api/categories/admin/{id}` - Supprimer
-
-(Idem pour articles, collections)
-
-- `POST /api/uploads/image` - Upload image
-- `DELETE /api/uploads/{path}` - Supprimer image
-
-## Changer un utilisateur en admin
-
-Les utilisateurs créés via `/inscription` ont le role `user` par défaut.
-
-Pour passer admin, modifier directement dans MongoDB :
-
-```javascript
-// MongoDB Atlas Console
-db.users.updateOne(
-  { email: "admin@tdbr.fr" },
-  { $set: { role: "admin" } }
-)
-```
-
-Ou via le shell mongo :
-```bash
-mongosh "mongodb+srv://tdbr_db_user:***REMOVED-CREDENTIAL***@tdbr.x5g60ng.mongodb.net/tdbr"
-
-db.users.updateOne(
-  { email: "admin@tdbr.fr" },
-  { $set: { role: "admin" } }
-)
-```
-
-## Problèmes courants
-
-### "Class 'MongoDB\Client' not found"
-
-→ Extension MongoDB non installée. Voir étape 1.
-
-### "curl error 60: SSL certificate"
-
-→ Désactiver SSL Composer :
-```bash
-composer config secure-http false
-composer config disable-tls true
-```
-
-### MongoDB connection failed
-
-1. Vérifier que l'URI est correcte dans `.env.local`
-2. Tester : `curl https://tdbr.x5g60ng.mongodb.net/` (doit répondre)
-3. Vérifier l'IP whitelistée dans MongoDB Atlas
-
-### Token JWT invalide
-
-Le token expire après 24h (`JWT_EXPIRATION=86400`).
-
-Se reconnecter pour obtenir un nouveau token.
-
-## Prochaines étapes
-
-1. **Frontend Vue.js** : Configurer `VITE_API_URL=http://localhost:8000`
-2. **Créer des données** : Utiliser Postman/Insomnia ou l'interface admin Vue
-3. **Déployer** : Voir `DEPLOY-HOSTINGER.md`
-
-## Documentation complète
-
-- **README.md** : Installation détaillée
-- **DEPLOY-HOSTINGER.md** : Déploiement production
-- **Code** : Tous les contrôleurs dans `src/Controller/Api/`
-
-## Support
-
-Les données MongoDB sont partagées avec l'ancienne API Express.
-
-Aucune migration nécessaire - les collections existent déjà :
-- `users`
-- `categories`
-- `articles`
-- `collections`
-- `commandes`
-- etc.
-
-✅ **L'API est prête à l'emploi !**
+> Guide de déploiement : [DEPLOY-HOSTINGER.md](DEPLOY-HOSTINGER.md) · Commandes : [COMMANDES-UTILES.md](COMMANDES-UTILES.md)

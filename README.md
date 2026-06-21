@@ -19,230 +19,139 @@ Site e-commerce pour la vente de goodies personnalisés créés avec IA généra
 ## 🛠️ Stack Technique
 
 ### Backend
-- **Framework :** Symfony 6.3
+- **Framework :** Symfony 6.4 LTS
 - **PHP :** 8.2
-- **Base de données :** MongoDB (extension PHP MongoDB 2.2.1)
-- **Authentification :** Symfony Security Component (sessions PHP)
-- **Services :**
-  - UploadService (GD Library pour redimensionnement images)
-  - MailerService (Symfony Mailer)
-  - CartService (gestion panier en session)
-  - SlugifyService
+- **Base de données :** MySQL 8 via **Doctrine ORM** + Doctrine Migrations
+- **Authentification :** Symfony Security Component (sessions PHP, bcrypt) — pas de JWT
+- **Paiement :** Mollie (+ webhook)
+- **Print on demand :** intégration Printful
+- **Services :** UploadService (GD), MailerService (Symfony Mailer), CartService (panier en session),
+  AccountProvisioningService (création de compte après paiement), Analytics (PageView)
 
 ### Frontend
-- **Templates :** Twig
-- **CSS :** Tailwind CSS 3.4.19 (configuration custom TDBR)
-- **JavaScript :** Alpine.js 3.13.3
-- **Build :** Webpack Encore 4.x
-- **Fonts :** Inter (sans-serif), Space Grotesk (headings)
+- **Templates :** Twig (rendu côté serveur)
+- **CSS :** Tailwind CSS 3.4 (thème custom TDBR)
+- **JavaScript :** Alpine.js + SortableJS (drag-and-drop admin)
+- **Build :** Webpack Encore 4.x (assets versionnés, lus via `entrypoints.json`)
+- **Polices :** **Bricolage Grotesque** (titres) + **Hanken Grotesk** (corps) — woff2 variables **auto-hébergés** (`assets/fonts/`, pas de CDN Google)
 
-### Couleurs Custom Tailwind
+### Charte couleurs (Tailwind — « Émeraude »)
 ```js
 colors: {
-  primary: '#8B7355',    // Marron chaud
-  secondary: '#D4AF7A',  // Or doux
-  accent: '#F5E6D3',     // Beige clair
-  dark: '#2C2416'        // Marron foncé
+  primary:   '#2F7A5B',  // Vert émeraude
+  secondary: '#4FB48A',  // Vert clair
+  accent:    '#E7F4EE',  // Vert très clair
+  dark:      '#143027'   // Vert foncé
 }
 ```
+> Les tokens (couleurs + polices) sont centralisés dans `tailwind.config.js` / `assets/styles/app.css`
+> et synchronisés avec le projet **Claude Design** (`tokens.css`).
+
+### Sécurité
+- **CSP** avec nonces par requête (`SecurityHeadersSubscriber`), `font-src 'self'`, headers durcis.
+- **CSRF** sur les formulaires et les appels AJAX (token `app`).
+- **Rate-limiter** sur le login et les demandes sur-mesure ; honeypots anti-spam.
 
 ## 📦 Installation
 
 ### Prérequis
-- PHP 8.2+ avec extensions : `mongodb`, `gd`, `intl`
+- PHP 8.2+ avec extensions : `pdo_mysql`, `gd`, `intl`
 - Composer 2.x
 - Node.js 18+ et npm
-- MongoDB 6.0+ (serveur local ou distant)
+- MySQL 8 (serveur local ou distant)
 
-### Installation Locale
-
+### Installation locale
 ```bash
-# Cloner le repo
-git clone https://github.com/votre-username/tdbr-php.git
+git clone https://github.com/TedYBear/tdbr-php.git
 cd tdbr-php
 
-# Installer dépendances PHP
 composer install
-
-# Installer dépendances Node
 npm install
 
-# Configuration environnement
 cp .env .env.local
-# Éditer .env.local avec vos paramètres MongoDB
+# Éditer .env.local : DATABASE_URL et MAILER_DSN
 
-# Build assets
+php bin/console doctrine:database:create
+php bin/console doctrine:migrations:migrate
 npm run build
 
-# Démarrer le serveur
-php -S localhost:8000 -t public
+symfony serve   # ou: php -S localhost:8000 -t public
 ```
 
-### Configuration MongoDB
-
-Dans `.env.local` :
+### Base de données (`.env.local`)
 ```env
-MONGODB_URL=mongodb://localhost:27017
-MONGODB_DB=tdbr
+DATABASE_URL="mysql://user:password@127.0.0.1:3306/u538940476_tdbr?serverVersion=8&charset=utf8mb4"
 ```
-
-**Collections requises :**
-- `articles` - Produits avec variantes et images
-- `categories` - Catégories de produits
-- `collections` - Collections thématiques
-- `utilisateurs` - Comptes utilisateurs
-- `commandes` - Commandes clients
-- `messages` - Messages de contact
-- `devis` - Demandes de devis
-- `templates` - Templates personnalisables
-- `caracteristiques` - Caractéristiques produits
+Le schéma est géré par **Doctrine Migrations** (`migrations/`). Entités principales :
+`Article`, `Variante`, `VarianteTemplate`, `Category`, `ProductCollection`, `Caracteristique`,
+`Commande`, `User`, `DemandeSurMesure`, `TypePersonnalisation`, `DepotVente`, `PropositionCommerciale`,
+`Avis`, `Message`, `CodeReduction`, `GrillePrix`, `Fournisseur`, `BoutiqueRelais`, `PageView`, `SiteConfig`.
 
 ## 🚀 Fonctionnalités
 
-### Pages Publiques
-- **Home** - Hero avec goodies personnalisés, features, thématiques
-- **Catalogue** - Grille produits avec filtres catégories/collections et pagination
-- **Article** - Détail produit avec galerie images, sélection variantes, ajout panier
-- **Panier** - Gestion quantités, modification, suppression
-- **Checkout** - Formulaire commande multi-sections (client, livraison, paiement)
-- **Contact** - Formulaire avec sidebar informations
-- **Présentation** - Profil TedYBear/Manu avec section IA & Transparence
+### Pages publiques
+- **Home / Présentation** (workflow, tarifs, partenaires, réseaux, livraison)
+- **Catalogue** → **Catégorie** → **Collection** → **Article** (galerie, variantes, panier)
+- **Demande de personnalisation** depuis la fiche produit (modale, rattachée au compte)
+- **Sur-mesure / Devis** générique
+- **Panier / Checkout** (paiement Mollie), **Avis** clients, **Contact**
+- **Profil** : infos, commandes, codes réduction, propositions, « Mes demandes sur-mesure »
+- **Dépôt-vente** (`/mon-depot`) pour les partenaires (rôle dédié)
 
-### Authentification
-- **Inscription** - Création compte avec validation email
-- **Connexion** - Login avec "Remember me" (session 7 jours)
-- **Profil** - Affichage/modification profil + historique commandes
-- **Protection :** Sessions PHP sécurisées, bcrypt pour mots de passe
+### Tri & ordre
+Catégories, collections et articles s'affichent selon un champ `ordre`, géré graphiquement
+en admin (voir « Organisation »).
 
-### Interface Admin (Role ROLE_ADMIN)
-- **Dashboard** - Stats (articles, catégories, commandes, messages), dernières commandes
-- **Articles** - CRUD complet avec variantes, upload images, duplication
-- **Catégories** - Gestion catégories
-- **Collections** - Gestion collections
-- **Commandes** - Liste, détail, changement statut (avec notification email)
-- **Messages** - Lecture, marquer lu, suppression
-- **Devis** - Suivi demandes de devis
-- **Templates** - Templates personnalisables
-- **Caractéristiques** - Caractéristiques produits
+### Interface admin (`ROLE_ADMIN`)
+- **Dashboard** & **Analytiques** de trafic
+- **Articles**, **Catégories**, **Collections**, **Templates**, **Caractéristiques**, **Personnalisations**
+- **Organisation du catalogue** : réordonnancement **drag-and-drop** (catégories → collections → articles)
+- **Commandes**, **Sur-mesure/Devis**, **Messages**, **Avis**
+- **Fournisseurs**, **Codes réduction**, **Grilles de prix**, **Boutiques relais**, **Dépôt-vente**
+- **Propositions commerciales**, **Marketing**, **Printful**, **Utilisateurs**, **Configuration du site**
 
-### Services Intégrés
+### Notifications email
+Inscription, confirmation/statut de commande, contact, sur-mesure, propositions, virement, facture acquittée, code cadeau, invitation. Templates responsive aux couleurs de la marque.
 
-#### Upload d'Images
-- **Validation :** JPG, PNG, GIF, WebP (max 5MB)
-- **Redimensionnement :** Automatique à 1200x1200px
-- **Préservation :** Transparence PNG/GIF
-- **Routes :** `/admin/upload/image`, `/admin/upload/images`, `/admin/upload/delete`
+### Filtres / fonctions Twig custom
+`price`, `date_french`, `truncate`, `to_string`, `csp_nonce`, `encore_entry` (résolution des assets buildés).
 
-#### Notifications Email
-- **Registration** - Email bienvenue
-- **Order Confirmation** - Récapitulatif commande complet
-- **Order Status** - Notification changement statut
-- **Contact Notification** - Alerte admin nouveau message
-- **Contact Reply** - Réponse manuelle à message
+## 🚢 Déploiement (Hostinger)
 
-**Templates email :** Design responsive avec gradient TDBR
+Le déploiement se fait par **`git pull`** ; `public/build/` (assets, polices, JS) est **versionné**
+→ **pas de Node sur le serveur**.
 
-#### Filtres Twig Custom
-- `price` - Format prix français (1 234,56 €)
-- `date_french` - Format date français (dd/mm/YYYY à HH:ii)
-- `truncate` - Tronquer texte avec suffix
-
-## ⚠️ Points d'Attention
-
-### Sécurité
-- **CSRF Protection :** Actif sur tous les formulaires
-- **Uploads :** Validation stricte MIME types + taille
-- **Passwords :** Hashés avec bcrypt via Symfony PasswordHasher
-- **Sessions :** Configurées avec lifetime 7 jours (remember_me)
-- **Admin :** Routes protégées par `#[IsGranted('ROLE_ADMIN')]`
-
-### Performance
-- **Assets :** Webpack génère fichiers hashés pour cache-busting
-- **Images :** Redimensionnement automatique avant upload
-- **MongoDB :** Indexer `slug`, `email`, `numero_commande` pour performances
-- **Build :** `npm run build` avant déploiement production
-
-### Configuration Production
-
-**Mailer (dans `.env.local`) :**
-```env
-# Gmail
-MAILER_DSN=gmail://username:password@default
-
-# SMTP générique
-MAILER_DSN=smtp://user:pass@smtp.example.com:587
-
-# Développement (fichiers .eml)
-MAILER_DSN=null://null
-```
-
-**Permissions Fichiers :**
 ```bash
-chmod -R 755 public/uploads
-chmod -R 775 var/
+git checkout main && git pull
+php bin/console doctrine:migrations:migrate --no-interaction
+php bin/console cache:clear --env=prod
 ```
 
-**Webpack Production :**
-```bash
-npm run build
-# Vérifie public/build/manifest.json généré
-```
+**Checklist :**
+- [ ] `composer install --no-dev --optimize-autoloader` (au besoin)
+- [ ] `.env.prod.local` : `DATABASE_URL`, `MAILER_DSN`, clés Mollie/Printful
+- [ ] Migrations appliquées
+- [ ] `cache:clear --env=prod`
+- [ ] Permissions `var/` (775) et `public/uploads/` (755)
+- [ ] Test routes publiques + admin
 
-### Données Initiales
-
-**Créer un admin :**
-```bash
-# Via MongoDB shell ou Compass
-db.utilisateurs.insertOne({
-  email: "admin@tdbr.fr",
-  password: "$2y$13$...", // Hash bcrypt du mot de passe
-  roles: ["ROLE_ADMIN"],
-  prenom: "Admin",
-  nom: "TDBR",
-  createdAt: new ISODate()
-})
-```
-
-**Créer catégories initiales :**
-- "Jeux de Société" (slug: `jeux-de-societe`)
-- "Fromage" (slug: `fromage`)
-
-### Déploiement
-
-**Hostinger recommandé :**
-- Support PHP 8.2+ ✓
-- MongoDB Atlas (gratuit tier 512MB) ✓
-- Webpack build en local, upload `public/build/` ✓
-
-**Checklist déploiement :**
-- [ ] `composer install --no-dev --optimize-autoloader`
-- [ ] `npm run build` (fichiers dans `public/build/`)
-- [ ] Configuration `.env.local` production
-- [ ] `MAILER_DSN` configuré avec SMTP réel
-- [ ] Permissions `public/uploads/` (755)
-- [ ] Variables d'environnement serveur
-- [ ] Tester routes publiques + admin
-
-## 📚 Documentation Complémentaire
-
-- **[PROFIL_TDBR.md](PROFIL_TDBR.md)** - Identité de marque et contexte personnel
-- **[MIGRATION_RESUME.md](MIGRATION_RESUME.md)** - Résumé technique migration (8 phases)
-- **[NOUVELLES_FEATURES.md](NOUVELLES_FEATURES.md)** - Upload images et emails (API, exemples)
+> Détail : [DEPLOY-HOSTINGER.md](DEPLOY-HOSTINGER.md).
 
 ## 🧑‍💻 Développement
-
 ```bash
-# Watch mode (hot reload)
-npm run watch
-
-# Build production
-npm run build
-
-# Serveur dev PHP
-php -S localhost:8000 -t public
+npm run watch        # build assets en watch
+npm run build        # build production
+symfony serve        # serveur dev
+php bin/console lint:twig templates
+php bin/console lint:container
 ```
 
-## 📄 Licence
+## 📚 Documentation
+- **[CHANGELOG.md](CHANGELOG.md)** — journal des versions (+ changelogs datés `CHANGELOG-YYYY-MM-DD.md`)
+- **[DEPLOY-HOSTINGER.md](DEPLOY-HOSTINGER.md)** — guide de déploiement
+- **[SECURITY-AUDIT-2026-06-10.md](SECURITY-AUDIT-2026-06-10.md)** — audit de sécurité
+- **[PROFIL_TDBR.md](PROFIL_TDBR.md)** — identité de marque et contexte
+- **[COMMANDES-UTILES.md](COMMANDES-UTILES.md)** — commandes fréquentes
 
-Propriétaire - TDBR © 2026
-Créé par TedYBear (Emmanuel)
+## 📄 Licence
+Propriétaire - TDBR © 2026 — Créé par TedYBear (Emmanuel)

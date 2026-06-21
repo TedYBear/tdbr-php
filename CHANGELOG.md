@@ -2,6 +2,28 @@
 
 Toutes les modifications notables du projet TDBR Symfony seront documentées dans ce fichier.
 
+## [2026-06-21] — Personnalisation, design system & organisation du catalogue
+
+Détail complet : [CHANGELOG-2026-06-21.md](CHANGELOG-2026-06-21.md).
+
+### Ajouté
+- **Demande de personnalisation produit** depuis la fiche (modale, rattachée au compte),
+  types de personnalisation gérés en admin et associés par template (`TypePersonnalisation`,
+  `VarianteTemplate`), section « Mes demandes » sur `/profil`. Migrations `Version20260618010000`,
+  `Version20260619010000`. Anti-spam (honeypot + rate-limiter).
+- **Écran d'organisation du catalogue** `/admin/organisation` : réordonnancement par
+  glisser-déposer des catégories, collections et articles (SortableJS). Tri public par `ordre`.
+
+### Modifié
+- **Design system** : chargement des assets via `entrypoints.json` (`encore_entry`, fin des
+  hash codés en dur) ; classes réutilisables (`.btn-dark/soft/success`, `.modal-overlay/panel`,
+  `.form-control-sm`) ; **polices auto-hébergées** Bricolage Grotesque + Hanken Grotesk ;
+  **charte Émeraude** (`primary #2F7A5B`, `secondary #4FB48A`, `accent #E7F4EE`, `dark #143027`).
+- Hero des pages collection : fond statique aligné sur les pages catégorie.
+
+### Dépendances
+- Ajout : `sortablejs`, `core-js`.
+
 ## [1.0.0] - 2024-02-16
 
 ### Création initiale
