@@ -21,6 +21,7 @@
     "webpack-cli": "^5.1.0"
   },
   "dependencies": {
+    "@alpinejs/collapse": "^3.15.12",
     "alpinejs": "^3.13.3",
     "core-js": "^3.49.0",
     "sortablejs": "^1.15.7"

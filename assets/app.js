@@ -9,6 +9,7 @@ import './styles/app.css';
 
 // Import Alpine.js for interactivity
 import Alpine from 'alpinejs';
+import collapse from '@alpinejs/collapse';
 
 // Drag-and-drop reordering (admin organisation screen)
 import Sortable from 'sortablejs';
@@ -59,6 +60,7 @@ if (document.readyState !== 'loading') initSortableLists();
 
 // Start Alpine
 window.Alpine = Alpine;
+Alpine.plugin(collapse);
 Alpine.start();
 
 // Show/hide desktop menu elements based on viewport width
