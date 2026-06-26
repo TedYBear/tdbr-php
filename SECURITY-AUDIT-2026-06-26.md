@@ -12,8 +12,8 @@ Le code applicatif est **solide** (CSRF généralisé, Doctrine ORM sans SQLi, u
 |---|----------|-------|--------|
 | 1 | ✅ Élevé | CSP à nonce écrasée par le serveur Hostinger | CORRIGÉ (hPanel « Forcer HTTPS » désactivé) |
 | 2 | ⚪ Hors périmètre | tdbr.fr = domaine parqué + tracker russe sur PHP 7.4 EOL | NON APPLICABLE (domaine non possédé) |
-| 3 | 🟡 Faible | Version PHP exposée (`X-Powered-By`) | CORRIGÉ (.htaccess — effectif après déploiement) |
-| 4 | 🟡 Faible | Redirection exposant `/public/index.php` | CORRIGÉ (.htaccess racine — effectif après déploiement) |
+| 3 | ✅ Faible | Version PHP exposée (`X-Powered-By`) | CORRIGÉ (live confirmé) |
+| 4 | ✅ Faible | Redirection exposant `/public/index.php` | CORRIGÉ (live confirmé — purger le cache LiteSpeed pour le résidu www) |
 | 5 | 🟡 Faible | `public/uploads/` sans blocage d'exécution PHP | CORRIGÉ (.htaccess) |
 
 ---
