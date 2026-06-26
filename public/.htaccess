@@ -1,3 +1,9 @@
+# Masquer la version PHP (expose_php étant PHP_INI_SYSTEM, on retire l'en-tête ici)
+<IfModule mod_headers.c>
+    Header always unset X-Powered-By
+    Header unset X-Powered-By
+</IfModule>
+
 <IfModule mod_rewrite.c>
     Options -MultiViews
     RewriteEngine On

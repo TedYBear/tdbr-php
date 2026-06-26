@@ -12,7 +12,7 @@ Le code applicatif est **solide** (CSRF généralisé, Doctrine ORM sans SQLi, u
 |---|----------|-------|--------|
 | 1 | ✅ Élevé | CSP à nonce écrasée par le serveur Hostinger | CORRIGÉ (hPanel « Forcer HTTPS » désactivé) |
 | 2 | ⚪ Hors périmètre | tdbr.fr = domaine parqué + tracker russe sur PHP 7.4 EOL | NON APPLICABLE (domaine non possédé) |
-| 3 | 🟡 Faible | Version PHP exposée (`X-Powered-By`) | À CORRIGER (php.ini) |
+| 3 | 🟡 Faible | Version PHP exposée (`X-Powered-By`) | CORRIGÉ (.htaccess — effectif après déploiement) |
 | 4 | 🟡 Faible | `www.tedybear.fr` → `/public/index.php` | À CORRIGER (hPanel) |
 | 5 | 🟡 Faible | `public/uploads/` sans blocage d'exécution PHP | CORRIGÉ (.htaccess) |
 
@@ -33,10 +33,10 @@ Le code applicatif est **solide** (CSRF généralisé, Doctrine ORM sans SQLi, u
 - **Constat :** `tdbr.fr` et `www.tdbr.fr` renvoient sur **tous** les chemins une page de 378 octets contenant un compteur **LiveInternet (`counter.yadro.ru`)**, sous **PHP 7.4.33** (fin de vie).
 - **Statut :** **NON APPLICABLE** — le domaine `tdbr.fr` n'appartient pas à TedYBear. Le site de production est **tedybear.fr** uniquement. Aucune action requise de notre côté ; conservé ici pour mémoire (ne pas confondre les deux domaines).
 
-## 🟡 #3 — Version PHP exposée
+## 🟡 #3 — Version PHP exposée — CORRIGÉ (après déploiement)
 
-- **Constat :** `X-Powered-By: PHP/8.3.30` sur les deux domaines.
-- **Action :** `expose_php = Off` (php.ini ou `.user.ini`).
+- **Constat :** `X-Powered-By: PHP/8.3.30` exposé en prod.
+- **Correctif :** `expose_php` étant `PHP_INI_SYSTEM` (non modifiable via `.user.ini` sur mutualisé), l'en-tête est retiré dans `public/.htaccess` (`Header always unset X-Powered-By`). Effectif après `git pull` en prod. Vérif : `curl -sI https://tedybear.fr | grep -i x-powered` (doit ne rien renvoyer).
 
 ## 🟡 #4 — Redirection www non canonique
 
