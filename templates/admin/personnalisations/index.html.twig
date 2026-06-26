@@ -39,7 +39,7 @@
                             <td class="px-6 py-4">
                                 <div class="flex gap-2">
                                     <a href="{{ path('admin_personnalisations_edit', {id: perso.id}) }}" class="text-primary hover:text-secondary">Modifier</a>
-                                    <form method="post" action="{{ path('admin_personnalisations_delete', {id: perso.id}) }}" onsubmit="window.confirmForm(event, this, 'Supprimer cette personnalisation ?')">
+                                    <form method="post" action="{{ path('admin_personnalisations_delete', {id: perso.id}) }}" data-confirm="Supprimer cette personnalisation ?">
                                         <button type="submit" class="text-red-600 hover:text-red-700">Supprimer</button>
                                     </form>
                                 </div>

@@ -7,7 +7,7 @@
 {% block body %}
     <div class="flex gap-4 mb-6">
         <form method="get" class="flex gap-2">
-            <select name="statut" class="form-select" onchange="this.form.submit()">
+            <select name="statut" class="form-select" data-autosubmit>
                 <option value="">Tous les statuts</option>
                 <option value="en_attente" {{ selectedStatut == 'en_attente' ? 'selected' : '' }}>En attente</option>
                 <option value="validee" {{ selectedStatut == 'validee' ? 'selected' : '' }}>Validée</option>
@@ -72,7 +72,7 @@
                                 <div class="flex items-center gap-3">
                                     <a href="{{ path('admin_commandes_detail', {id: commande.id}) }}" class="text-primary hover:text-secondary text-sm">Voir détails →</a>
                                     <form method="post" action="{{ path('admin_commandes_delete', {id: commande.id}) }}"
-                                          onsubmit="window.confirmForm(event, this, 'Supprimer définitivement la commande {{ commande.numero }} ?')">
+                                          data-confirm="Supprimer définitivement la commande {{ commande.numero }} ?">
                                         <button type="submit" class="text-xs px-2 py-1 text-red-600 border border-red-200 rounded hover:bg-red-50">
                                             Supprimer
                                         </button>

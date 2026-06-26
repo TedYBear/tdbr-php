@@ -25,6 +25,14 @@
   display: none !important;
 }
 
+/* Atténuation au survol (remplace les anciens handlers onmouseover/onmouseout) */
+.hover-dim {
+  transition: opacity 0.2s;
+}
+.hover-dim:hover {
+  opacity: 0.85;
+}
+
 /* SortableJS — élément en cours de glisser (écran d'organisation admin) */
 .drag-ghost {
   opacity: 0.4;

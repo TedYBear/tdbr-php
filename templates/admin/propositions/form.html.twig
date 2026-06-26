@@ -171,7 +171,7 @@
                 </button>
                 <button type="submit" name="action" value="send"
                         class="btn-primary"
-                        onclick="event.preventDefault(); window.showConfirm('Envoyer la proposition par email à ' + document.querySelector('[name=clientEmail]').value + ' ?', () => { this.closest('form').requestSubmit(this); })">
+                        data-confirm-submit="Envoyer la proposition par email à {clientEmail} ?">
                     Envoyer par email
                 </button>
                 <a href="{{ path('admin_propositions') }}" class="btn-outline">Annuler</a>
@@ -230,7 +230,7 @@
                 <p class="text-xs text-gray-500 mb-2">Page client pour accepter et payer :</p>
                 <input type="text" readonly class="form-input text-xs font-mono bg-gray-50"
                        value="{{ url('proposition_view', {token: proposition.token}) }}"
-                       onclick="this.select()">
+                       data-select-on-click>
                 <p class="text-xs text-gray-400 mt-1">Cliquer pour sélectionner</p>
             </div>
 
@@ -261,7 +261,7 @@
                         Ref : <span class="font-mono">{{ proposition.token|slice(0,12)|upper }}</span>
                     </p>
                     <form method="post" action="{{ path('admin_propositions_marquer_payee', {id: proposition.id}) }}"
-                          onsubmit="window.confirmForm(event, this, 'Confirmer la réception du virement et marquer comme payée ?')">
+                          data-confirm="Confirmer la réception du virement et marquer comme payée ?">
                         <button type="submit" class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold text-sm">
                             Virement reçu — Marquer payée
                         </button>
@@ -272,7 +272,7 @@
             {# Renvoyer l'email #}
             {% if proposition.statut in ['envoyee', 'brouillon'] %}
                 <form method="post" action="{{ path('admin_propositions_send', {id: proposition.id}) }}"
-                      onsubmit="window.confirmForm(event, this, 'Renvoyer la proposition par email ?')">
+                      data-confirm="Renvoyer la proposition par email ?">
                     <button type="submit" class="w-full btn-outline">
                         {{ proposition.statut == 'envoyee' ? 'Renvoyer l\'email' : 'Envoyer l\'email' }}
                     </button>
@@ -317,7 +317,7 @@
 
             {# Supprimer #}
             <form method="post" action="{{ path('admin_propositions_delete', {id: proposition.id}) }}"
-                  onsubmit="window.confirmForm(event, this, 'Supprimer définitivement cette proposition ?')">
+                  data-confirm="Supprimer définitivement cette proposition ?">
                 <button type="submit" class="w-full px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition text-sm">
                     Supprimer
                 </button>

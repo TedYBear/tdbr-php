@@ -15,7 +15,7 @@
                        value="{{ code ? code.code : '' }}"
                        required class="form-input font-mono uppercase"
                        placeholder="Ex: MERCI10, BIENVENUE5..."
-                       oninput="this.value = this.value.toUpperCase()">
+                       data-uppercase>
                 <p class="text-xs text-gray-500 mt-1">Identifiant visible par l'utilisateur.</p>
             </div>
 
@@ -29,7 +29,7 @@
 
             <div class="form-group">
                 <label>Type de code</label>
-                <select name="type" class="form-select" onchange="toggleUserField(this.value)">
+                <select name="type" class="form-select" data-toggle-target="userField" data-toggle-when="user">
                     <option value="global" {{ (not code or code.isGlobal) ? 'selected' : '' }}>Global — valable pour tous les utilisateurs</option>
                     <option value="user" {{ (code and not code.isGlobal) ? 'selected' : '' }}>Spécifique à un utilisateur</option>
                 </select>
@@ -85,10 +85,5 @@
 
     </form>
 </div>
-
-<script nonce="{{ csp_nonce() }}">
-function toggleUserField(type) {
-    document.getElementById('userField').style.display = type === 'user' ? '' : 'none';
-}
-</script>
+{# Bascule du champ utilisateur gérée par data-toggle-target (assets/interactions.js) #}
 {% endblock %}

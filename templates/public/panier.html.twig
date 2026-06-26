@@ -67,7 +67,7 @@
                                                 <label class="text-sm font-medium text-gray-700">Quantité:</label>
                                                 <div class="flex items-center border-2 border-gray-200 rounded-lg overflow-hidden">
                                                     <button type="button"
-                                                            onclick="this.nextElementSibling.stepDown(); this.form.submit();"
+                                                            data-qty-step="down"
                                                             class="px-4 py-2 bg-gray-100 hover:bg-gray-200 transition">
                                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
@@ -80,7 +80,7 @@
                                                            max="99"
                                                            class="w-16 px-3 py-2 text-center border-0 focus:outline-none">
                                                     <button type="button"
-                                                            onclick="this.previousElementSibling.stepUp(); this.form.submit();"
+                                                            data-qty-step="up"
                                                             class="px-4 py-2 bg-gray-100 hover:bg-gray-200 transition">
                                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
@@ -110,7 +110,7 @@
 
                                     {# Supprimer #}
                                     <div>
-                                        <form method="post" action="{{ path('panier_remove', {itemId: itemId}) }}" onsubmit="window.confirmForm(event, this, 'Retirer cet article du panier ?')">
+                                        <form method="post" action="{{ path('panier_remove', {itemId: itemId}) }}" data-confirm="Retirer cet article du panier ?">
                                             {% include 'components/_csrf.html.twig' %}
                                             <button type="submit"
                                                     class="p-3 text-red-500 hover:bg-red-50 rounded-lg transition"
@@ -134,7 +134,7 @@
                         {% endfor %}
 
                         {# Vider le panier #}
-                        <form method="post" action="{{ path('panier_clear') }}" onsubmit="window.confirmForm(event, this, 'Êtes-vous sûr de vouloir vider le panier ?')" class="mt-8">
+                        <form method="post" action="{{ path('panier_clear') }}" data-confirm="Êtes-vous sûr de vouloir vider le panier ?" class="mt-8">
                                             {% include 'components/_csrf.html.twig' %}
                             <button type="submit" class="text-red-600 hover:text-red-700 font-medium inline-flex items-center gap-2">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

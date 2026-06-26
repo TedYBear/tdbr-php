@@ -54,7 +54,7 @@
             <div class="card p-6">
                 <h2 class="text-xl font-bold mb-4">Statut</h2>
                 <form method="post" action="{{ path('admin_commandes_update_status', {id: commande.id}) }}">
-                    <select name="statut" class="form-select mb-3" onchange="this.form.submit()">
+                    <select name="statut" class="form-select mb-3" data-autosubmit>
                         <option value="en_attente" {{ commande.statut == 'en_attente' ? 'selected' : '' }}>En attente</option>
                         <option value="en_attente_virement" {{ commande.statut == 'en_attente_virement' ? 'selected' : '' }}>Virement en attente</option>
                         <option value="validee" {{ commande.statut == 'validee' ? 'selected' : '' }}>Validée</option>
@@ -74,7 +74,7 @@
                 <p class="text-xs text-amber-700 mb-1">IBAN : <span class="font-mono font-bold">FR76 1695 8000 0122 5925 2066 395</span></p>
                 <p class="text-xs text-amber-700 mb-3">Réf. : <span class="font-mono font-bold">{{ commande.numero }}</span></p>
                 <form method="post" action="{{ path('admin_commandes_marquer_payee', {id: commande.id}) }}"
-                      onsubmit="window.confirmForm(event, this, 'Confirmer la réception du virement et marquer la commande comme payée ?')">
+                      data-confirm="Confirmer la réception du virement et marquer la commande comme payée ?">
                     <button type="submit" class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold text-sm">
                         Virement reçu — Marquer payée
                     </button>
@@ -143,7 +143,7 @@
                         <h2 class="text-xl font-bold mb-3">Printful</h2>
                         <p class="text-sm text-gray-600 mb-3">Cette commande contient {{ printfulItems|length }} article(s) Printful.</p>
                         <form method="post" action="{{ path('admin_commandes_send_to_printful', {id: commande.id}) }}"
-                              onsubmit="window.confirmForm(event, this, 'Envoyer cette commande vers Printful en tant que brouillon ?')">
+                              data-confirm="Envoyer cette commande vers Printful en tant que brouillon ?">
                             <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-semibold">
                                 Envoyer vers Printful
                             </button>
@@ -188,7 +188,7 @@
                 {# Envoi email : Créer ou Renvoyer #}
                 {% if commande.factureSentAt %}
                     <form method="post" action="{{ path('admin_commandes_renvoyer_facture', {id: commande.id}) }}"
-                          onsubmit="window.confirmForm(event, this, 'Renvoyer la facture à {{ commande.client.email ?? '' }} ?')">
+                          data-confirm="Renvoyer la facture à {{ commande.client.email ?? '' }} ?">
                         <button type="submit"
                                 class="flex items-center justify-center gap-2 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-semibold">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -200,7 +200,7 @@
                     <p class="text-xs text-gray-400 text-center mt-1">Envoyée le {{ commande.factureSentAt|date('d/m/Y à H:i') }}</p>
                 {% else %}
                     <form method="post" action="{{ path('admin_commandes_renvoyer_facture', {id: commande.id}) }}"
-                          onsubmit="window.confirmForm(event, this, 'Créer et envoyer la facture à {{ commande.client.email ?? '' }} ?')">
+                          data-confirm="Créer et envoyer la facture à {{ commande.client.email ?? '' }} ?">
                         <button type="submit"
                                 class="flex items-center justify-center gap-2 w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition text-sm font-semibold">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -214,7 +214,7 @@
 
             {# Supprimer #}
             <form method="post" action="{{ path('admin_commandes_delete', {id: commande.id}) }}"
-                  onsubmit="window.confirmForm(event, this, 'Supprimer définitivement cette commande ?')">
+                  data-confirm="Supprimer définitivement cette commande ?">
                 <button type="submit" class="w-full px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition text-sm">
                     Supprimer cette commande
                 </button>

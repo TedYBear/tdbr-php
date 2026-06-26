@@ -51,7 +51,7 @@
                         <a href="{{ path('admin_depot_ventes_edit', {id: depot.id}) }}"
                            class="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition">Modifier</a>
                         <form method="post" action="{{ path('admin_depot_ventes_delete', {id: depot.id}) }}"
-                              onsubmit="window.confirmForm(event, this, 'Supprimer « {{ depot.nom }} » ? Toutes les données seront perdues.')">
+                              data-confirm="Supprimer « {{ depot.nom }} » ? Toutes les données seront perdues.">
                             <button type="submit"
                                     class="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-600 transition">
                                 Supprimer

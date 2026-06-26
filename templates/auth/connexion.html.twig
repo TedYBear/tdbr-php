@@ -50,7 +50,7 @@
                             <div class="relative">
                                 {{ form_widget(form.password, {'attr': {'class': 'form-input pr-12'}}) }}
                                 <button type="button"
-                                        onclick="togglePassword(this)"
+                                        data-toggle-password
                                         class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                                         aria-label="Afficher/masquer le mot de passe">
                                     <svg id="eye-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -111,22 +111,4 @@
     </section>
 {% endblock %}
 
-{% block javascripts %}
-    {{ parent() }}
-    <script nonce="{{ csp_nonce() }}">
-        function togglePassword(btn) {
-            const field = btn.closest('.relative').querySelector('input');
-            const eyeIcon = btn.querySelector('#eye-icon');
-            const eyeOffIcon = btn.querySelector('#eye-off-icon');
-            if (field.type === 'password') {
-                field.type = 'text';
-                eyeIcon.classList.add('hidden');
-                eyeOffIcon.classList.remove('hidden');
-            } else {
-                field.type = 'password';
-                eyeIcon.classList.remove('hidden');
-                eyeOffIcon.classList.add('hidden');
-            }
-        }
-    </script>
-{% endblock %}
+{# Affichage/masquage du mot de passe géré par data-toggle-password (assets/interactions.js) #}

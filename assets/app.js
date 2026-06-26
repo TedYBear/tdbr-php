@@ -14,6 +14,9 @@ import collapse from '@alpinejs/collapse';
 // Drag-and-drop reordering (admin organisation screen)
 import Sortable from 'sortablejs';
 
+// Délégation d'événements déclarative (remplace les handlers inline onX=)
+import { initInteractions } from './interactions';
+
 function initSortableLists() {
   document.querySelectorAll('[data-sortable]').forEach((list) => {
     if (list._sortableInit) return;
@@ -57,6 +60,9 @@ async function saveOrder(list) {
 
 document.addEventListener('DOMContentLoaded', initSortableLists);
 if (document.readyState !== 'loading') initSortableLists();
+
+// Écouteurs délégués pour les data-attributes (data-confirm, data-autosubmit, …)
+initInteractions();
 
 // Start Alpine
 window.Alpine = Alpine;

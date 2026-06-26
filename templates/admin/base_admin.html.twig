@@ -68,7 +68,7 @@
                     : '<svg width="20" height="20" fill="none" stroke="#4ade80" viewBox="0 0 24 24" style="flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>';
                 toast.innerHTML = icon
                     + '<span style="font-size:0.875rem;font-weight:600;flex:1">' + message + '</span>'
-                    + '<button onclick="this.closest(\'[data-toast]\')._remove()" style="opacity:0.6;cursor:pointer;background:none;border:none;color:#fff;padding:0;line-height:0;margin-left:0.5rem">'
+                    + '<button data-toast-close style="opacity:0.6;cursor:pointer;background:none;border:none;color:#fff;padding:0;line-height:0;margin-left:0.5rem">'
                     + '<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>'
                     + '</button>';
                 toast.dataset.toast = '1';
