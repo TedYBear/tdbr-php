@@ -4,35 +4,34 @@
 
 Analyse combinée **revue de code statique (Symfony)** + **tests passifs non intrusifs sur la production**.
 
-Le code applicatif est **solide** (CSRF généralisé, Doctrine ORM sans SQLi, uploads durcis, webhook Mollie vérifié par rappel API, en-têtes de sécurité complets dans le code). Les problèmes identifiés sont au niveau **déploiement / infrastructure**, dont un qui **neutralise la principale défense XSS en production**.
+Le code applicatif est **solide** (CSRF généralisé, Doctrine ORM sans SQLi, uploads durcis, webhook Mollie vérifié par rappel API, en-têtes de sécurité complets dans le code). Les problèmes identifiés étaient au niveau **déploiement / infrastructure** ; le plus grave (CSP à nonce neutralisée en prod, #1) **a été corrigé le 2026-06-26**.
 
 **Cibles :** code du repo + live passif. Le site réel est **tedybear.fr** (Symfony, PHP 8.3.30, Hostinger). `tdbr.fr` n'héberge pas l'application (voir #2).
 
 | # | Sévérité | Sujet | Statut |
 |---|----------|-------|--------|
-| 1 | 🔴 Élevé | CSP à nonce écrasée par l'edge Hostinger | À CORRIGER (hPanel) |
-| 2 | 🟠 Moyen | tdbr.fr = domaine parqué + tracker russe sur PHP 7.4 EOL | À CORRIGER (DNS/hosting) |
+| 1 | ✅ Élevé | CSP à nonce écrasée par le serveur Hostinger | CORRIGÉ (hPanel « Forcer HTTPS » désactivé) |
+| 2 | ⚪ Hors périmètre | tdbr.fr = domaine parqué + tracker russe sur PHP 7.4 EOL | NON APPLICABLE (domaine non possédé) |
 | 3 | 🟡 Faible | Version PHP exposée (`X-Powered-By`) | À CORRIGER (php.ini) |
 | 4 | 🟡 Faible | `www.tedybear.fr` → `/public/index.php` | À CORRIGER (hPanel) |
 | 5 | 🟡 Faible | `public/uploads/` sans blocage d'exécution PHP | CORRIGÉ (.htaccess) |
 
 ---
 
-## 🔴 #1 — La CSP à nonce est écrasée par l'edge Hostinger (XSS)
+## ✅ #1 — La CSP à nonce était écrasée par le serveur Hostinger (XSS) — CORRIGÉ
 
-- **Constat :** `SecurityHeadersSubscriber` (`src/EventSubscriber/SecurityHeadersSubscriber.php:64`) pose une CSP stricte à nonce par requête (`script-src 'self' 'nonce-…'`). Mais le navigateur reçoit en production uniquement :
+- **Constat :** `SecurityHeadersSubscriber` (`src/EventSubscriber/SecurityHeadersSubscriber.php:64`) pose une CSP stricte à nonce par requête (`script-src 'self' 'nonce-…'`). Mais le navigateur recevait en production uniquement :
   ```
   Content-Security-Policy: upgrade-insecure-requests
   ```
-- **Diagnostic :** tous les autres en-têtes du subscriber arrivent bien (HSTS, X-Frame-Options, nosniff, Referrer-Policy, Permissions-Policy). Seule la CSP est remplacée. Rien dans le repo ne pose `upgrade-insecure-requests` → c'est l'edge Hostinger (`Server: hcdn`, `panel: hpanel`) qui l'injecte et écrase celle de l'application.
-- **Impact :** la mécanique de nonce (principale protection contre l'injection de scripts) n'a aucun effet en prod. Un script injecté s'exécuterait sans contrainte.
-- **Action :** dans hPanel, désactiver l'en-tête CSP / « security headers » auto-injecté par Hostinger (ou le configurer pour ne pas toucher à CSP), puis vérifier que la CSP complète sort bien (`curl -sI https://tedybear.fr | grep -i content-security`).
+- **Diagnostic :** tous les autres en-têtes du subscriber arrivaient bien (HSTS, X-Frame-Options, nosniff, Referrer-Policy, Permissions-Policy). Seule la CSP était remplacée. Le CDN a d'abord été suspecté (`Server: hcdn`), mais après l'avoir désactivé l'en-tête restait faible avec `Server: LiteSpeed` → la réécriture venait du **serveur d'origine**, pas de l'edge. Source réelle : la fonction **« Forcer HTTPS » de hPanel**, qui injecte `Content-Security-Policy: upgrade-insecure-requests` au niveau serveur et écrase celle de PHP.
+- **Impact :** la mécanique de nonce (principale protection contre l'injection de scripts) n'avait aucun effet en prod. Un script injecté se serait exécuté sans contrainte.
+- **Correctif (2026-06-26) :** désactivation du toggle **« Forcer HTTPS »** dans hPanel — redondant car `public/.htaccess` force déjà HTTPS (la redirection 301 fonctionne toujours). La CSP complète à nonce est désormais servie, et le nonce tourne bien à chaque requête (vérifié : 2 requêtes → 2 nonces distincts). Vérification : `curl -sI https://tedybear.fr | grep -i content-security`.
 
-## 🟠 #2 — tdbr.fr : domaine parqué + tracker russe sur PHP 7.4 (EOL)
+## ⚪ #2 — tdbr.fr : domaine parqué + tracker russe sur PHP 7.4 (EOL) — HORS PÉRIMÈTRE
 
-- **Constat :** `tdbr.fr` et `www.tdbr.fr` renvoient sur **tous** les chemins une page de 378 octets contenant un compteur **LiveInternet (`counter.yadro.ru`)**, sous **PHP 7.4.33** (fin de vie, plus de correctifs de sécurité depuis fin 2022).
-- **Impact :** fuite vers un tiers (referer / URL / titre / résolution écran des visiteurs), page parasite sur un domaine de marque, runtime PHP non maintenu.
-- **Action :** rediriger `tdbr.fr` → `tedybear.fr` (301), ou purger le parking et déployer/fermer proprement le domaine.
+- **Constat :** `tdbr.fr` et `www.tdbr.fr` renvoient sur **tous** les chemins une page de 378 octets contenant un compteur **LiveInternet (`counter.yadro.ru`)**, sous **PHP 7.4.33** (fin de vie).
+- **Statut :** **NON APPLICABLE** — le domaine `tdbr.fr` n'appartient pas à TedYBear. Le site de production est **tedybear.fr** uniquement. Aucune action requise de notre côté ; conservé ici pour mémoire (ne pas confondre les deux domaines).
 
 ## 🟡 #3 — Version PHP exposée
 
