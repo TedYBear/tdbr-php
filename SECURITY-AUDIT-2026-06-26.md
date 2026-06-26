@@ -4,7 +4,7 @@
 
 Analyse combinée **revue de code statique (Symfony)** + **tests passifs non intrusifs sur la production**.
 
-Le code applicatif est **solide** (CSRF généralisé, Doctrine ORM sans SQLi, uploads durcis, webhook Mollie vérifié par rappel API, en-têtes de sécurité complets dans le code). Les problèmes identifiés étaient au niveau **déploiement / infrastructure** ; le plus grave (CSP à nonce neutralisée en prod, #1) **a été corrigé le 2026-06-26**.
+Le code applicatif est **solide** (CSRF généralisé, Doctrine ORM sans SQLi, uploads durcis, webhook Mollie vérifié par rappel API, en-têtes de sécurité complets dans le code). Les problèmes identifiés étaient au niveau **déploiement / infrastructure** ; le plus grave (CSP à nonce neutralisée en prod, #1) **a été corrigé le 2026-06-26**. La **dette CSP** qui restait au niveau code (`'unsafe-eval'` + `script-src-attr 'unsafe-inline'`) a également été **entièrement soldée le 2026-06-26** : CSP finale `script-src 'self' 'nonce-…'` sans aucun `unsafe-*` (voir section dédiée).
 
 **Cibles :** code du repo + live passif. Le site réel est **tedybear.fr** (Symfony, PHP 8.3.30, Hostinger). `tdbr.fr` n'héberge pas l'application (voir #2).
 
@@ -61,7 +61,22 @@ Le code applicatif est **solide** (CSRF généralisé, Doctrine ORM sans SQLi, u
 - **Fichiers sensibles protégés** sur tedybear.fr : `.env` 404, `.git` 403, `composer.json` 404, `_profiler` 404.
 - **Aucun secret committé** : `.env` versionné = template (placeholders) ; vrais secrets en `.env.local` / `.env.prod.local` (hors git).
 
-## Dette résiduelle (à traiter après #1)
+## ✅ Dette CSP — SOLDÉE (2026-06-26)
 
-- CSP code : `'unsafe-eval'` (requis par Alpine.js build standard) et `script-src-attr 'unsafe-inline'` (handlers `onclick=` legacy). À retirer après migration vers `@alpinejs/csp` et handlers Alpine. Sans effet tant que #1 n'est pas réglé.
+La dette CSP identifiée après #1 (`'unsafe-eval'` + `script-src-attr 'unsafe-inline'`) a été **entièrement résorbée**. CSP finale servie :
+
+```
+script-src 'self' 'nonce-{aléatoire-par-requête}'
+```
+
+→ plus **aucun** `unsafe-*` côté scripts. La mécanique de nonce est désormais la seule autorité d'exécution des scripts.
+
+- **Half A — retrait de `script-src-attr 'unsafe-inline'`** : les ~45 gestionnaires inline (`onclick=`/`onsubmit=`/`onchange=`/`oninput=`/`onmouseover=`) ont été migrés vers une **délégation déclarative par `data-*`** centralisée dans `assets/interactions.js` (`data-confirm`, `data-autosubmit`, `data-toggle-password`, `data-copy`, `data-qty-step`, `data-toast-close`, …).
+- **Half B — retrait de `'unsafe-eval'`** : bascule du build Alpine standard vers **`@alpinejs/csp`** (évaluateur restreint, sans `eval` / `new Function`). Les composants à méthodes/getters ont été extraits des `x-data` inline vers `Alpine.data()` ; les expressions de directive accédant à des globales (`Math`, `parseInt`, `Object.keys/entries`, `window`…), les fonctions fléchées, le `??` et les écritures DOM ont été remplacés par des méthodes/getters ou des liaisons réactives.
+- **En-tête** : `SecurityHeadersSubscriber` ne pose plus que `script-src 'self' 'nonce-…'`.
+
+**Validation** : build OK, `lint:twig` OK, parsing des 469 expressions de directive par l'évaluateur CSP OK, et **QA navigateur complète** (form article, grille de prix, caractéristiques, modale de vente dépôt, dialogues de confirmation, bascule mot de passe, accordéon admin) — aucune violation CSP ni `Alpine Expression Error`. Mergé sur `main` le 2026-06-26.
+
+## Dette résiduelle
+
 - HSTS : envisager l'ajout de `preload` + soumission à hstspreload.org.
