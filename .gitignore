@@ -1,3 +1,8 @@
+###> outillage local (Claude Code) ###
+/.claude/
+/.understand-anything/
+###< outillage local (Claude Code) ###
+
 ###> symfony/framework-bundle ###
 /.env.local
 /.env.local.php
