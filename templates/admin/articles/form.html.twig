@@ -65,6 +65,12 @@ document.addEventListener('alpine:init', () => {
         if (!variante.valeurs) return '';
         return Object.entries(variante.valeurs).map(([k, v]) => k + ': ' + v).join(' · ');
     },
+    hasValeurs(variante) {
+        return variante.valeurs && Object.keys(variante.valeurs).length > 0;
+    },
+    valeursEntries(variante) {
+        return Object.entries(variante.valeurs || {});
+    },
 
     /* === Template selector === */
     templates: {{ templates|json_encode|raw }},
@@ -325,9 +331,9 @@ document.addEventListener('alpine:init', () => {
                         <template x-for="(variante, index) in variantes" :key="variante.id">
                             <div class="p-4 bg-gray-50 rounded-lg space-y-2">
                                 {# Étiquette des valeurs structurées #}
-                                <div x-show="variante.valeurs && Object.keys(variante.valeurs).length > 0"
+                                <div x-show="hasValeurs(variante)"
                                      class="flex flex-wrap gap-1">
-                                    <template x-for="[k, v] in Object.entries(variante.valeurs || {})" :key="k">
+                                    <template x-for="[k, v] in valeursEntries(variante)" :key="k">
                                         <span style="display:inline-flex;align-items:center;padding:2px 8px;background:#ede9fe;color:#5b21b6;border-radius:9999px;font-size:0.75rem;font-weight:600;"
                                               x-text="k + ': ' + v"></span>
                                     </template>
