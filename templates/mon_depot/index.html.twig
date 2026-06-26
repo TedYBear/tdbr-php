@@ -2,14 +2,136 @@
 {% block title %}{{ depot.nom }}{% endblock %}
 
 {% block body %}
-<div x-data="{
-    openFond: false,
-    openVente: false,
-    fondSens: 'ajout',
-    panel: null,
-    collectionId: null,
-    togglePanel(name) { this.panel = this.panel === name ? null : name; }
-}">
+{# Composants Alpine (build CSP : enregistrés via Alpine.data au lieu d'objets x-data inline) #}
+<script nonce="{{ csp_nonce() }}">
+document.addEventListener('alpine:init', () => {
+    Alpine.data('depotIndex', () => ({
+        openFond: false,
+        openVente: false,
+        fondSens: 'ajout',
+        panel: null,
+        collectionId: null,
+        togglePanel(name) { this.panel = this.panel === name ? null : name; },
+    }));
+
+    Alpine.data('venteModal', () => ({
+        catalogueVente: {{ venteData|json_encode|raw }},
+        articleId: '',
+        varianteId: '',
+        qty: 1,
+        lignes: [],
+        note: '',
+
+        get article() { return this.catalogueVente.find(a => a.id == this.articleId) ?? null; },
+        get variantes() { return this.article ? this.article.variantes : []; },
+        get variante() { return this.variantes.find(v => v.id == this.varianteId) ?? null; },
+        get maxStock() { return this.variante ? this.variante.stock : 0; },
+        get stockOptions() { return Array.from({length: this.maxStock}, (_, i) => i + 1); },
+        get canAdd() { return this.variante !== null && this.qty >= 1; },
+        get currentPrix() {
+            if (!this.article || !this.variante) return null;
+            return this.getPrixForQty(this.article, this.variante, parseInt(this.qty));
+        },
+        get total() { return this.lignes.reduce((s, l) => s + l.qty * l.prix, 0); },
+
+        getPrixForQty(article, variante, qty) {
+            const paliers = article.paliers ?? [];
+            let resolved = null;
+            for (const p of paliers) {
+                if (qty >= (p.min ?? 0) && p.prixVente !== null && p.prixVente !== undefined) {
+                    resolved = parseFloat(p.prixVente);
+                }
+            }
+            const base = resolved !== null ? resolved : parseFloat(article.prixBase ?? 0);
+            return base + parseFloat(variante.deltaPrix ?? 0);
+        },
+
+        onArticleChange() { this.varianteId = ''; this.qty = 1; },
+        onVarianteChange() { this.qty = 1; },
+
+        addLigne() {
+            if (!this.canAdd) return;
+            const qty = parseInt(this.qty);
+            const existing = this.lignes.find(l => l.stockItemId == this.variante.stockItemId);
+            if (existing) {
+                existing.qty = Math.min(existing.qty + qty, this.variante.stock);
+            } else {
+                this.lignes.push({
+                    articleId: this.article.id,
+                    grillePrixId: this.article.grillePrixId,
+                    articleNom: this.article.nom,
+                    varianteNom: this.variante.nom,
+                    stockItemId: this.variante.stockItemId,
+                    qty: qty,
+                    prix: 0,
+                    maxStock: this.variante.stock
+                });
+            }
+            this.recalcPrixGrille(this.article.grillePrixId, this.article.paliers);
+            this.articleId = '';
+            this.varianteId = '';
+            this.qty = 1;
+        },
+
+        recalcPrixGrille(grillePrixId, paliers) {
+            if (grillePrixId === null) {
+                const lignesArticle = this.lignes.filter(l => l.grillePrixId === null && l.articleId == this.article?.id);
+                const totalQty = lignesArticle.reduce((s, l) => s + l.qty, 0);
+                lignesArticle.forEach(ligne => {
+                    const art = this.catalogueVente.find(a => a.id == ligne.articleId);
+                    if (!art) return;
+                    const v = art.variantes.find(v => v.stockItemId == ligne.stockItemId);
+                    if (v) ligne.prix = this.getPrixForQty(art, v, totalQty);
+                });
+                return;
+            }
+            const lignesGrille = this.lignes.filter(l => l.grillePrixId == grillePrixId);
+            const totalQty = lignesGrille.reduce((s, l) => s + l.qty, 0);
+            lignesGrille.forEach(ligne => {
+                const art = this.catalogueVente.find(a => a.id == ligne.articleId);
+                if (!art) return;
+                const v = art.variantes.find(v => v.stockItemId == ligne.stockItemId);
+                if (v) ligne.prix = this.getPrixForQty(art, v, totalQty);
+            });
+        },
+
+        removeLigne(stockItemId) {
+            const ligne = this.lignes.find(l => l.stockItemId == stockItemId);
+            const grillePrixId = ligne ? ligne.grillePrixId : null;
+            const art = ligne ? this.catalogueVente.find(a => a.id == ligne.articleId) : null;
+            this.lignes = this.lignes.filter(l => l.stockItemId != stockItemId);
+            if (art) this.recalcPrixGrille(grillePrixId, art.paliers);
+        },
+
+        cancelVente() {
+            this.lignes = [];
+            this.note = '';
+            this.articleId = '';
+            this.varianteId = '';
+            this.qty = 1;
+            this.$dispatch('close-vente');
+        },
+
+        submitVente(event) {
+            if (this.lignes.length === 0) { event.preventDefault(); return; }
+            const form = event.target;
+            this.lignes.forEach(l => {
+                [
+                    ['lignes[' + l.stockItemId + '][qty]',        l.qty],
+                    ['lignes[' + l.stockItemId + '][prixEstime]', l.prix ?? 0],
+                    ['lignes[' + l.stockItemId + '][prixReel]',   l.prix ?? 0],
+                ].forEach(([name, value]) => {
+                    const el = document.createElement('input');
+                    el.type = 'hidden'; el.name = name; el.value = value;
+                    form.appendChild(el);
+                });
+            });
+        }
+    }));
+});
+</script>
+
+<div x-data="depotIndex">
 
     {# ── En-tête ──────────────────────────────────────────────────────────── #}
     <div class="mb-6">
@@ -230,7 +352,7 @@
                                             </div>
                                             <div x-data="{ qty: {{ v.stockItem.quantite }} }"
                                                  style="display:flex;align-items:center;gap:0.25rem;">
-                                                <button type="button" @click="qty = Math.max(0, qty - 1)"
+                                                <button type="button" @click="qty = qty > 0 ? qty - 1 : 0"
                                                         style="width:1.75rem;height:1.75rem;border:1.5px solid #d1d5db;border-radius:0.375rem;background:#fff;font-size:1rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;color:#374151;">−</button>
                                                 <input type="number" name="lignes[{{ v.stockItem.id }}]"
                                                        x-model="qty" min="0" step="1"
@@ -440,119 +562,7 @@
          @click.self="openVente = false"
          @close-vente.window="openVente = false">
 
-        <div x-data="{
-                catalogueVente: {{ venteData|json_encode|e('html_attr') }},
-                articleId: '',
-                varianteId: '',
-                qty: 1,
-                lignes: [],
-                note: '',
-
-                get article() { return this.catalogueVente.find(a => a.id == this.articleId) ?? null; },
-                get variantes() { return this.article ? this.article.variantes : []; },
-                get variante() { return this.variantes.find(v => v.id == this.varianteId) ?? null; },
-                get maxStock() { return this.variante ? this.variante.stock : 0; },
-                get canAdd() { return this.variante !== null && this.qty >= 1; },
-                get currentPrix() {
-                    if (!this.article || !this.variante) return null;
-                    return this.getPrixForQty(this.article, this.variante, parseInt(this.qty));
-                },
-                get total() { return this.lignes.reduce((s, l) => s + l.qty * l.prix, 0); },
-
-                getPrixForQty(article, variante, qty) {
-                    const paliers = article.paliers ?? [];
-                    let resolved = null;
-                    for (const p of paliers) {
-                        if (qty >= (p.min ?? 0) && p.prixVente !== null && p.prixVente !== undefined) {
-                            resolved = parseFloat(p.prixVente);
-                        }
-                    }
-                    const base = resolved !== null ? resolved : parseFloat(article.prixBase ?? 0);
-                    return base + parseFloat(variante.deltaPrix ?? 0);
-                },
-
-                onArticleChange() { this.varianteId = ''; this.qty = 1; },
-                onVarianteChange() { this.qty = 1; },
-
-                addLigne() {
-                    if (!this.canAdd) return;
-                    const qty = parseInt(this.qty);
-                    const existing = this.lignes.find(l => l.stockItemId == this.variante.stockItemId);
-                    if (existing) {
-                        existing.qty = Math.min(existing.qty + qty, this.variante.stock);
-                    } else {
-                        this.lignes.push({
-                            articleId: this.article.id,
-                            grillePrixId: this.article.grillePrixId,
-                            articleNom: this.article.nom,
-                            varianteNom: this.variante.nom,
-                            stockItemId: this.variante.stockItemId,
-                            qty: qty,
-                            prix: 0,
-                            maxStock: this.variante.stock
-                        });
-                    }
-                    this.recalcPrixGrille(this.article.grillePrixId, this.article.paliers);
-                    this.articleId = '';
-                    this.varianteId = '';
-                    this.qty = 1;
-                },
-
-                recalcPrixGrille(grillePrixId, paliers) {
-                    if (grillePrixId === null) {
-                        const lignesArticle = this.lignes.filter(l => l.grillePrixId === null && l.articleId == this.article?.id);
-                        const totalQty = lignesArticle.reduce((s, l) => s + l.qty, 0);
-                        lignesArticle.forEach(ligne => {
-                            const art = this.catalogueVente.find(a => a.id == ligne.articleId);
-                            if (!art) return;
-                            const v = art.variantes.find(v => v.stockItemId == ligne.stockItemId);
-                            if (v) ligne.prix = this.getPrixForQty(art, v, totalQty);
-                        });
-                        return;
-                    }
-                    const lignesGrille = this.lignes.filter(l => l.grillePrixId == grillePrixId);
-                    const totalQty = lignesGrille.reduce((s, l) => s + l.qty, 0);
-                    lignesGrille.forEach(ligne => {
-                        const art = this.catalogueVente.find(a => a.id == ligne.articleId);
-                        if (!art) return;
-                        const v = art.variantes.find(v => v.stockItemId == ligne.stockItemId);
-                        if (v) ligne.prix = this.getPrixForQty(art, v, totalQty);
-                    });
-                },
-
-                removeLigne(stockItemId) {
-                    const ligne = this.lignes.find(l => l.stockItemId == stockItemId);
-                    const grillePrixId = ligne ? ligne.grillePrixId : null;
-                    const art = ligne ? this.catalogueVente.find(a => a.id == ligne.articleId) : null;
-                    this.lignes = this.lignes.filter(l => l.stockItemId != stockItemId);
-                    if (art) this.recalcPrixGrille(grillePrixId, art.paliers);
-                },
-
-                cancelVente() {
-                    this.lignes = [];
-                    this.note = '';
-                    this.articleId = '';
-                    this.varianteId = '';
-                    this.qty = 1;
-                    this.$dispatch('close-vente');
-                },
-
-                submitVente(event) {
-                    if (this.lignes.length === 0) { event.preventDefault(); return; }
-                    const form = event.target;
-                    this.lignes.forEach(l => {
-                        [
-                            ['lignes[' + l.stockItemId + '][qty]',        l.qty],
-                            ['lignes[' + l.stockItemId + '][prixEstime]', l.prix ?? 0],
-                            ['lignes[' + l.stockItemId + '][prixReel]',   l.prix ?? 0],
-                        ].forEach(([name, value]) => {
-                            const el = document.createElement('input');
-                            el.type = 'hidden'; el.name = name; el.value = value;
-                            form.appendChild(el);
-                        });
-                    });
-                }
-             }"
+        <div x-data="venteModal"
              class="modal-panel max-w-[30rem] flex flex-col">
 
             <div style="display:flex;align-items:center;gap:0.75rem;padding:1.25rem 1.5rem;border-bottom:1px solid #f3f4f6;flex-shrink:0;">
@@ -593,9 +603,9 @@
                     <div style="display:flex;gap:0.625rem;align-items:flex-end;">
                         <div style="flex:1;">
                             <label style="display:block;font-size:0.8rem;font-weight:600;color:#374151;margin-bottom:0.35rem;">Quantité</label>
-                            <select x-model="qty" @change="qty = parseInt($event.target.value)"
+                            <select x-model="qty" @change="qty = +$event.target.value"
                                     class="form-control-sm">
-                                <template x-for="n in Array.from({length: maxStock}, (_, i) => i + 1)" :key="n">
+                                <template x-for="n in stockOptions" :key="n">
                                     <option :value="n" x-text="n"></option>
                                 </template>
                             </select>
@@ -610,7 +620,7 @@
                         <span x-text="currentPrix ? currentPrix.toFixed(2).replace('.', ',') + ' €/u' : ''"></span>
                         <span style="color:#d1d5db;">·</span>
                         <span style="font-weight:600;color:#111827;"
-                              x-text="currentPrix ? 'Total : ' + (parseInt(qty) * currentPrix).toFixed(2).replace('.', ',') + ' €' : ''"></span>
+                              x-text="currentPrix ? 'Total : ' + ((+qty) * currentPrix).toFixed(2).replace('.', ',') + ' €' : ''"></span>
                     </div>
                 </div>
 

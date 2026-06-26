@@ -5,21 +5,26 @@
 {% block page_title %}{{ caracteristique ? 'Modifier' : 'Nouvelle' }} Caractéristique{% endblock %}
 
 {% block body %}
-<div x-data="{
-    type: '{{ caracteristique and caracteristique.type is defined ? caracteristique.type : 'text' }}',
-    valeurs: {{ caracteristique ? caracteristique.valeursArray|json_encode : '[]' }},
-    nouvelleValeur: '',
-    ajouterValeur() {
-        const v = this.nouvelleValeur.trim();
-        if (v && !this.valeurs.includes(v)) {
-            this.valeurs.push(v);
-            this.nouvelleValeur = '';
+<script nonce="{{ csp_nonce() }}">
+document.addEventListener('alpine:init', () => {
+    Alpine.data('caracteristiqueForm', () => ({
+        type: '{{ caracteristique and caracteristique.type is defined ? caracteristique.type : 'text' }}',
+        valeurs: {{ caracteristique ? caracteristique.valeursArray|json_encode|raw : '[]' }},
+        nouvelleValeur: '',
+        ajouterValeur() {
+            const v = this.nouvelleValeur.trim();
+            if (v && !this.valeurs.includes(v)) {
+                this.valeurs.push(v);
+                this.nouvelleValeur = '';
+            }
+        },
+        supprimerValeur(index) {
+            this.valeurs.splice(index, 1);
         }
-    },
-    supprimerValeur(index) {
-        this.valeurs.splice(index, 1);
-    }
-}">
+    }));
+});
+</script>
+<div x-data="caracteristiqueForm">
     <form method="post" class="max-w-2xl">
         <div class="space-y-6">
             {# Informations de base #}

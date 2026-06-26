@@ -7,9 +7,10 @@
 
 import './styles/app.css';
 
-// Import Alpine.js for interactivity
-import Alpine from 'alpinejs';
+// Import Alpine.js (build CSP : pas de 'unsafe-eval', évaluateur restreint)
+import Alpine from '@alpinejs/csp';
 import collapse from '@alpinejs/collapse';
+import { registerAlpineComponents } from './alpine-components';
 
 // Drag-and-drop reordering (admin organisation screen)
 import Sortable from 'sortablejs';
@@ -67,6 +68,7 @@ initInteractions();
 // Start Alpine
 window.Alpine = Alpine;
 Alpine.plugin(collapse);
+registerAlpineComponents(Alpine);
 Alpine.start();
 
 // Show/hide desktop menu elements based on viewport width

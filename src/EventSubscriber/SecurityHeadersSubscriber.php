@@ -57,15 +57,14 @@ class SecurityHeadersSubscriber implements EventSubscriberInterface
         // Content Security Policy (CSP)
         // - script-src avec nonce : seuls les <script> portant le nonce de la requête
         //   s'exécutent ; bloque les scripts injectés (XSS) et les scripts tiers.
-        // - 'unsafe-eval' requis par Alpine.js (build standard) ; à supprimer si
-        //   migration vers @alpinejs/csp.
-        // - script-src-attr 'unsafe-inline' : tolère les handlers onclick=/onsubmit=
-        //   existants ; à supprimer une fois ces handlers migrés vers Alpine.
+        // - Plus de 'unsafe-eval' : Alpine.js utilise le build @alpinejs/csp (évaluateur
+        //   restreint, sans new Function/eval).
+        // - Plus de script-src-attr 'unsafe-inline' : tous les handlers onX= ont été
+        //   migrés vers une délégation par data-attributes (assets/interactions.js).
         $response->headers->set(
             'Content-Security-Policy',
             "default-src 'self'; " .
-            "script-src 'self' 'nonce-{$nonce}' 'unsafe-eval'; " .
-            "script-src-attr 'unsafe-inline'; " .
+            "script-src 'self' 'nonce-{$nonce}'; " .
             "style-src 'self' 'unsafe-inline'; " .
             "img-src 'self' data: https:; " .
             "font-src 'self'; " .

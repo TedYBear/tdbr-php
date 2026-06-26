@@ -60,7 +60,8 @@
             </div>
 
             <script nonce="{{ csp_nonce() }}">
-            function clientSearch() {
+            document.addEventListener('alpine:init', () => {
+              Alpine.data('clientSearch', () => {
                 return {
                     query: '',
                     results: [],
@@ -79,7 +80,8 @@
                         this.results = [];
                     }
                 };
-            }
+              });
+            });
             </script>
 
             {# Message personnel (email uniquement) #}
@@ -180,7 +182,8 @@
         </form>
 
         <script nonce="{{ csp_nonce() }}">
-        function propositionForm() {
+        document.addEventListener('alpine:init', () => {
+          Alpine.data('propositionForm', () => {
             return {
                 coutDesign: {{ proposition and proposition.coutDesign is not null ? proposition.coutDesign : 0 }},
                 prixPublic: {{ proposition ? proposition.prixPublic : 0 }},
@@ -193,7 +196,8 @@
                     return this.total.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
                 }
             };
-        }
+          });
+        });
         </script>
     </div>
 

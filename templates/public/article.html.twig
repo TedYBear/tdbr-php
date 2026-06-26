@@ -398,7 +398,7 @@
                                 </label>
                                 <select x-model="selectedVarianteId"
                                         style="display:block;width:100%;padding:0.75rem 1rem;border:2px solid #e5e7eb;border-radius:0.75rem;font-size:1rem;background:#fff;cursor:pointer;"
-                                        @change="$el.style.borderColor = selectedVarianteId ? '#2F7A5B' : '#e5e7eb'">
+                                        :style="{ borderColor: selectedVarianteId ? '#2F7A5B' : '#e5e7eb' }">
                                     <option value="">-- Choisir une variante --</option>
                                     <template x-for="v in variants" :key="v.id">
                                         <option :value="v.id" x-text="v.nom"></option>
@@ -429,7 +429,7 @@
                                 <template x-if="carac.valeurs.length > 1">
                                     <select x-model="choices[carac.nom]"
                                             style="display:block;width:100%;padding:0.75rem 1rem;border:2px solid #e5e7eb;border-radius:0.75rem;font-size:1rem;background:#fff;cursor:pointer;"
-                                            @change="$el.style.borderColor = choices[carac.nom] ? '#2F7A5B' : '#e5e7eb'">
+                                            :style="{ borderColor: choices[carac.nom] ? '#2F7A5B' : '#e5e7eb' }">
                                         <option value="" x-text="'-- Choisir ' + carac.nom.toLowerCase() + ' --'"></option>
                                         <template x-for="val in carac.valeurs" :key="val">
                                             <option :value="val" x-text="val"></option>
@@ -470,7 +470,7 @@
                         <div class="flex items-center gap-3 md:gap-6">
                             <div class="flex items-center border-2 border-gray-200 rounded-xl overflow-hidden">
                                 <button type="button"
-                                        @click="quantity = Math.max(1, quantity - 1)"
+                                        @click="quantity = quantity > 1 ? quantity - 1 : 1"
                                         class="px-6 py-4 bg-gray-100 hover:bg-gray-200 transition">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>

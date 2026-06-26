@@ -38,6 +38,37 @@
     {# Données fournisseurs pour Alpine #}
     <script nonce="{{ csp_nonce() }}">
         const fournisseursData = [{% for f in fournisseurs %}{"id":{{ f.id }},"nom":{{ f.nom|json_encode|raw }}}{% if not loop.last %},{% endif %}{% endfor %}];
+
+        document.addEventListener('alpine:init', () => {
+            // Édition inline du fournisseur d'un article (build CSP : composant enregistré)
+            Alpine.data('fournisseurEdit', (setUrl, fid, fname) => ({
+                editing: false,
+                fid: fid,
+                fname: fname,
+                startEdit() { this.editing = true; this.$nextTick(() => this.$refs.fsel.focus()); },
+                async set(val) {
+                    const newFid = val ? parseInt(val) : null;
+                    const f = fournisseursData.find(f => f.id === newFid);
+                    const r = await fetch(setUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ fournisseurId: newFid })
+                    });
+                    const d = await r.json();
+                    if (d.success) { this.fid = newFid; this.fname = f ? f.nom : ''; this.editing = false; }
+                }
+            }));
+
+            // Bascule actif / en vedette d'un article
+            Alpine.data('toggleField', (toggleUrl, initial) => ({
+                val: initial,
+                toggle() {
+                    fetch(toggleUrl, { method: 'POST' })
+                        .then(r => r.json())
+                        .then(d => { if (d.success) this.val = d.value; });
+                }
+            }));
+        });
     </script>
 
     <div class="card overflow-hidden">
@@ -101,24 +132,9 @@
 
                             {# Fournisseur — édition inline #}
                             <td class="px-6 py-4"
-                                x-data="{
-                                    editing: false,
-                                    fid: {{ article.fournisseur ? article.fournisseur.id : 'null' }},
-                                    fname: '{{ article.fournisseur ? article.fournisseur.nom|e('js') : '' }}',
-                                    async set(val) {
-                                        const fid = val ? parseInt(val) : null;
-                                        const f = fournisseursData.find(f => f.id === fid);
-                                        const r = await fetch('{{ path('admin_articles_set_fournisseur', {id: article.id}) }}', {
-                                            method: 'POST',
-                                            headers: {'Content-Type':'application/json'},
-                                            body: JSON.stringify({fournisseurId: fid})
-                                        });
-                                        const d = await r.json();
-                                        if (d.success) { this.fid = fid; this.fname = f ? f.nom : ''; this.editing = false; }
-                                    }
-                                }">
+                                x-data="fournisseurEdit('{{ path('admin_articles_set_fournisseur', {id: article.id}) }}', {{ article.fournisseur ? article.fournisseur.id : 'null' }}, '{{ article.fournisseur ? article.fournisseur.nom|e('js') : '' }}')">
                                 <span x-show="!editing"
-                                      @click="editing = true; $nextTick(() => $refs.fsel.focus())"
+                                      @click="startEdit()"
                                       class="inline-flex items-center gap-1.5 cursor-pointer text-sm px-2 py-1 rounded hover:bg-gray-100">
                                     <span x-text="fname || 'Aucun'" :class="fname ? 'text-gray-800' : 'text-gray-400 italic'"></span>
                                     <svg class="w-3 h-3 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -137,15 +153,15 @@
                             </td>
 
                             <td class="px-6 py-4"
-                                x-data="{ val: {{ article.actif ? 'true' : 'false' }} }"
-                                @click="fetch('{{ path('admin_articles_toggle', {id: article.id, field: 'actif'}) }}', {method:'POST'}).then(r=>r.json()).then(d=>{ if(d.success) val=d.value; })"
+                                x-data="toggleField('{{ path('admin_articles_toggle', {id: article.id, field: 'actif'}) }}', {{ article.actif ? 'true' : 'false' }})"
+                                @click="toggle()"
                                 style="cursor:pointer" title="Cliquer pour basculer">
                                 <span x-show="val" class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">Actif</span>
                                 <span x-show="!val" class="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-semibold">Inactif</span>
                             </td>
                             <td class="px-6 py-4"
-                                x-data="{ val: {{ article.enVedette ? 'true' : 'false' }} }"
-                                @click="fetch('{{ path('admin_articles_toggle', {id: article.id, field: 'enVedette'}) }}', {method:'POST'}).then(r=>r.json()).then(d=>{ if(d.success) val=d.value; })"
+                                x-data="toggleField('{{ path('admin_articles_toggle', {id: article.id, field: 'enVedette'}) }}', {{ article.enVedette ? 'true' : 'false' }})"
+                                @click="toggle()"
                                 style="cursor:pointer" title="Cliquer pour basculer">
                                 <span x-show="val" class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-semibold">Oui</span>
                                 <span x-show="!val" class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-semibold">Non</span>

@@ -15,9 +15,12 @@
         {% set imagesJson = imagesJson|merge([img.url]) %}
     {% endfor %}
 {% endif %}
-<div x-data="{
-    variantes: {{ variantesJson|json_encode }},
-    images: {{ imagesJson|json_encode }},
+{# Composant Alpine articleForm (build CSP : enregistre via Alpine.data) #}
+<script nonce="{{ csp_nonce() }}">
+document.addEventListener('alpine:init', () => {
+    Alpine.data('articleForm', () => ({
+    variantes: {{ variantesJson|json_encode|raw }},
+    images: {{ imagesJson|json_encode|raw }},
     uploadingImages: false,
     uploadError: '',
 
@@ -64,7 +67,7 @@
     },
 
     /* === Template selector === */
-    templates: {{ templates|json_encode }},
+    templates: {{ templates|json_encode|raw }},
     templateSelectorOpen: false,
     selectedTemplateId: '',
     selectedValues: {},
@@ -148,8 +151,16 @@
         this.templateSelectorOpen = false;
         this.selectedTemplateId = '';
         this.selectedValues = {};
-    }
-}">
+    },
+
+    onImagesSelected(e) { this.uploadFiles(e.target.files); e.target.value = ''; },
+    confirmClearVariantes() { window.showConfirm('Supprimer toutes les variantes ?', () => { this.variantes = []; }); },
+    templateLabel(t) { const n = t.caracteristiques.reduce((acc, c) => acc * c.valeurs.length, 1); return t.nom + ' (' + n + ' variantes max)'; },
+    valeursJson(v) { return v.valeurs ? JSON.stringify(v.valeurs) : ''; }
+}));
+});
+</script>
+<div x-data="articleForm">
     <form method="post" class="space-y-8">
         <input type="hidden" name="returnUrl" value="{{ returnUrl ?? '' }}">
         <div class="grid lg:grid-cols-3 gap-8">
@@ -194,7 +205,7 @@
                         <p class="text-sm text-gray-500" x-show="!uploadingImages">Glissez vos images ici ou cliquez pour sélectionner (plusieurs fichiers acceptés)</p>
                         <p class="text-sm text-primary font-medium" x-show="uploadingImages">Envoi en cours...</p>
                         <input type="file" x-ref="imagesInput" accept="image/*" multiple class="hidden"
-                               @change="uploadFiles($event.target.files); $event.target.value=''">
+                               @change="onImagesSelected($event)">
                     </div>
 
                     <p x-show="uploadError" x-text="uploadError" class="text-sm text-red-600 mb-3"></p>
@@ -237,7 +248,7 @@
                             <button type="button" @click="addVariante()" class="btn-primary text-sm">+ Ajouter manuellement</button>
                             <button type="button"
                                     x-show="variantes.length > 0"
-                                    @click="window.showConfirm('Supprimer toutes les variantes ?', () => { variantes = [] })"
+                                    @click="confirmClearVariantes()"
                                     class="text-sm px-3 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50">
                                 Tout supprimer
                             </button>
@@ -253,7 +264,7 @@
                             <select x-model="selectedTemplateId" @change="onTemplateChange()" class="form-select mt-1">
                                 <option value="">-- Sélectionner un template --</option>
                                 <template x-for="t in templates" :key="t.id">
-                                    <option :value="t.id" x-text="t.nom + ' (' + t.caracteristiques.reduce((acc, c) => acc * c.valeurs.length, 1) + ' variantes max)'"></option>
+                                    <option :value="t.id" x-text="templateLabel(t)"></option>
                                 </template>
                             </select>
                         </div>
@@ -325,7 +336,7 @@
                                 <div class="flex gap-3 flex-wrap">
                                     <input type="hidden" :name="'variantes[' + index + '][id]'" x-model="variante.id">
                                     <input type="hidden" :name="'variantes[' + index + '][valeurs]'"
-                                           :value="variante.valeurs ? JSON.stringify(variante.valeurs) : ''">
+                                           :value="valeursJson(variante)">
                                     <input type="text"
                                            :name="'variantes[' + index + '][nom]'"
                                            x-model="variante.nom"
@@ -429,15 +440,18 @@
                     {% endfor %}
                     <script nonce="{{ csp_nonce() }}">
                         const grillesAdminData = {{ grillesData|json_encode|raw }};
+                        document.addEventListener('alpine:init', () => {
+                            Alpine.data('grillePreview', (selectedGrilleId) => ({
+                                grilles: grillesAdminData,
+                                selectedGrilleId: selectedGrilleId,
+                                get selectedGrille() {
+                                    return this.grilles.find(g => g.id == this.selectedGrilleId) || null;
+                                }
+                            }));
+                        });
                     </script>
                     <div class="form-group mt-4"
-                         x-data="{
-                             grilles: grillesAdminData,
-                             selectedGrilleId: '{{ article and article.grillePrix ? article.grillePrix.id : '' }}',
-                             get selectedGrille() {
-                                 return this.grilles.find(g => g.id == this.selectedGrilleId) || null;
-                             }
-                         }">
+                         x-data="grillePreview('{{ article and article.grillePrix ? article.grillePrix.id : '' }}')">
                         <label>Grille de prix</label>
                         <select name="grillePrix" class="form-select" x-model="selectedGrilleId">
                             <option value="">Aucune</option>
@@ -468,9 +482,9 @@
                                             <tr class="border-t border-gray-200">
                                                 <td class="px-2 py-1 font-medium" x-text="ligne.quantite + ' ex.'"></td>
                                                 <td class="px-2 py-1 text-right text-gray-600"
-                                                    x-text="ligne.prixFournisseur !== null ? parseFloat(ligne.prixFournisseur).toFixed(2) + ' €' : '—'"></td>
+                                                    x-text="ligne.prixFournisseur !== null ? (+ligne.prixFournisseur).toFixed(2) + ' €' : '—'"></td>
                                                 <td class="px-2 py-1 text-right font-semibold"
-                                                    x-text="ligne.prixVente !== null ? parseFloat(ligne.prixVente).toFixed(2) + ' €' : '—'"></td>
+                                                    x-text="ligne.prixVente !== null ? (+ligne.prixVente).toFixed(2) + ' €' : '—'"></td>
                                             </tr>
                                         </template>
                                     </tbody>

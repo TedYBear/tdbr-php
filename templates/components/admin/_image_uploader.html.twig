@@ -9,30 +9,7 @@
 {% set _label = label ?? 'Image' %}
 {% set _directory = directory ?? 'articles' %}
 
-<div x-data="{
-    imageUrl: '{{ currentImage ?? '' }}',
-    uploading: false,
-    error: '',
-    async handleFile(file) {
-        if (!file || !file.type.startsWith('image/')) { this.error = 'Fichier invalide'; return; }
-        if (file.size > 5242880) { this.error = 'Taille max : 5 Mo'; return; }
-        this.error = '';
-        this.uploading = true;
-        const fd = new FormData();
-        fd.append('file', file);
-        try {
-            const r = await fetch('/admin/upload/image?dir={{ _directory }}', { method: 'POST', body: fd });
-            const text = await r.text();
-            let d;
-            try { d = JSON.parse(text); } catch { this.error = 'Réponse invalide (' + r.status + ')'; this.uploading = false; return; }
-            if (d.success) { this.imageUrl = d.path; }
-            else { this.error = d.error || 'Erreur upload'; }
-        } catch(e) { this.error = 'Erreur réseau : ' + e.message; }
-        this.uploading = false;
-    },
-    onDrop(e) { e.preventDefault(); this.handleFile(e.dataTransfer.files[0]); },
-    removeImage() { this.imageUrl = ''; }
-}">
+<div x-data="imageUploader('{{ _directory }}', '{{ currentImage ?? '' }}')">
     <label class="block text-sm font-medium text-gray-700 mb-1">{{ _label }}</label>
 
     <input type="hidden" name="{{ fieldName }}" :value="imageUrl">
@@ -49,7 +26,7 @@
         <p class="text-sm text-gray-500" x-show="!uploading">Glissez une image ou cliquez pour sélectionner</p>
         <p class="text-sm text-primary font-medium" x-show="uploading">Envoi en cours...</p>
         <input type="file" x-ref="fileInput" accept="image/*" class="hidden"
-               @change="handleFile($event.target.files[0]); $event.target.value=''">
+               @change="onFileChange($event)">
     </div>
 
     {# Preview #}
@@ -61,10 +38,10 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
             </svg>
         </button>
-        <button type="button" @click="imageUrl=''; $nextTick(() => $refs.fileInput2.click())"
+        <button type="button" @click="changeImage()"
                 class="mt-2 text-sm text-primary hover:underline block">Changer l'image</button>
         <input type="file" x-ref="fileInput2" accept="image/*" class="hidden"
-               @change="handleFile($event.target.files[0]); $event.target.value=''">
+               @change="onFileChange($event)">
     </div>
 
     <p x-show="error" x-text="error" class="text-sm text-red-600 mt-1"></p>

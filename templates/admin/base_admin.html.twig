@@ -15,8 +15,8 @@
 </head>
 <body class="bg-gray-50">
     <div class="flex h-screen overflow-hidden"
-         x-data="{ sidebarOpen: window.innerWidth >= 768, isDesktop: window.innerWidth >= 768 }"
-         @resize.window="isDesktop = window.innerWidth >= 768; sidebarOpen = window.innerWidth >= 768">
+         x-data="adminLayout"
+         @resize.window="onResize()">
         {# Backdrop mobile uniquement #}
         <div x-show="sidebarOpen && !isDesktop"
              @click="sidebarOpen = false"

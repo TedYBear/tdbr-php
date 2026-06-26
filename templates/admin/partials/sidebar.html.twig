@@ -87,11 +87,7 @@
 
         {# Menu — état des groupes persisté en localStorage #}
         <nav class="space-y-1"
-             x-data="{
-                groups: JSON.parse(localStorage.getItem('tdbrAdminNav') || '{}'),
-                isOpen(k, active) { return this.groups.hasOwnProperty(k) ? this.groups[k] : active; },
-                toggle(k, active) { this.groups[k] = !this.isOpen(k, active); localStorage.setItem('tdbrAdminNav', JSON.stringify(this.groups)); }
-             }">
+             x-data="adminNav">
 
             {# Dashboard (entrée seule) #}
             <a href="{{ path('admin_dashboard') }}"

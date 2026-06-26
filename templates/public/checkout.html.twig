@@ -45,7 +45,8 @@
 
     {# Script Alpine — défini avant Alpine.start() #}
     <script nonce="{{ csp_nonce() }}">
-    function checkoutApp() {
+    document.addEventListener('alpine:init', () => {
+      Alpine.data('checkoutApp', () => {
         return {
             mode: 'domicile',
             pointRelais: {{ pointsRelais|first is not empty ? pointsRelais|first.id : 0 }},
@@ -107,7 +108,8 @@
                 form.submit();
             }
         };
-    }
+      });
+    });
     </script>
 
     {# Checkout Content #}
@@ -283,7 +285,7 @@
                             </template>
                         </div>
 
-                        <input type="hidden" name="codeReductionId" :value="selectedCodeId ?? ''">
+                        <input type="hidden" name="codeReductionId" :value="selectedCodeId || ''">
                     </div>
 
                     {# Notes #}

@@ -332,7 +332,8 @@
 </div>
 
 <script nonce="{{ csp_nonce() }}">
-function importApp() {
+document.addEventListener('alpine:init', () => {
+  Alpine.data('importApp', () => {
     return {
         selected: [],
         get allSelected() {
@@ -342,7 +343,8 @@ function importApp() {
             this.selected = checked ? {{ products|map(p => p.id)|json_encode|raw }} : [];
         },
     };
-}
+  });
+});
 </script>
 
 {% endif %}
