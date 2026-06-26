@@ -15,7 +15,7 @@ document.addEventListener('alpine:init', () => {
     }));
 
     Alpine.data('venteModal', () => ({
-        catalogueVente: {{ venteData|json_encode|raw }},
+        catalogueVente: {{ venteData|default([])|json_encode|raw }},
         articleId: '',
         varianteId: '',
         qty: 1,
