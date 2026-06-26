@@ -2,6 +2,15 @@
     RewriteEngine On
     RewriteBase /
 
+    # Forcer HTTPS et non-www sur l'URI d'origine, AVANT la réécriture vers /public.
+    # Sinon la redirection se déclenche depuis public/.htaccess une fois l'URI déjà
+    # réécrite en /public/index.php, et exposerait ce chemin interne dans le Location.
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [L,R=301]
+
+    RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+    RewriteRule ^(.*)$ https://%1/$1 [L,R=301]
+
     # Éviter la boucle infinie si déjà dans /public
     RewriteCond %{REQUEST_URI} ^/public/ [OR]
     RewriteCond %{REQUEST_URI} ^/public$

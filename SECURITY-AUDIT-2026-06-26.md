@@ -13,7 +13,7 @@ Le code applicatif est **solide** (CSRF généralisé, Doctrine ORM sans SQLi, u
 | 1 | ✅ Élevé | CSP à nonce écrasée par le serveur Hostinger | CORRIGÉ (hPanel « Forcer HTTPS » désactivé) |
 | 2 | ⚪ Hors périmètre | tdbr.fr = domaine parqué + tracker russe sur PHP 7.4 EOL | NON APPLICABLE (domaine non possédé) |
 | 3 | 🟡 Faible | Version PHP exposée (`X-Powered-By`) | CORRIGÉ (.htaccess — effectif après déploiement) |
-| 4 | 🟡 Faible | `www.tedybear.fr` → `/public/index.php` | À CORRIGER (hPanel) |
+| 4 | 🟡 Faible | Redirection exposant `/public/index.php` | CORRIGÉ (.htaccess racine — effectif après déploiement) |
 | 5 | 🟡 Faible | `public/uploads/` sans blocage d'exécution PHP | CORRIGÉ (.htaccess) |
 
 ---
@@ -38,10 +38,11 @@ Le code applicatif est **solide** (CSRF généralisé, Doctrine ORM sans SQLi, u
 - **Constat :** `X-Powered-By: PHP/8.3.30` exposé en prod.
 - **Correctif :** `expose_php` étant `PHP_INI_SYSTEM` (non modifiable via `.user.ini` sur mutualisé), l'en-tête est retiré dans `public/.htaccess` (`Header always unset X-Powered-By`). Effectif après `git pull` en prod. Vérif : `curl -sI https://tedybear.fr | grep -i x-powered` (doit ne rien renvoyer).
 
-## 🟡 #4 — Redirection www non canonique
+## 🟡 #4 — Redirection exposant `/public/index.php` — CORRIGÉ (après déploiement)
 
-- **Constat :** `www.tedybear.fr` redirige (301) vers `https://tedybear.fr/public/index.php` — fuite du chemin interne `/public/` et URL non canonique. Le `.htaccess` du repo gère pourtant proprement www→non-www ; cette redirection vient d'une règle hPanel séparée.
-- **Action :** corriger la redirection panel pour viser `https://tedybear.fr/`.
+- **Constat :** la redirection HTTP→HTTPS renvoyait vers `https://tedybear.fr/public/index.php`, exposant le chemin interne `/public/`.
+- **Cause :** sur Hostinger le document root est `public_html/` (le projet y est déployé, point d'entrée réel `public_html/public/index.php`). Le `.htaccess` racine réécrit en interne vers `public/`, *puis* la règle « Forcer HTTPS » de `public/.htaccess` se déclenchait sur l'URI déjà réécrite (`/public/index.php`) et la renvoyait dans le `Location`.
+- **Correctif :** déplacement du forçage HTTPS + non-www dans le `.htaccess` racine, **avant** la réécriture vers `/public`, donc sur l'URI d'origine. La redirection produit désormais une URL propre (`https://tedybear.fr/…`). Effectif après `git pull` en prod. Vérif : `curl -sI http://tedybear.fr/ | grep -i location`.
 
 ## 🟡 #5 — uploads/ sans blocage d'exécution PHP
 
