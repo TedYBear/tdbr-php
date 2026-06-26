@@ -40,6 +40,7 @@
 ###> Uploads ###
 /public/uploads/*
 !/public/uploads/.gitkeep
+!/public/uploads/.htaccess
 !/public/uploads/articles/
 !/public/uploads/categories/
 !/public/uploads/collections/
