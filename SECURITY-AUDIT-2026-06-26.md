@@ -77,6 +77,13 @@ script-src 'self' 'nonce-{aléatoire-par-requête}'
 
 **Validation** : build OK, `lint:twig` OK, parsing des 469 expressions de directive par l'évaluateur CSP OK, et **QA navigateur complète** (form article, grille de prix, caractéristiques, modale de vente dépôt, dialogues de confirmation, bascule mot de passe, accordéon admin) — aucune violation CSP ni `Alpine Expression Error`. Mergé sur `main` le 2026-06-26.
 
+## ✅ HSTS preload (2026-06-26)
+
+- Directive **`preload`** ajoutée à l'en-tête HSTS (`max-age=31536000; includeSubDomains; preload`) dans `SecurityHeadersSubscriber`.
+- Sous-domaines vérifiés HTTPS-ready avant l'engagement : `preprod.tedybear.fr` → HTTPS 200 + redirection HTTP→HTTPS 301 ; apex `tedybear.fr` → HTTPS 200.
+- **Étape manuelle restante (après déploiement)** : soumettre `tedybear.fr` sur https://hstspreload.org/ — l'outil vérifie que l'en-tête live contient bien `preload`.
+- ⚠ Engagement : une fois sur la liste preload, **tous** les sous-domaines doivent rester en HTTPS valide ; le retrait prend plusieurs mois. Ne pas créer de sous-domaine en HTTP nu.
+
 ## Dette résiduelle
 
-- HSTS : envisager l'ajout de `preload` + soumission à hstspreload.org.
+- _(aucune)_ — voir l'étape manuelle de soumission HSTS preload ci-dessus.

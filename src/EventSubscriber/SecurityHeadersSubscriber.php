@@ -48,8 +48,11 @@ class SecurityHeadersSubscriber implements EventSubscriberInterface
         // Prévient la détection de MIME type
         $response->headers->set('X-Content-Type-Options', 'nosniff');
 
-        // Force HTTPS
-        $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+        // Force HTTPS — HSTS avec preload.
+        // ⚠ Engagement : la directive preload + includeSubDomains impose que TOUS les
+        // sous-domaines (preprod.tedybear.fr, etc.) servent du HTTPS valide. À soumettre
+        // sur https://hstspreload.org/ pour intégrer la liste preload des navigateurs.
+        $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
 
         // Contrôle des référeurs
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
