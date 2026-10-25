@@ -53,13 +53,46 @@ export function registerAlpineComponents(Alpine) {
     changeImage() { this.imageUrl = ''; this.$nextTick(() => this.$refs.fileInput2.click()); },
   }));
 
-  // Menu latéral admin : état des groupes (ouverts/fermés) persisté en localStorage.
-  Alpine.data('adminNav', () => ({
-    groups: JSON.parse(localStorage.getItem('tdbrAdminNav') || '{}'),
-    isOpen(k, active) { return this.groups.hasOwnProperty(k) ? this.groups[k] : active; },
-    toggle(k, active) {
-      this.groups[k] = !this.isOpen(k, active);
-      localStorage.setItem('tdbrAdminNav', JSON.stringify(this.groups));
+  // Menu latéral admin : état des groupes (ouverts/fermés) réactif et persisté en localStorage.
+  Alpine.data('adminNav', (activeGroupKey = '') => ({
+    groups: {
+      catalogue: false,
+      ventes: false,
+      clients: false,
+      partenaires: false,
+      marketing: false,
+    },
+    activeGroup: activeGroupKey,
+
+    init() {
+      try {
+        const stored = JSON.parse(localStorage.getItem('tdbrAdminNav') || '{}');
+        if (stored && typeof stored === 'object') {
+          for (const k of Object.keys(this.groups)) {
+            if (typeof stored[k] === 'boolean') {
+              this.groups[k] = stored[k];
+            }
+          }
+        }
+      } catch (e) {}
+
+      // Le groupe contenant la page active est toujours déplié à l'arrivée
+      if (this.activeGroup && Object.prototype.hasOwnProperty.call(this.groups, this.activeGroup)) {
+        this.groups[this.activeGroup] = true;
+      }
+    },
+
+    isOpen(key) {
+      return !!this.groups[key];
+    },
+
+    toggle(key) {
+      const next = !this.isOpen(key);
+      this.groups[key] = next;
+      this.groups = Object.assign({}, this.groups);
+      try {
+        localStorage.setItem('tdbrAdminNav', JSON.stringify(this.groups));
+      } catch (e) {}
     },
   }));
 }
