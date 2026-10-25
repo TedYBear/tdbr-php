@@ -29,12 +29,19 @@ document.addEventListener('alpine:init', () => {
         get variante() { return this.variantes.find(v => v.id == this.varianteId) ?? null; },
         get maxStock() { return this.variante ? this.variante.stock : 0; },
         get stockOptions() { return Array.from({length: this.maxStock}, (_, i) => i + 1); },
-        get canAdd() { return this.variante !== null && this.qty >= 1; },
+        get canAdd() { return this.variante !== null && parseInt(this.qty) >= 1; },
+        get canSubmit() { return this.lignes.length > 0 || this.canAdd; },
         get currentPrix() {
             if (!this.article || !this.variante) return null;
             return this.getPrixForQty(this.article, this.variante, parseInt(this.qty));
         },
-        get total() { return this.lignes.reduce((s, l) => s + l.qty * l.prix, 0); },
+        get total() {
+            let sum = this.lignes.reduce((s, l) => s + l.qty * l.prix, 0);
+            if (this.canAdd && this.currentPrix !== null) {
+                sum += parseInt(this.qty) * this.currentPrix;
+            }
+            return sum;
+        },
 
         getPrixForQty(article, variante, qty) {
             const paliers = article.paliers ?? [];
@@ -54,30 +61,35 @@ document.addEventListener('alpine:init', () => {
         addLigne() {
             if (!this.canAdd) return;
             const qty = parseInt(this.qty);
-            const existing = this.lignes.find(l => l.stockItemId == this.variante.stockItemId);
+            const art = this.article;
+            const v = this.variante;
+            if (!art || !v) return;
+
+            const existing = this.lignes.find(l => l.stockItemId == v.stockItemId);
             if (existing) {
-                existing.qty = Math.min(existing.qty + qty, this.variante.stock);
+                existing.qty = Math.min(existing.qty + qty, v.stock);
             } else {
                 this.lignes.push({
-                    articleId: this.article.id,
-                    grillePrixId: this.article.grillePrixId,
-                    articleNom: this.article.nom,
-                    varianteNom: this.variante.nom,
-                    stockItemId: this.variante.stockItemId,
+                    articleId: art.id,
+                    grillePrixId: art.grillePrixId,
+                    articleNom: art.nom,
+                    varianteNom: v.nom,
+                    stockItemId: v.stockItemId,
                     qty: qty,
-                    prix: 0,
-                    maxStock: this.variante.stock
+                    prix: this.currentPrix ?? 0,
+                    maxStock: v.stock
                 });
             }
-            this.recalcPrixGrille(this.article.grillePrixId, this.article.paliers);
+            this.recalcPrixGrille(art.grillePrixId, art.paliers, art.id);
             this.articleId = '';
             this.varianteId = '';
             this.qty = 1;
         },
 
-        recalcPrixGrille(grillePrixId, paliers) {
+        recalcPrixGrille(grillePrixId, paliers, targetArticleId = null) {
             if (grillePrixId === null) {
-                const lignesArticle = this.lignes.filter(l => l.grillePrixId === null && l.articleId == this.article?.id);
+                const artId = targetArticleId || this.article?.id;
+                const lignesArticle = artId ? this.lignes.filter(l => l.grillePrixId === null && l.articleId == artId) : this.lignes.filter(l => l.grillePrixId === null);
                 const totalQty = lignesArticle.reduce((s, l) => s + l.qty, 0);
                 lignesArticle.forEach(ligne => {
                     const art = this.catalogueVente.find(a => a.id == ligne.articleId);
@@ -100,9 +112,10 @@ document.addEventListener('alpine:init', () => {
         removeLigne(stockItemId) {
             const ligne = this.lignes.find(l => l.stockItemId == stockItemId);
             const grillePrixId = ligne ? ligne.grillePrixId : null;
+            const articleId = ligne ? ligne.articleId : null;
             const art = ligne ? this.catalogueVente.find(a => a.id == ligne.articleId) : null;
             this.lignes = this.lignes.filter(l => l.stockItemId != stockItemId);
-            if (art) this.recalcPrixGrille(grillePrixId, art.paliers);
+            if (art) this.recalcPrixGrille(grillePrixId, art.paliers, articleId);
         },
 
         cancelVente() {
@@ -115,6 +128,9 @@ document.addEventListener('alpine:init', () => {
         },
 
         submitVente(event) {
+            if (this.canAdd) {
+                this.addLigne();
+            }
             if (this.lignes.length === 0) { event.preventDefault(); return; }
             const form = event.target;
             this.lignes.forEach(l => {
@@ -704,7 +720,7 @@ document.addEventListener('alpine:init', () => {
                     {% include 'components/_csrf.html.twig' %}
                     <input type="hidden" name="note" :value="note">
                     <button type="submit"
-                            :disabled="lignes.length === 0"
+                            :disabled="!canSubmit"
                             class="btn-success w-full">
                         Valider la vente
                     </button>
