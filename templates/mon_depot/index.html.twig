@@ -8,6 +8,7 @@ document.addEventListener('alpine:init', () => {
     Alpine.data('depotIndex', () => ({
         openFond: false,
         openVente: false,
+        openVenteSpeciale: false,
         fondSens: 'ajout',
         panel: null,
         collectionId: null,
@@ -176,6 +177,10 @@ document.addEventListener('alpine:init', () => {
         <div class="card p-5 flex flex-col gap-2 justify-center">
             <button @click="openVente = true" class="btn-dark w-full">
                 Réaliser une vente
+            </button>
+            <button @click="openVenteSpeciale = true"
+                    class="w-full px-4 py-2 rounded-lg text-sm font-semibold transition border border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100 cursor-pointer">
+                Réaliser une vente spéciale
             </button>
             <button @click="togglePanel('ajout')"
                     :style="panel === 'ajout' ? 'background:#1e40af;color:#fff;border:none;border-radius:0.5rem;padding:0.5rem 1rem;font-size:0.875rem;font-weight:600;cursor:pointer;font-family:inherit;width:100%;' : 'background:#dbeafe;color:#1e40af;border:none;border-radius:0.5rem;padding:0.5rem 1rem;font-size:0.875rem;font-weight:600;cursor:pointer;font-family:inherit;width:100%;'">
@@ -466,7 +471,7 @@ document.addEventListener('alpine:init', () => {
                                         <ul class="space-y-0.5">
                                             {% for ligne in tx.lignes %}
                                                 <li class="text-xs">
-                                                    {{ ligne.varianteLabel }} × {{ ligne.quantite }}
+                                                    {{ ligne.varianteLabel }}{% if ligne.varianteLabel != 'Divers' or ligne.quantite > 1 %} × {{ ligne.quantite }}{% endif %}
                                                     {% if ligne.prixReel %}
                                                         <span class="text-gray-400">({{ ligne.prixReel|number_format(2, ',', ' ') }} €)</span>
                                                     {% endif %}
@@ -535,6 +540,43 @@ document.addEventListener('alpine:init', () => {
                     </button>
                     <button type="submit" class="btn-dark flex-1">
                         Confirmer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {# ════════════════════════════════════════════════════════════════════════
+       Modal — Vente spéciale (Divers)
+    ════════════════════════════════════════════════════════════════════════ #}
+    <div x-show="openVenteSpeciale" x-cloak
+         class="modal-overlay"
+         @click.self="openVenteSpeciale = false">
+        <div class="modal-panel max-w-[24rem] p-8">
+            <div style="margin-bottom:1.25rem;">
+                <h3 style="font-size:1.1rem;font-weight:700;color:#9E5A2A;margin:0;">Vente spéciale</h3>
+                <p style="font-size:0.8rem;color:#6b7280;margin:0.25rem 0 0;">(fin de série / t-shirt mug)</p>
+            </div>
+            <form method="post" action="{{ path('mon_depot_vente_speciale') }}">
+                {% include 'components/_csrf.html.twig' %}
+                <div style="margin-bottom:1rem;">
+                    <label style="display:block;font-size:0.8rem;font-weight:600;color:#374151;margin-bottom:0.35rem;">Prix de vente (€)</label>
+                    <input type="number" name="montant" min="0.01" step="0.01" required
+                           class="form-control-sm"
+                           placeholder="0.00">
+                </div>
+                <div style="margin-bottom:1.5rem;">
+                    <label style="display:block;font-size:0.8rem;font-weight:600;color:#374151;margin-bottom:0.35rem;">Détail (commentaire)</label>
+                    <textarea name="detail" rows="2"
+                              class="form-control-sm"
+                              placeholder="Ex : Fin de série, t-shirt, mug..."></textarea>
+                </div>
+                <div style="display:flex;gap:0.75rem;">
+                    <button type="button" @click="openVenteSpeciale = false" class="btn-soft flex-1">
+                        Annuler
+                    </button>
+                    <button type="submit" class="btn-dark flex-1">
+                        Valider
                     </button>
                 </div>
             </form>

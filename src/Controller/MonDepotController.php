@@ -329,6 +329,53 @@ class MonDepotController extends AbstractController
         return $this->redirectToRoute('mon_depot');
     }
 
+    #[Route('/vente-speciale', name: '_vente_speciale', methods: ['POST'])]
+    public function venteSpeciale(Request $request): Response
+    {
+        if ($csrfError = $this->checkCsrf($request)) return $csrfError;
+
+        $result = $this->getDepotOrRedirect();
+        if ($result instanceof Response) return $result;
+        $depot = $result;
+
+        $montant = abs((float)str_replace(',', '.', (string)$request->request->get('montant', 0)));
+        $detail  = trim((string)$request->request->get('detail', ''));
+
+        if ($montant <= 0) {
+            $this->addFlash('error', 'Le montant de la vente spéciale doit être supérieur à 0.');
+            return $this->redirectToRoute('mon_depot');
+        }
+
+        /** @var \App\Entity\User $user */
+        $user = $this->getUser();
+
+        $transaction = (new DepotVenteTransaction())
+            ->setDepotVente($depot)
+            ->setType(DepotVenteTransaction::TYPE_VENTE)
+            ->setNote($detail ?: null)
+            ->setCreatedBy($user)
+            ->setMontantFond($montant);
+
+        $ligne = (new DepotVenteTransactionLigne())
+            ->setVariante(null)
+            ->setVarianteLabel('Divers')
+            ->setQuantite(1)
+            ->setPrixEstime($montant)
+            ->setPrixReel($montant);
+
+        $transaction->addLigne($ligne);
+
+        // Mettre à jour le fond de caisse
+        $depot->setFondDeCaisse($depot->getFondDeCaisse() + $montant);
+
+        $this->em->persist($transaction);
+        $this->em->flush();
+
+        $this->addFlash('success', sprintf('Vente spéciale enregistrée : Divers (%.2f €). +%.2f € au fond de caisse.', $montant, $montant));
+
+        return $this->redirectToRoute('mon_depot');
+    }
+
     #[Route('/fond', name: '_fond', methods: ['POST'])]
     public function fond(Request $request): Response
     {
