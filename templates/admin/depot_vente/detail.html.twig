@@ -585,7 +585,8 @@ document.addEventListener('alpine:init', () => {
 
     {# ════════════════════════════════════════════════════════════════════════
        Modal — Réaliser une vente
-       Données pré-construites côté Twig, logique panier côté Alpine
+    ════════════════════════════════════════════════════════════════════════ #}
+
     <div x-show="openVente" x-cloak
          class="modal-overlay"
          @click.self="openVente = false"
