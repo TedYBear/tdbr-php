@@ -282,7 +282,7 @@ document.addEventListener('alpine:init', () => {
                                 <template x-for="carac in selectedTemplate.caracteristiques" :key="carac.nom">
                                     <div class="bg-white rounded-lg p-4 border border-blue-100">
                                         <div class="flex items-center justify-between mb-3">
-                                            <h4 class="font-medium text-gray-900" x-text="carac.nom"></h4>
+                                            <h4 class="font-medium font-heading text-primary" x-text="carac.nom"></h4>
                                             <div class="flex gap-2 items-center">
                                                 <button type="button" @click="selectAll(carac.nom)"
                                                         class="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200">Tout</button>

@@ -48,8 +48,12 @@ img[src*="/uploads/articles/"] {
 /* Base Styles */
 @layer base {
   body {
-    @apply antialiased;
+    @apply antialiased text-dark;
     font-feature-settings: 'liga' 1, 'kern' 1;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading text-primary;
   }
 
   html {
@@ -152,10 +156,10 @@ img[src*="/uploads/articles/"] {
   .animated-gradient {
     background: linear-gradient(
       -45deg,
-      #E7F4EE,
-      #4FB48A,
-      #2F7A5B,
-      #E7F4EE
+      #FAF3EB,
+      #DE9B52,
+      #9E5A2A,
+      #FAF3EB
     );
     background-size: 400% 400%;
     animation: gradient-shift 15s ease infinite;
@@ -170,7 +174,7 @@ img[src*="/uploads/articles/"] {
   .feature-card::after {
     content: '';
     @apply absolute inset-0 opacity-0 transition-opacity duration-500;
-    background: linear-gradient(135deg, rgba(47, 122, 91, 0.05), rgba(79, 180, 138, 0.05));
+    background: linear-gradient(135deg, rgba(158, 90, 42, 0.05), rgba(222, 155, 82, 0.05));
     border-radius: 1rem;
   }
 
@@ -234,7 +238,7 @@ img[src*="/uploads/articles/"] {
   /* Pricing card */
   .price-tag {
     @apply text-4xl font-bold;
-    background: linear-gradient(135deg, #2F7A5B, #4FB48A);
+    background: linear-gradient(135deg, #9E5A2A, #DE9B52);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -272,7 +276,7 @@ img[src*="/uploads/articles/"] {
   /* Gradient border */
   .gradient-border {
     @apply relative p-1 rounded-2xl;
-    background: linear-gradient(135deg, #2F7A5B, #4FB48A, #2F7A5B);
+    background: linear-gradient(135deg, #9E5A2A, #DE9B52, #9E5A2A);
     background-size: 200% 200%;
     animation: gradient-shift 3s ease infinite;
   }
@@ -360,13 +364,13 @@ img[src*="/uploads/articles/"] {
   }
 
   .glow {
-    box-shadow: 0 0 20px rgba(47, 122, 91, 0.4),
-                0 0 40px rgba(47, 122, 91, 0.2);
+    box-shadow: 0 0 20px rgba(158, 90, 42, 0.4),
+                0 0 40px rgba(158, 90, 42, 0.2);
   }
 
   .glow-secondary {
-    box-shadow: 0 0 20px rgba(79, 180, 138, 0.4),
-                0 0 40px rgba(79, 180, 138, 0.2);
+    box-shadow: 0 0 20px rgba(222, 155, 82, 0.4),
+                0 0 40px rgba(222, 155, 82, 0.2);
   }
 }
 

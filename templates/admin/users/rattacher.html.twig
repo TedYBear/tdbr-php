@@ -23,7 +23,7 @@
     {# ── Commandes ─────────────────────────────────────────────── #}
     <div class="card overflow-hidden mb-6">
         <div class="px-5 py-4 border-b bg-gray-50 flex items-center justify-between">
-            <h2 class="font-semibold text-gray-800">Commandes <span class="ml-2 text-xs font-normal text-gray-400">({{ commandes|length }})</span></h2>
+            <h2 class="font-semibold font-heading text-primary">Commandes <span class="ml-2 text-xs font-normal text-gray-400">({{ commandes|length }})</span></h2>
         </div>
 
         {% if commandes is empty %}
@@ -87,7 +87,7 @@
     {# ── Propositions commerciales ──────────────────────────────── #}
     <div class="card overflow-hidden mb-6">
         <div class="px-5 py-4 border-b bg-gray-50 flex items-center justify-between">
-            <h2 class="font-semibold text-gray-800">Propositions commerciales <span class="ml-2 text-xs font-normal text-gray-400">({{ propositions|length }})</span></h2>
+            <h2 class="font-semibold font-heading text-primary">Propositions commerciales <span class="ml-2 text-xs font-normal text-gray-400">({{ propositions|length }})</span></h2>
         </div>
 
         {% if propositions is empty %}
@@ -158,7 +158,7 @@
     {% if demandes is not empty %}
     <div class="card overflow-hidden mt-8">
         <div class="px-5 py-4 border-b bg-gray-50">
-            <h2 class="font-semibold text-gray-800">Demandes sur-mesure <span class="ml-2 text-xs font-normal text-gray-400">({{ demandes|length }}) — lecture seule</span></h2>
+            <h2 class="font-semibold font-heading text-primary">Demandes sur-mesure <span class="ml-2 text-xs font-normal text-gray-400">({{ demandes|length }}) — lecture seule</span></h2>
         </div>
         <table class="w-full text-sm">
             <thead class="bg-gray-50 border-b text-xs uppercase text-gray-500">
@@ -189,7 +189,7 @@
     {% if messages is not empty %}
     <div class="card overflow-hidden mt-6">
         <div class="px-5 py-4 border-b bg-gray-50">
-            <h2 class="font-semibold text-gray-800">Messages de contact <span class="ml-2 text-xs font-normal text-gray-400">({{ messages|length }}) — lecture seule</span></h2>
+            <h2 class="font-semibold font-heading text-primary">Messages de contact <span class="ml-2 text-xs font-normal text-gray-400">({{ messages|length }}) — lecture seule</span></h2>
         </div>
         <table class="w-full text-sm">
             <thead class="bg-gray-50 border-b text-xs uppercase text-gray-500">

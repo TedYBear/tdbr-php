@@ -35,7 +35,7 @@ module.exports = {
         primary: '#9E5A2A',
         secondary: '#DE9B52',
         accent: '#FAF3EB',
-        dark: '#24140D'
+        dark: '#3D2617'
       },
       fontFamily: {
         sans: ['Hanken Grotesk', 'sans-serif'],

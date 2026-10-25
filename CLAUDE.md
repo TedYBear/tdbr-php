@@ -53,7 +53,7 @@ Standard Symfony layout under `src/`, PSR-4 `App\` → `src/`. Routing is via **
 Role hierarchy `ROLE_ADMIN → ROLE_DEPOT_VENTE`. Access control: `/admin` = ROLE_ADMIN, `/mon-depot` = ROLE_DEPOT_VENTE (partner consignment area), `/profil` = ROLE_USER. Form login with CSRF, login throttling (5 attempts / 15 min), remember-me (1 week). Password hashing `auto` (bcrypt). CSRF token id `app` is also enforced on AJAX (header `X-CSRF-Token`); rate-limiter guards login + custom-order requests; honeypots for anti-spam.
 
 ### Frontend / assets
-Tailwind theme « Fauve & Biscuit » (Ours en peluche / TedYBear) — tokens centralized in `tailwind.config.js` and `assets/styles/app.css`: `primary #9E5A2A`, `secondary #DE9B52`, `accent #FAF3EB`, `dark #24140D`. Fonts are **self-hosted** woff2 in `assets/fonts/` (Bricolage Grotesque titles, Hanken Grotesk body) — no Google CDN, required by the CSP `font-src 'self'`.
+Tailwind theme « Fauve & Biscuit » (Ours en peluche / TedYBear) — tokens centralized in `tailwind.config.js` and `assets/styles/app.css`: `primary #9E5A2A`, `secondary #DE9B52`, `accent #FAF3EB`, `dark #3D2617`. Fonts are **self-hosted** woff2 in `assets/fonts/` (Bricolage Grotesque titles with default `text-primary`, Hanken Grotesk body with default `text-dark`) — no Google CDN, required by the CSP `font-src 'self'`.
 
 Encore outputs hashed assets; templates reference them via the `encore_entry` Twig function reading `entrypoints.json` — never hardcode build hashes. After `npm run build`, **`public/build/` is committed to git** so deployment needs no Node.
 
