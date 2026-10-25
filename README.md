@@ -35,13 +35,13 @@ Site e-commerce pour la vente de goodies personnalisés créés avec IA généra
 - **Build :** Webpack Encore 4.x (assets versionnés, lus via `entrypoints.json`)
 - **Polices :** **Bricolage Grotesque** (titres) + **Hanken Grotesk** (corps) — woff2 variables **auto-hébergés** (`assets/fonts/`, pas de CDN Google)
 
-### Charte couleurs (Tailwind — « Émeraude »)
+### Charte couleurs (Tailwind — « Fauve & Biscuit » / Ours en peluche)
 ```js
 colors: {
-  primary:   '#2F7A5B',  // Vert émeraude
-  secondary: '#4FB48A',  // Vert clair
-  accent:    '#E7F4EE',  // Vert très clair
-  dark:      '#143027'   // Vert foncé
+  primary:   '#9E5A2A',  // Fauve cuivré (pelage d'ours chaud)
+  secondary: '#DE9B52',  // Miel biscuit (doré chaleureux)
+  accent:    '#FAF3EB',  // Lait chaud (écru velouté)
+  dark:      '#24140D'   // Brun ébène (chocolat noir profond)
 }
 ```
 > Les tokens (couleurs + polices) sont centralisés dans `tailwind.config.js` / `assets/styles/app.css`
