@@ -164,6 +164,36 @@ class DepotVenteAdminController extends AbstractController
         // Catégories avec leurs collections (pour "Ajouter des articles")
         $categories = $this->categoryRepo->findBy(['actif' => true], ['ordre' => 'ASC', 'nom' => 'ASC']);
 
+        // Données catalogue pour la modale de vente (articles et variantes ayant du stock)
+        $venteData = [];
+        foreach ($articlesAvecStock as $article) {
+            $variantesData = [];
+            foreach ($article->getVariantes() as $variante) {
+                if (!$variante->isActif()) continue;
+                $stockItem = $stockMap[$variante->getId()] ?? null;
+                if ($stockItem && $stockItem->getQuantite() > 0) {
+                    $variantesData[] = [
+                        'id'          => $variante->getId(),
+                        'nom'         => $variante->getNom(),
+                        'stock'       => $stockItem->getQuantite(),
+                        'stockItemId' => $stockItem->getId(),
+                        'deltaPrix'   => $variante->getDeltaPrix() ?? 0.0,
+                    ];
+                }
+            }
+            if (!empty($variantesData)) {
+                $grille = $article->getGrillePrix();
+                $venteData[] = [
+                    'id'           => $article->getId(),
+                    'nom'          => $article->getNom(),
+                    'prixBase'     => $article->getPrixBase() ?? 0.0,
+                    'paliers'      => $grille ? $grille->getPaliers() : [],
+                    'grillePrixId' => $grille ? $grille->getId() : null,
+                    'variantes'    => $variantesData,
+                ];
+            }
+        }
+
         return $this->render('admin/depot_vente/detail.html.twig', [
             'depot'                  => $depot,
             'articles'               => $articlesAvecStock,
@@ -171,6 +201,7 @@ class DepotVenteAdminController extends AbstractController
             'categories'             => $categories,
             'stockMap'               => $stockMap,
             'prixMap'                => $prixMap,
+            'venteData'              => $venteData,
             'transactions'           => $depot->getTransactions()->slice(0, 30),
         ]);
     }

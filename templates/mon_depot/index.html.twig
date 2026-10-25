@@ -352,12 +352,12 @@ document.addEventListener('alpine:init', () => {
                                             </div>
                                             <div x-data="{ qty: {{ v.stockItem.quantite }} }"
                                                  style="display:flex;align-items:center;gap:0.25rem;">
-                                                <button type="button" @click="qty = qty > 0 ? qty - 1 : 0"
+                                                <button type="button" @click="qty = Math.max(0, (+qty || 0) - 1)"
                                                         style="width:1.75rem;height:1.75rem;border:1.5px solid #d1d5db;border-radius:0.375rem;background:#fff;font-size:1rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;color:#374151;">−</button>
                                                 <input type="number" name="lignes[{{ v.stockItem.id }}]"
-                                                       x-model="qty" min="0" step="1"
+                                                       x-model.number="qty" value="{{ v.stockItem.quantite }}" min="0" step="1"
                                                        style="width:3rem;border:1.5px solid #d1d5db;border-radius:0.375rem;padding:0.25rem;font-size:0.875rem;text-align:center;font-family:inherit;">
-                                                <button type="button" @click="qty++"
+                                                <button type="button" @click="qty = (+qty || 0) + 1"
                                                         style="width:1.75rem;height:1.75rem;border:1.5px solid #d1d5db;border-radius:0.375rem;background:#fff;font-size:1rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;color:#374151;">+</button>
                                             </div>
                                             <span class="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold {{ v.stockItem.quantite > 0 ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400' }}">
@@ -524,38 +524,6 @@ document.addEventListener('alpine:init', () => {
             </form>
         </div>
     </div>
-
-    {# ════════════════════════════════════════════════════════════════════════
-       Modal — Réaliser une vente
-    ════════════════════════════════════════════════════════════════════════ #}
-    {% set venteData = [] %}
-    {% for article in articles %}
-        {% set variantesData = [] %}
-        {% for variante in article.variantes %}
-            {% if variante.actif %}
-                {% set stockItem = stockMap[variante.id] ?? null %}
-                {% if stockItem and stockItem.quantite > 0 %}
-                    {% set variantesData = variantesData|merge([{
-                        id: variante.id,
-                        nom: variante.nom,
-                        stock: stockItem.quantite,
-                        stockItemId: stockItem.id,
-                        deltaPrix: variante.deltaPrix ?? 0
-                    }]) %}
-                {% endif %}
-            {% endif %}
-        {% endfor %}
-        {% if variantesData|length > 0 %}
-            {% set venteData = venteData|merge([{
-                id: article.id,
-                nom: article.nom,
-                prixBase: article.prixBase,
-                paliers: article.grillePrix ? article.grillePrix.paliers : [],
-                grillePrixId: article.grillePrix ? article.grillePrix.id : null,
-                variantes: variantesData
-            }]) %}
-        {% endif %}
-    {% endfor %}
 
     <div x-show="openVente" x-cloak
          class="modal-overlay"
