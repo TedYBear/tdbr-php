@@ -38,10 +38,11 @@ Site e-commerce pour la vente de goodies personnalisés créés avec IA généra
 ### Charte couleurs (Tailwind — « Fauve & Biscuit » / Ours en peluche)
 ```js
 colors: {
-  primary:   '#9E5A2A',  // Fauve cuivré (pelage d'ours chaud)
-  secondary: '#DE9B52',  // Miel biscuit (doré chaleureux)
-  accent:    '#FAF3EB',  // Lait chaud (écru velouté)
-  dark:      '#3D2617'   // Brun chocolat chaud & doux (textes et contrastes adoucis)
+  primary:        '#9E5A2A',  // Fauve cuivré (pelage d'ours chaud, titres généraux)
+  'primary-dark': '#753E1B',  // Fauve soutenu (titres de vignettes articles & collections)
+  secondary:      '#DE9B52',  // Miel biscuit (doré chaleureux)
+  accent:         '#FAF3EB',  // Lait chaud (écru velouté)
+  dark:           '#3D2617'   // Brun chocolat chaud & doux (textes et contrastes adoucis)
 }
 ```
 > Les tokens (couleurs + polices) sont centralisés dans `tailwind.config.js` / `assets/styles/app.css`
