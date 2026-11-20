@@ -33,6 +33,12 @@ class Category
     #[ORM\Column]
     private bool $actif = true;
 
+    #[ORM\Column(options: ['default' => false])]
+    private bool $lienDirectUniquement = false;
+
+    #[ORM\Column(length: 64, nullable: true, unique: true)]
+    private ?string $accessToken = null;
+
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
@@ -58,6 +64,11 @@ class Category
     public function setOrdre(int $ordre): static { $this->ordre = $ordre; return $this; }
     public function isActif(): bool { return $this->actif; }
     public function setActif(bool $actif): static { $this->actif = $actif; return $this; }
+    public function isLienDirectUniquement(): bool { return $this->lienDirectUniquement; }
+    public function setLienDirectUniquement(bool $lienDirectUniquement): static { $this->lienDirectUniquement = $lienDirectUniquement; return $this; }
+    public function getAccessToken(): ?string { return $this->accessToken; }
+    public function setAccessToken(?string $accessToken): static { $this->accessToken = $accessToken; return $this; }
+    public function isEffectivelyPrivate(): bool { return $this->lienDirectUniquement; }
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
     public function getCollections(): Collection { return $this->collections; }
 }

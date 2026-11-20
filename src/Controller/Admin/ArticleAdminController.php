@@ -10,6 +10,7 @@ use App\Repository\FournisseurRepository;
 use App\Repository\GrillePrixRepository;
 use App\Repository\ProductCollectionRepository;
 use App\Repository\VarianteTemplateRepository;
+use App\Service\PrivateAccessService;
 use App\Service\SlugifyService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -30,6 +31,7 @@ class ArticleAdminController extends AbstractController
         private GrillePrixRepository $grillePrixRepo,
         private VarianteTemplateRepository $templateRepo,
         private SlugifyService $slugify,
+        private PrivateAccessService $privateAccess,
     ) {
     }
 
@@ -82,6 +84,7 @@ class ArticleAdminController extends AbstractController
         $search = $request->query->get('search');
         $collectionId = $request->query->get('collection') ? (int)$request->query->get('collection') : null;
         $fournisseurId = $request->query->get('fournisseur') ? (int)$request->query->get('fournisseur') : null;
+        $visibilite = $request->query->get('visibilite');
 
         $qb = $this->articleRepo->createQueryBuilder('a')
             ->orderBy('a.createdAt', 'DESC')
@@ -97,6 +100,17 @@ class ArticleAdminController extends AbstractController
         if ($fournisseurId) {
             $qb->andWhere('a.fournisseur = :fournisseur')->setParameter('fournisseur', $fournisseurId);
         }
+        if ($visibilite === 'prive') {
+            $qb->leftJoin('a.collection', 'col')
+                ->leftJoin('col.categorie', 'cat')
+                ->andWhere('a.lienDirectUniquement = true OR col.lienDirectUniquement = true OR cat.lienDirectUniquement = true');
+        } elseif ($visibilite === 'public') {
+            $qb->leftJoin('a.collection', 'col')
+                ->leftJoin('col.categorie', 'cat')
+                ->andWhere('a.lienDirectUniquement = false')
+                ->andWhere('col.id IS NULL OR col.lienDirectUniquement = false')
+                ->andWhere('cat.id IS NULL OR cat.lienDirectUniquement = false');
+        }
 
         $articles = $qb->getQuery()->getResult();
 
@@ -109,6 +123,17 @@ class ArticleAdminController extends AbstractController
         }
         if ($fournisseurId) {
             $countQb->andWhere('a.fournisseur = :fournisseur')->setParameter('fournisseur', $fournisseurId);
+        }
+        if ($visibilite === 'prive') {
+            $countQb->leftJoin('a.collection', 'col')
+                ->leftJoin('col.categorie', 'cat')
+                ->andWhere('a.lienDirectUniquement = true OR col.lienDirectUniquement = true OR cat.lienDirectUniquement = true');
+        } elseif ($visibilite === 'public') {
+            $countQb->leftJoin('a.collection', 'col')
+                ->leftJoin('col.categorie', 'cat')
+                ->andWhere('a.lienDirectUniquement = false')
+                ->andWhere('col.id IS NULL OR col.lienDirectUniquement = false')
+                ->andWhere('cat.id IS NULL OR cat.lienDirectUniquement = false');
         }
         $total = (int)$countQb->getQuery()->getSingleScalarResult();
         $totalPages = (int)ceil($total / $limit);
@@ -126,6 +151,7 @@ class ArticleAdminController extends AbstractController
             'collectionId' => $collectionId,
             'fournisseurs' => $fournisseurs,
             'fournisseurId' => $fournisseurId,
+            'visibilite' => $visibilite,
         ]);
     }
 
@@ -154,6 +180,11 @@ class ArticleAdminController extends AbstractController
             $article->setDescription($data['description'] ?? null);
             $article->setActif(isset($data['actif']));
             $article->setEnVedette(isset($data['enVedette']));
+            $isPrivate = isset($data['lienDirectUniquement']);
+            $article->setLienDirectUniquement($isPrivate);
+            if ($isPrivate && !$article->getAccessToken()) {
+                $article->setAccessToken($this->privateAccess->generateToken());
+            }
 
             if (!empty($data['collection'])) {
                 $col = $this->collectionRepo->find((int)$data['collection']);
@@ -241,6 +272,11 @@ class ArticleAdminController extends AbstractController
             $article->setDescription($data['description'] ?? null);
             $article->setActif(isset($data['actif']));
             $article->setEnVedette(isset($data['enVedette']));
+            $isPrivate = isset($data['lienDirectUniquement']);
+            $article->setLienDirectUniquement($isPrivate);
+            if ($isPrivate && !$article->getAccessToken()) {
+                $article->setAccessToken($this->privateAccess->generateToken());
+            }
             $article->setUpdatedAt(new \DateTimeImmutable());
 
             $col = !empty($data['collection']) ? $this->collectionRepo->find((int)$data['collection']) : null;
@@ -338,12 +374,39 @@ class ArticleAdminController extends AbstractController
         } elseif ($field === 'enVedette') {
             $article->setEnVedette(!$article->isEnVedette());
             $value = $article->isEnVedette();
+        } elseif ($field === 'lienDirectUniquement') {
+            $newValue = !$article->isLienDirectUniquement();
+            $article->setLienDirectUniquement($newValue);
+            if ($newValue && !$article->getAccessToken()) {
+                $article->setAccessToken($this->privateAccess->generateToken());
+            }
+            $value = $newValue;
         } else {
             return $this->json(['error' => 'Champ invalide'], 400);
         }
 
         $this->em->flush();
         return $this->json(['success' => true, 'value' => $value]);
+    }
+
+    #[Route('/{id}/regenerate-token', name: 'admin_articles_regenerate_token', methods: ['POST'])]
+    public function regenerateToken(int $id, Request $request): Response
+    {
+        if (!$this->isCsrfTokenValid('app', (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Session expirée, veuillez réessayer.');
+            return $this->redirectToRoute('admin_articles_edit', ['id' => $id]);
+        }
+
+        $article = $this->articleRepo->find($id);
+        if (!$article) {
+            throw $this->createNotFoundException('Article introuvable');
+        }
+
+        $article->setAccessToken($this->privateAccess->generateToken());
+        $this->em->flush();
+
+        $this->addFlash('success', 'Nouveau lien direct généré. L\'ancien lien n\'est plus valide.');
+        return $this->redirectToRoute('admin_articles_edit', ['id' => $id]);
     }
 
     #[Route('/{id}/clone', name: 'admin_articles_clone', methods: ['POST'])]
@@ -363,6 +426,10 @@ class ArticleAdminController extends AbstractController
         $clone->setDescription($source->getDescription());
         $clone->setActif(false);
         $clone->setEnVedette(false);
+        $clone->setLienDirectUniquement($source->isLienDirectUniquement());
+        if ($source->isLienDirectUniquement()) {
+            $clone->setAccessToken($this->privateAccess->generateToken());
+        }
         $clone->setCollection($source->getCollection());
         $clone->setFournisseur($source->getFournisseur());
         $clone->setGrillePrix($source->getGrillePrix());

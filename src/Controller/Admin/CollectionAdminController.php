@@ -5,6 +5,7 @@ namespace App\Controller\Admin;
 use App\Entity\ProductCollection;
 use App\Repository\CategoryRepository;
 use App\Repository\ProductCollectionRepository;
+use App\Service\PrivateAccessService;
 use App\Service\SlugifyService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,6 +23,7 @@ class CollectionAdminController extends AbstractController
         private ProductCollectionRepository $collectionRepo,
         private CategoryRepository $categoryRepo,
         private SlugifyService $slugify,
+        private PrivateAccessService $privateAccess,
     ) {
     }
 
@@ -48,6 +50,11 @@ class CollectionAdminController extends AbstractController
             $collection->setSlug($this->slugify->slugify($data['nom']));
             $collection->setDescription($data['description'] ?? null);
             $collection->setActif(isset($data['actif']));
+            $isPrivate = isset($data['lienDirectUniquement']);
+            $collection->setLienDirectUniquement($isPrivate);
+            if ($isPrivate && !$collection->getAccessToken()) {
+                $collection->setAccessToken($this->privateAccess->generateToken());
+            }
             $collection->setOrdre((int)($data['ordre'] ?? 0));
             $collection->setImage($data['image'] ?? null);
 
@@ -87,6 +94,11 @@ class CollectionAdminController extends AbstractController
             $collection->setSlug($this->slugify->slugify($data['nom']));
             $collection->setDescription($data['description'] ?? null);
             $collection->setActif(isset($data['actif']));
+            $isPrivate = isset($data['lienDirectUniquement']);
+            $collection->setLienDirectUniquement($isPrivate);
+            if ($isPrivate && !$collection->getAccessToken()) {
+                $collection->setAccessToken($this->privateAccess->generateToken());
+            }
             $collection->setOrdre((int)($data['ordre'] ?? 0));
             $collection->setImage($data['image'] ?? null);
 
@@ -103,6 +115,26 @@ class CollectionAdminController extends AbstractController
             'collection' => $collection,
             'categories' => $categories,
         ]);
+    }
+
+    #[Route('/{id}/regenerate-token', name: 'admin_collections_regenerate_token', methods: ['POST'])]
+    public function regenerateToken(int $id, Request $request): Response
+    {
+        if (!$this->isCsrfTokenValid('app', (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Session expirée, veuillez réessayer.');
+            return $this->redirectToRoute('admin_collections_edit', ['id' => $id]);
+        }
+
+        $collection = $this->collectionRepo->find($id);
+        if (!$collection) {
+            throw $this->createNotFoundException('Collection introuvable');
+        }
+
+        $collection->setAccessToken($this->privateAccess->generateToken());
+        $this->em->flush();
+
+        $this->addFlash('success', 'Nouveau lien direct généré. L\'ancien lien n\'est plus valide.');
+        return $this->redirectToRoute('admin_collections_edit', ['id' => $id]);
     }
 
     #[Route('/{id}/delete', name: 'admin_collections_delete', methods: ['POST'])]

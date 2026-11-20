@@ -402,7 +402,7 @@ document.addEventListener('alpine:init', () => {
                             <option value="">Aucune</option>
                             {% for col in collections %}
                                 <option value="{{ col.id }}" {{ article and article.collection and article.collection.id == col.id ? 'selected' : '' }}>
-                                    {{ col.nom }}
+                                    {{ col.nom }}{{ col.effectivelyPrivate ? ' (Lien direct)' : '' }}
                                 </option>
                             {% endfor %}
                         </select>
@@ -531,6 +531,22 @@ document.addEventListener('alpine:init', () => {
                                    class="w-5 h-5 text-primary rounded">
                             <label for="enVedette" class="cursor-pointer">En vedette (affiché sur la page d'accueil)</label>
                         </div>
+                        <div class="pt-2 border-t border-gray-100">
+                            <div class="flex items-center gap-3">
+                                <input type="checkbox" name="lienDirectUniquement" id="lienDirectUniquement"
+                                       {{ article and article.lienDirectUniquement ? 'checked' : '' }}
+                                       class="w-5 h-5 text-primary rounded">
+                                <label for="lienDirectUniquement" class="cursor-pointer font-medium">Visible uniquement par lien direct</label>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1 pl-8">
+                                Masqué du catalogue public et des moteurs de recherche. Accessible et achetable uniquement via son lien secret.
+                            </p>
+                            {% if article and not article.lienDirectUniquement and article.effectivelyPrivate %}
+                                <p class="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2 mt-2">
+                                    Cet article hérite actuellement du mode « Lien direct » depuis sa collection ou sa catégorie parente.
+                                </p>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
 
@@ -553,5 +569,13 @@ document.addEventListener('alpine:init', () => {
             </div>
         </div>
     </form>
+
+    {% if article and article.lienDirectUniquement and article.accessToken %}
+        {% include 'components/admin/_direct_link_box.html.twig' with {
+            shareUrl: url('article_detail', {slug: article.slug, cle: article.accessToken}),
+            regenerateUrl: path('admin_articles_regenerate_token', {id: article.id}),
+            label: 'cet article'
+        } %}
+    {% endif %}
 </div>
 {% endblock %}

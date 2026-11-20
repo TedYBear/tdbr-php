@@ -174,6 +174,19 @@ class CartService
     }
 
     /**
+     * Vérifie si un article (par son ID) est présent dans le panier.
+     */
+    public function hasArticle(int $articleId): bool
+    {
+        foreach ($this->getCart() as $item) {
+            if ((int)($item['article']['id'] ?? 0) === $articleId) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Vérifie si le panier est vide
      */
     public function isEmpty(): bool

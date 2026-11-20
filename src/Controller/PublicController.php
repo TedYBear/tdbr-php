@@ -22,6 +22,7 @@ use App\Service\CartService;
 use App\Service\MailerService;
 use App\Service\MollieService;
 use App\Service\PrintfulService;
+use App\Service\PrivateAccessService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -72,6 +73,7 @@ class PublicController extends AbstractController
         private SiteConfigRepository $siteConfigRepo,
         private PrintfulService $printfulService,
         private AccountProvisioningService $accountProvisioning,
+        private PrivateAccessService $privateAccess,
     ) {
     }
 
@@ -132,19 +134,15 @@ class PublicController extends AbstractController
     #[Route('/catalogue', name: 'catalogue')]
     public function catalogue(Request $request): Response
     {
-        $articles = $this->articleRepo->findBy(
-            ['actif' => true, 'enVedette' => true],
-            ['createdAt' => 'DESC'],
-            8
-        );
+        $articles = $this->articleRepo->findPublicFeatured(null, 8);
 
-        $categories = $this->categoryRepo->findBy(['actif' => true], ['ordre' => 'ASC']);
+        $categories = $this->categoryRepo->findPublicActives();
 
         foreach ($categories as $category) {
-            $collections = $this->collectionRepo->findBy(['actif' => true, 'categorie' => $category], ['ordre' => 'ASC']);
+            $collections = $this->collectionRepo->findPublicByCategory($category);
             $count = 0;
             foreach ($collections as $col) {
-                $count += $this->articleRepo->count(['actif' => true, 'collection' => $col]);
+                $count += $this->articleRepo->countByCollectionWithVisibility($col, false);
             }
             $category->articleCount = $count;
         }
@@ -156,7 +154,7 @@ class PublicController extends AbstractController
     }
 
     #[Route('/categorie/{slug}', name: 'categorie')]
-    public function categorie(string $slug): Response
+    public function categorie(string $slug, Request $request): Response
     {
         $category = $this->categoryRepo->findOneBy(['slug' => $slug, 'actif' => true]);
 
@@ -164,32 +162,50 @@ class PublicController extends AbstractController
             throw $this->createNotFoundException('Catégorie introuvable');
         }
 
-        $collections = $this->collectionRepo->findBy(
-            ['actif' => true, 'categorie' => $category],
-            ['ordre' => 'ASC']
-        );
+        $this->privateAccess->tryUnlockFromRequest($request, $category);
+        if (!$this->privateAccess->canAccessCategory($category)) {
+            throw $this->createNotFoundException('Catégorie introuvable');
+        }
+
+        $hasHierarchyAccess = $this->privateAccess->hasCategoryHierarchyAccess($category);
+
+        $collections = $hasHierarchyAccess
+            ? $this->collectionRepo->findBy(['actif' => true, 'categorie' => $category], ['ordre' => 'ASC'])
+            : $this->collectionRepo->findPublicByCategory($category);
 
         foreach ($collections as $col) {
-            $col->articleCount = $this->articleRepo->count(['actif' => true, 'collection' => $col]);
+            $col->articleCount = $this->articleRepo->countByCollectionWithVisibility($col, $hasHierarchyAccess);
         }
 
         $articles = [];
         if (!empty($collections)) {
-            $qb = $this->articleRepo->createQueryBuilder('a')
-                ->where('a.actif = true')
-                ->andWhere('a.enVedette = true')
-                ->andWhere('a.collection IN (:collections)')
-                ->setParameter('collections', $collections)
-                ->orderBy('a.createdAt', 'DESC')
-                ->setMaxResults(8);
-            $articles = $qb->getQuery()->getResult();
+            if ($hasHierarchyAccess) {
+                $qb = $this->articleRepo->createQueryBuilder('a')
+                    ->where('a.actif = true')
+                    ->andWhere('a.enVedette = true')
+                    ->andWhere('a.collection IN (:collections)')
+                    ->setParameter('collections', $collections)
+                    ->orderBy('a.createdAt', 'DESC')
+                    ->setMaxResults(8);
+                $articles = $qb->getQuery()->getResult();
+            } else {
+                $articles = $this->articleRepo->findPublicFeatured($collections, 8);
+            }
         }
 
-        return $this->render('public/categorie.html.twig', [
+        $isPrivate = $category->isEffectivelyPrivate();
+        $response = $this->render('public/categorie.html.twig', [
             'category' => $category,
             'collections' => $collections,
-            'articles' => $articles
+            'articles' => $articles,
+            'isPrivate' => $isPrivate,
         ]);
+
+        if ($isPrivate) {
+            $response->headers->set('X-Robots-Tag', 'noindex, nofollow');
+        }
+
+        return $response;
     }
 
     #[Route('/collection/{slug}', name: 'collection')]
@@ -201,31 +217,40 @@ class PublicController extends AbstractController
             throw $this->createNotFoundException('Collection introuvable');
         }
 
+        $this->privateAccess->tryUnlockFromRequest($request, $collection);
+        if (!$this->privateAccess->canAccessCollection($collection)) {
+            throw $this->createNotFoundException('Collection introuvable');
+        }
+
+        $includePrivate = $this->privateAccess->hasCollectionHierarchyAccess($collection);
+
         $page = max(1, $request->query->getInt('page', 1));
         $limit = 12;
         $offset = ($page - 1) * $limit;
 
-        $articles = $this->articleRepo->findBy(
-            ['actif' => true, 'collection' => $collection],
-            ['ordre' => 'ASC', 'createdAt' => 'DESC'],
-            $limit,
-            $offset
-        );
-
-        $total = $this->articleRepo->count(['actif' => true, 'collection' => $collection]);
+        $articles = $this->articleRepo->findByCollectionWithVisibility($collection, $includePrivate, $limit, $offset);
+        $total = $this->articleRepo->countByCollectionWithVisibility($collection, $includePrivate);
         $totalPages = (int)ceil($total / $limit);
 
-        return $this->render('public/collection.html.twig', [
+        $isPrivate = $collection->isEffectivelyPrivate();
+        $response = $this->render('public/collection.html.twig', [
             'collection' => $collection,
             'articles' => $articles,
             'total' => $total,
             'currentPage' => $page,
-            'totalPages' => $totalPages
+            'totalPages' => $totalPages,
+            'isPrivate' => $isPrivate,
         ]);
+
+        if ($isPrivate) {
+            $response->headers->set('X-Robots-Tag', 'noindex, nofollow');
+        }
+
+        return $response;
     }
 
     #[Route('/article/{slug}', name: 'article_detail')]
-    public function articleDetail(string $slug): Response
+    public function articleDetail(string $slug, Request $request): Response
     {
         $article = $this->articleRepo->findOneBy(['slug' => $slug, 'actif' => true]);
 
@@ -233,28 +258,37 @@ class PublicController extends AbstractController
             throw $this->createNotFoundException('Article introuvable');
         }
 
+        $this->privateAccess->tryUnlockFromRequest($request, $article);
+        if (!$this->privateAccess->canAccessArticle($article)) {
+            throw $this->createNotFoundException('Article introuvable');
+        }
+
         $collection = $article->getCollection();
         $category = $collection?->getCategorie();
 
+        $canSeeCollection = $collection !== null && $this->privateAccess->canAccessCollection($collection);
+        $canSeeCategory = $category !== null && $this->privateAccess->canAccessCategory($category);
+
         $similarArticles = [];
-        if ($collection) {
-            $qb = $this->articleRepo->createQueryBuilder('a')
-                ->where('a.actif = true')
-                ->andWhere('a.collection = :col')
-                ->andWhere('a.id != :id')
-                ->setParameter('col', $collection)
-                ->setParameter('id', $article->getId())
-                ->orderBy('a.createdAt', 'DESC')
-                ->setMaxResults(4);
-            $similarArticles = $qb->getQuery()->getResult();
+        if ($canSeeCollection) {
+            $includePrivateSimilar = $this->privateAccess->hasCollectionHierarchyAccess($collection);
+            $similarArticles = $this->articleRepo->findSimilar($article, $includePrivateSimilar, 4);
         }
 
-        return $this->render('public/article.html.twig', [
+        $isPrivate = $article->isEffectivelyPrivate();
+        $response = $this->render('public/article.html.twig', [
             'article' => $article,
-            'category' => $category,
-            'collection' => $collection,
-            'similarArticles' => $similarArticles
+            'category' => $canSeeCategory ? $category : null,
+            'collection' => $canSeeCollection ? $collection : null,
+            'similarArticles' => $similarArticles,
+            'isPrivate' => $isPrivate,
         ]);
+
+        if ($isPrivate) {
+            $response->headers->set('X-Robots-Tag', 'noindex, nofollow');
+        }
+
+        return $response;
     }
 
     #[Route('/panier', name: 'panier')]
@@ -301,7 +335,7 @@ class PublicController extends AbstractController
 
         $article = $this->articleRepo->find((int)$articleId);
 
-        if (!$article) {
+        if (!$article || !$this->privateAccess->canAccessArticle($article)) {
             return $this->json(['error' => 'Article introuvable'], 404);
         }
 

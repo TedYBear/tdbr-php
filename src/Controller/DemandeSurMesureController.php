@@ -5,6 +5,7 @@ use App\Entity\DemandeSurMesure;
 use App\Entity\User;
 use App\Form\DemandeSurMesureType;
 use App\Repository\ArticleRepository;
+use App\Service\PrivateAccessService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,6 +21,7 @@ class DemandeSurMesureController extends AbstractController
         private EntityManagerInterface $em,
         private ArticleRepository $articleRepo,
         private RateLimiterFactory $demandeSurMesureLimiter,
+        private PrivateAccessService $privateAccess,
     ) {
     }
 
@@ -139,7 +141,7 @@ class DemandeSurMesureController extends AbstractController
         // Produit
         $articleId = isset($data['articleId']) ? (int) $data['articleId'] : 0;
         $article = $articleId > 0 ? $this->articleRepo->find($articleId) : null;
-        if (!$article || !$article->isActif()) {
+        if (!$article || !$this->privateAccess->canAccessArticle($article)) {
             return $this->json(['error' => 'Produit introuvable'], 404);
         }
 

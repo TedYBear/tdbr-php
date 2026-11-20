@@ -30,6 +30,12 @@ class Article
     #[ORM\Column]
     private bool $actif = true;
 
+    #[ORM\Column(options: ['default' => false])]
+    private bool $lienDirectUniquement = false;
+
+    #[ORM\Column(length: 64, nullable: true, unique: true)]
+    private ?string $accessToken = null;
+
     #[ORM\Column]
     private bool $enVedette = false;
 
@@ -89,6 +95,11 @@ class Article
     public function setPrixBase(float $p): static { $this->prixBase = $p; return $this; }
     public function isActif(): bool { return $this->actif; }
     public function setActif(bool $a): static { $this->actif = $a; return $this; }
+    public function isLienDirectUniquement(): bool { return $this->lienDirectUniquement; }
+    public function setLienDirectUniquement(bool $lienDirectUniquement): static { $this->lienDirectUniquement = $lienDirectUniquement; return $this; }
+    public function getAccessToken(): ?string { return $this->accessToken; }
+    public function setAccessToken(?string $accessToken): static { $this->accessToken = $accessToken; return $this; }
+    public function isEffectivelyPrivate(): bool { return $this->lienDirectUniquement || ($this->collection?->isEffectivelyPrivate() ?? false); }
     public function isEnVedette(): bool { return $this->enVedette; }
     public function setEnVedette(bool $e): static { $this->enVedette = $e; return $this; }
     public function isPersonnalisable(): bool { return $this->personnalisable; }

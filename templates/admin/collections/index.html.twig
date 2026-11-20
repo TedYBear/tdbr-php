@@ -25,14 +25,29 @@
                             <td class="px-6 py-4 font-semibold">{{ collection.nom }}</td>
                             <td class="px-6 py-4 text-sm text-gray-600">{{ collection.slug }}</td>
                             <td class="px-6 py-4">
-                                {% if collection.actif %}
-                                    <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">Actif</span>
-                                {% else %}
-                                    <span class="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-semibold">Inactif</span>
-                                {% endif %}
+                                <div class="flex flex-wrap gap-1.5 items-center">
+                                    {% if collection.actif %}
+                                        <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">Actif</span>
+                                    {% else %}
+                                        <span class="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-semibold">Inactif</span>
+                                    {% endif %}
+                                    {% if collection.lienDirectUniquement %}
+                                        <span class="px-2.5 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-semibold">Lien direct</span>
+                                    {% elseif collection.effectivelyPrivate %}
+                                        <span class="px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-xs font-medium">Lien direct (hérité)</span>
+                                    {% endif %}
+                                </div>
                             </td>
                             <td class="px-6 py-4">
-                                <div class="flex gap-2">
+                                <div class="flex gap-2 items-center">
+                                    {% if collection.lienDirectUniquement and collection.accessToken %}
+                                        <button type="button"
+                                                data-copy-link="{{ url('collection', {slug: collection.slug, cle: collection.accessToken}) }}"
+                                                class="text-amber-700 hover:text-amber-900 font-medium"
+                                                title="Copier le lien direct">
+                                            Copier lien
+                                        </button>
+                                    {% endif %}
                                     <a href="{{ path('admin_collections_edit', {id: collection.id}) }}" class="text-primary hover:text-secondary">Modifier</a>
                                     <form method="post" action="{{ path('admin_collections_delete', {id: collection.id}) }}" data-confirm="Supprimer cette collection ?">
                                         <button type="submit" class="text-red-600 hover:text-red-700">Supprimer</button>

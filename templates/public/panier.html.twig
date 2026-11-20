@@ -47,7 +47,13 @@
                                     {# Détails #}
                                     <div class="flex-1">
                                         <h3 class="font-heading text-xl font-bold mb-2">
-                                            {{ item.article.nom }}
+                                            {% if item.article.slug is defined and item.article.slug %}
+                                                <a href="{{ path('article_detail', {slug: item.article.slug}) }}" class="hover:text-primary transition">
+                                                    {{ item.article.nom }}
+                                                </a>
+                                            {% else %}
+                                                {{ item.article.nom }}
+                                            {% endif %}
                                         </h3>
 
                                         {% if item.choices is defined and item.choices|length > 0 %}

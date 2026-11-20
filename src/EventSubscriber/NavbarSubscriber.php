@@ -21,10 +21,7 @@ class NavbarSubscriber implements EventSubscriberInterface
             return;
         }
 
-        $categories = $this->categoryRepo->findBy(
-            ['actif' => true],
-            ['ordre' => 'ASC', 'nom' => 'ASC']
-        );
+        $categories = $this->categoryRepo->findPublicActives();
 
         $event->getRequest()->attributes->set('_categories', $categories);
     }

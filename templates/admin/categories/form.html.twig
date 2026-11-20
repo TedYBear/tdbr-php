@@ -34,10 +34,30 @@
                 <label for="actif" class="cursor-pointer">Catégorie active</label>
             </div>
 
+            <div class="pt-2 border-t border-gray-100">
+                <div class="flex items-center gap-3">
+                    <input type="checkbox" name="lienDirectUniquement" id="lienDirectUniquement"
+                           {{ category and category.lienDirectUniquement ? 'checked' : '' }}
+                           class="w-5 h-5 text-primary rounded">
+                    <label for="lienDirectUniquement" class="cursor-pointer font-medium">Visible uniquement par lien direct</label>
+                </div>
+                <p class="text-xs text-gray-500 mt-1 pl-8">
+                    Masquée du catalogue public et du menu. Le lien direct donne aussi accès à toutes ses collections et articles.
+                </p>
+            </div>
+
             <div class="flex gap-3 pt-4">
                 <button type="submit" class="btn-primary">{{ category ? 'Mettre à jour' : 'Créer' }}</button>
                 <a href="{{ path('admin_categories') }}" class="btn-outline">Annuler</a>
             </div>
         </form>
+
+        {% if category and category.lienDirectUniquement and category.accessToken %}
+            {% include 'components/admin/_direct_link_box.html.twig' with {
+                shareUrl: url('categorie', {slug: category.slug, cle: category.accessToken}),
+                regenerateUrl: path('admin_categories_regenerate_token', {id: category.id}),
+                label: 'cette catégorie, ses collections et ses articles'
+            } %}
+        {% endif %}
     </div>
 {% endblock %}

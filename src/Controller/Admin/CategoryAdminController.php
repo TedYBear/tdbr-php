@@ -4,6 +4,7 @@ namespace App\Controller\Admin;
 
 use App\Entity\Category;
 use App\Repository\CategoryRepository;
+use App\Service\PrivateAccessService;
 use App\Service\SlugifyService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -20,6 +21,7 @@ class CategoryAdminController extends AbstractController
         private EntityManagerInterface $em,
         private CategoryRepository $categoryRepo,
         private SlugifyService $slugify,
+        private PrivateAccessService $privateAccess,
     ) {
     }
 
@@ -45,6 +47,11 @@ class CategoryAdminController extends AbstractController
             $category->setDescription($data['description'] ?? null);
             $category->setOrdre((int)($data['ordre'] ?? 0));
             $category->setActif(isset($data['actif']));
+            $isPrivate = isset($data['lienDirectUniquement']);
+            $category->setLienDirectUniquement($isPrivate);
+            if ($isPrivate && !$category->getAccessToken()) {
+                $category->setAccessToken($this->privateAccess->generateToken());
+            }
             $category->setImage($data['image'] ?? null);
 
             $this->em->persist($category);
@@ -76,6 +83,11 @@ class CategoryAdminController extends AbstractController
             $category->setDescription($data['description'] ?? null);
             $category->setOrdre((int)($data['ordre'] ?? 0));
             $category->setActif(isset($data['actif']));
+            $isPrivate = isset($data['lienDirectUniquement']);
+            $category->setLienDirectUniquement($isPrivate);
+            if ($isPrivate && !$category->getAccessToken()) {
+                $category->setAccessToken($this->privateAccess->generateToken());
+            }
             $category->setImage($data['image'] ?? null);
 
             $this->em->flush();
@@ -87,6 +99,26 @@ class CategoryAdminController extends AbstractController
         return $this->render('admin/categories/form.html.twig', [
             'category' => $category
         ]);
+    }
+
+    #[Route('/{id}/regenerate-token', name: 'admin_categories_regenerate_token', methods: ['POST'])]
+    public function regenerateToken(int $id, Request $request): Response
+    {
+        if (!$this->isCsrfTokenValid('app', (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Session expirée, veuillez réessayer.');
+            return $this->redirectToRoute('admin_categories_edit', ['id' => $id]);
+        }
+
+        $category = $this->categoryRepo->find($id);
+        if (!$category) {
+            throw $this->createNotFoundException('Catégorie introuvable');
+        }
+
+        $category->setAccessToken($this->privateAccess->generateToken());
+        $this->em->flush();
+
+        $this->addFlash('success', 'Nouveau lien direct généré. L\'ancien lien n\'est plus valide.');
+        return $this->redirectToRoute('admin_categories_edit', ['id' => $id]);
     }
 
     #[Route('/{id}/delete', name: 'admin_categories_delete', methods: ['POST'])]

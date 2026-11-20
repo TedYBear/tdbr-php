@@ -1,6 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}{{ collection.nom }} - Collections TDBR{% endblock %}
+{% block meta_robots %}{% if isPrivate|default(false) %}<meta name="robots" content="noindex, nofollow">{% endif %}{% endblock %}
 
 {% block body %}
     {# Hero Section — fond aligné sur le thème des catégories (statique) #}

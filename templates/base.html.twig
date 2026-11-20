@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}TDBR - Goodies Personnalisés{% endblock %}</title>
     <meta name="description" content="{% block description %}TDBR - Goodies et accessoires personnalisés : t-shirts, mugs et créations inspirées du street art{% endblock %}">
+    {% block meta_robots %}{% endblock %}
     <meta name="csrf-token" content="{{ csrf_token('app') }}">
 
     {% block stylesheets %}

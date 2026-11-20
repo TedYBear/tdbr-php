@@ -85,6 +85,27 @@
                 }); });
                 var timer = setTimeout(function() { toast._remove(); }, 3500);
             };
+            document.addEventListener('click', function(e) {
+                var btn = e.target.closest('[data-copy-link]');
+                if (!btn) return;
+                var url = btn.getAttribute('data-copy-link');
+                if (!url) return;
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(url).then(function() {
+                        window.showToast('Lien direct copié dans le presse-papiers !');
+                    }).catch(function() {
+                        window.showToast('Impossible de copier automatiquement', 'error');
+                    });
+                } else {
+                    var tmp = document.createElement('input');
+                    tmp.value = url;
+                    document.body.appendChild(tmp);
+                    tmp.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(tmp);
+                    window.showToast('Lien direct copié dans le presse-papiers !');
+                }
+            });
             window.showConfirm = function(message, onConfirm) {
                 var modal = document.getElementById('confirm-modal');
                 document.getElementById('confirm-message').textContent = message;

@@ -1,6 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}{{ category.nom }} - Catalogue TDBR{% endblock %}
+{% block meta_robots %}{% if isPrivate|default(false) %}<meta name="robots" content="noindex, nofollow">{% endif %}{% endblock %}
 
 {% block body %}
     {# Hero Section avec image de catégorie #}

@@ -63,7 +63,7 @@ class MonDepotController extends AbstractController
         if ($result instanceof Response) return $result;
         $depot = $result;
 
-        $articles = $this->articleRepo->findBy(['actif' => true], ['nom' => 'ASC']);
+        $articles = $this->articleRepo->findPublicActives();
 
         $stockMap = [];
         foreach ($depot->getStockItems() as $item) {
@@ -99,7 +99,7 @@ class MonDepotController extends AbstractController
         }
 
         // Catégories avec leurs collections (pour "Ajouter des articles")
-        $categories = $this->categoryRepo->findBy(['actif' => true], ['ordre' => 'ASC', 'nom' => 'ASC']);
+        $categories = $this->categoryRepo->findPublicActives();
 
         // Données catalogue pour la modale de vente (articles et variantes ayant du stock)
         $venteData = [];

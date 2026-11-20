@@ -33,6 +33,12 @@ class ProductCollection
     #[ORM\Column]
     private bool $actif = true;
 
+    #[ORM\Column(options: ['default' => false])]
+    private bool $lienDirectUniquement = false;
+
+    #[ORM\Column(length: 64, nullable: true, unique: true)]
+    private ?string $accessToken = null;
+
     #[ORM\ManyToOne(inversedBy: 'collections')]
     private ?Category $categorie = null;
 
@@ -61,6 +67,11 @@ class ProductCollection
     public function setOrdre(int $o): static { $this->ordre = $o; return $this; }
     public function isActif(): bool { return $this->actif; }
     public function setActif(bool $a): static { $this->actif = $a; return $this; }
+    public function isLienDirectUniquement(): bool { return $this->lienDirectUniquement; }
+    public function setLienDirectUniquement(bool $lienDirectUniquement): static { $this->lienDirectUniquement = $lienDirectUniquement; return $this; }
+    public function getAccessToken(): ?string { return $this->accessToken; }
+    public function setAccessToken(?string $accessToken): static { $this->accessToken = $accessToken; return $this; }
+    public function isEffectivelyPrivate(): bool { return $this->lienDirectUniquement || ($this->categorie?->isEffectivelyPrivate() ?? false); }
     public function getCategorie(): ?Category { return $this->categorie; }
     public function setCategorie(?Category $c): static { $this->categorie = $c; return $this; }
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }

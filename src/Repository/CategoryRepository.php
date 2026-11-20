@@ -11,4 +11,17 @@ class CategoryRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Category::class);
     }
+
+    /**
+     * Catégories actives et visibles dans le catalogue public (hors lien direct uniquement).
+     *
+     * @return Category[]
+     */
+    public function findPublicActives(): array
+    {
+        return $this->findBy(
+            ['actif' => true, 'lienDirectUniquement' => false],
+            ['ordre' => 'ASC', 'nom' => 'ASC']
+        );
+    }
 }

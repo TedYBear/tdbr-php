@@ -1,6 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}{{ article.nom }} - TDBR{% endblock %}
+{% block meta_robots %}{% if isPrivate|default(false) %}<meta name="robots" content="noindex, nofollow">{% endif %}{% endblock %}
 
 {# prixBase calculé ici pour être disponible dans tous les blocs #}
 {% set prixBase = 0 %}

@@ -22,7 +22,7 @@
                     <option value="">-- Sélectionner une catégorie --</option>
                     {% for cat in categories %}
                         <option value="{{ cat.id }}" {{ collection and collection.categorie and collection.categorie.id == cat.id ? 'selected' : '' }}>
-                            {{ cat.nom }}
+                            {{ cat.nom }}{{ cat.lienDirectUniquement ? ' (Lien direct)' : '' }}
                         </option>
                     {% endfor %}
                 </select>
@@ -40,10 +40,35 @@
                 <label for="actif" class="cursor-pointer">Collection active</label>
             </div>
 
+            <div class="pt-2 border-t border-gray-100">
+                <div class="flex items-center gap-3">
+                    <input type="checkbox" name="lienDirectUniquement" id="lienDirectUniquement"
+                           {{ collection and collection.lienDirectUniquement ? 'checked' : '' }}
+                           class="w-5 h-5 text-primary rounded">
+                    <label for="lienDirectUniquement" class="cursor-pointer font-medium">Visible uniquement par lien direct</label>
+                </div>
+                <p class="text-xs text-gray-500 mt-1 pl-8">
+                    Masquée du catalogue public. Le lien direct donne aussi accès à tous les articles de cette collection.
+                </p>
+                {% if collection and not collection.lienDirectUniquement and collection.effectivelyPrivate %}
+                    <p class="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2 mt-2">
+                        Cette collection hérite actuellement du mode « Lien direct » depuis sa catégorie parente.
+                    </p>
+                {% endif %}
+            </div>
+
             <div class="flex gap-3 pt-4">
                 <button type="submit" class="btn-primary">{{ collection ? 'Mettre à jour' : 'Créer' }}</button>
                 <a href="{{ path('admin_collections') }}" class="btn-outline">Annuler</a>
             </div>
         </form>
+
+        {% if collection and collection.lienDirectUniquement and collection.accessToken %}
+            {% include 'components/admin/_direct_link_box.html.twig' with {
+                shareUrl: url('collection', {slug: collection.slug, cle: collection.accessToken}),
+                regenerateUrl: path('admin_collections_regenerate_token', {id: collection.id}),
+                label: 'cette collection et ses articles'
+            } %}
+        {% endif %}
     </div>
 {% endblock %}
