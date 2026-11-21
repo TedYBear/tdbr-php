@@ -42,7 +42,7 @@
                     <label for="lienDirectUniquement" class="cursor-pointer font-medium">Visible uniquement par lien direct</label>
                 </div>
                 <p class="text-xs text-gray-500 mt-1 pl-8">
-                    Masquée du catalogue public et du menu. Le lien direct donne aussi accès à toutes ses collections et articles.
+                    Masquée du catalogue public et du menu. La catégorie doit être <strong>active</strong> pour que le lien direct soit accessible (donne aussi accès à toutes ses collections et articles).
                 </p>
             </div>
 
@@ -56,7 +56,8 @@
             {% include 'components/admin/_direct_link_box.html.twig' with {
                 shareUrl: url('categorie', {slug: category.slug, cle: category.accessToken}),
                 regenerateUrl: path('admin_categories_regenerate_token', {id: category.id}),
-                label: 'cette catégorie, ses collections et ses articles'
+                label: 'cette catégorie, ses collections et ses articles',
+                isActif: category.actif
             } %}
         {% endif %}
     </div>

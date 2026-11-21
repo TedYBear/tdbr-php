@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="{{ asset('build/images/TDBR.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('build/images/TDBR.png') }}">
     <meta name="csrf-token" content="{{ csrf_token('app') }}">
     <title>{% block title %}Administration{% endblock %} - TDBR</title>
 
@@ -104,6 +106,14 @@
                     document.execCommand('copy');
                     document.body.removeChild(tmp);
                     window.showToast('Lien direct copié dans le presse-papiers !');
+                }
+            });
+            document.addEventListener('change', function(e) {
+                if (e.target && e.target.id === 'lienDirectUniquement' && e.target.checked) {
+                    var actif = document.getElementById('actif');
+                    if (actif && !actif.checked) {
+                        actif.checked = true;
+                    }
                 }
             });
             window.showConfirm = function(message, onConfirm) {

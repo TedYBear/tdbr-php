@@ -523,7 +523,7 @@ document.addEventListener('alpine:init', () => {
                             <input type="checkbox" name="actif" id="actif"
                                    {{ article and article.actif ? 'checked' : (not article ? 'checked' : '') }}
                                    class="w-5 h-5 text-primary rounded">
-                            <label for="actif" class="cursor-pointer">Article actif (visible sur le site)</label>
+                            <label for="actif" class="cursor-pointer">Article actif (publié et accessible)</label>
                         </div>
                         <div class="flex items-center gap-3">
                             <input type="checkbox" name="enVedette" id="enVedette"
@@ -539,7 +539,7 @@ document.addEventListener('alpine:init', () => {
                                 <label for="lienDirectUniquement" class="cursor-pointer font-medium">Visible uniquement par lien direct</label>
                             </div>
                             <p class="text-xs text-gray-500 mt-1 pl-8">
-                                Masqué du catalogue public et des moteurs de recherche. Accessible et achetable uniquement via son lien secret.
+                                Masqué du catalogue public et des moteurs de recherche. L'article doit être <strong>actif</strong> pour que le lien direct soit accessible et achetable.
                             </p>
                             {% if article and not article.lienDirectUniquement and article.effectivelyPrivate %}
                                 <p class="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2 mt-2">
@@ -574,7 +574,8 @@ document.addEventListener('alpine:init', () => {
         {% include 'components/admin/_direct_link_box.html.twig' with {
             shareUrl: url('article_detail', {slug: article.slug, cle: article.accessToken}),
             regenerateUrl: path('admin_articles_regenerate_token', {id: article.id}),
-            label: 'cet article'
+            label: 'cet article',
+            isActif: article.actif
         } %}
     {% endif %}
 </div>

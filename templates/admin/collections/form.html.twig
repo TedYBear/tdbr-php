@@ -48,7 +48,7 @@
                     <label for="lienDirectUniquement" class="cursor-pointer font-medium">Visible uniquement par lien direct</label>
                 </div>
                 <p class="text-xs text-gray-500 mt-1 pl-8">
-                    Masquée du catalogue public. Le lien direct donne aussi accès à tous les articles de cette collection.
+                    Masquée du catalogue public. La collection doit être <strong>active</strong> pour que le lien direct soit accessible (donne aussi accès à tous ses articles).
                 </p>
                 {% if collection and not collection.lienDirectUniquement and collection.effectivelyPrivate %}
                     <p class="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2 mt-2">
@@ -67,7 +67,8 @@
             {% include 'components/admin/_direct_link_box.html.twig' with {
                 shareUrl: url('collection', {slug: collection.slug, cle: collection.accessToken}),
                 regenerateUrl: path('admin_collections_regenerate_token', {id: collection.id}),
-                label: 'cette collection et ses articles'
+                label: 'cette collection et ses articles',
+                isActif: collection.actif
             } %}
         {% endif %}
     </div>

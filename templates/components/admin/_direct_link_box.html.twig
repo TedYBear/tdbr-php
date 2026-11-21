@@ -11,9 +11,16 @@
             </h3>
             <p class="text-xs text-amber-800 mt-0.5">
                 Seules les personnes disposant de ce lien (ou d'un lien de niveau supérieur) peuvent voir et commander {{ label }}.
+                L'élément doit être <strong>actif</strong> pour que ce lien soit accessible.
             </p>
         </div>
     </div>
+
+    {% if isActif is defined and not isActif %}
+        <div class="mb-3 p-3 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 font-medium">
+            Attention : cet élément est actuellement <strong>inactif</strong>. Le lien direct renverra une erreur 404 tant que la case « Actif » n'est pas cochée et enregistrée.
+        </div>
+    {% endif %}
 
     <div class="flex flex-col sm:flex-row gap-2">
         <input type="text" readonly value="{{ shareUrl }}" class="form-input bg-white text-sm font-mono flex-1 select-all">
