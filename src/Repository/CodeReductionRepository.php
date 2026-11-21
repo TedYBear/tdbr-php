@@ -80,4 +80,26 @@ class CodeReductionRepository extends ServiceEntityRepository
         }
         return (int) $qb->getQuery()->getSingleScalarResult() > 0;
     }
+
+    public function countByCampagne(\App\Entity\CampagneCadeau $campagne): int
+    {
+        return (int) $this->createQueryBuilder('c')
+            ->select('COUNT(c.id)')
+            ->where('c.campagne = :campagne')
+            ->setParameter('campagne', $campagne)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function hasForCampagneAndEmail(\App\Entity\CampagneCadeau $campagne, string $email): bool
+    {
+        return (int) $this->createQueryBuilder('c')
+            ->select('COUNT(c.id)')
+            ->where('c.campagne = :campagne')
+            ->andWhere('c.recipientEmail = :email')
+            ->setParameter('campagne', $campagne)
+            ->setParameter('email', strtolower($email))
+            ->getQuery()
+            ->getSingleScalarResult() > 0;
+    }
 }

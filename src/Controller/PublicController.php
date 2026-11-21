@@ -18,6 +18,7 @@ use App\Repository\ProductCollectionRepository;
 use App\Repository\SiteConfigRepository;
 use App\Repository\UserRepository;
 use App\Service\AccountProvisioningService;
+use App\Service\CampagneCadeauService;
 use App\Service\CartService;
 use App\Service\MailerService;
 use App\Service\MollieService;
@@ -74,6 +75,7 @@ class PublicController extends AbstractController
         private PrintfulService $printfulService,
         private AccountProvisioningService $accountProvisioning,
         private PrivateAccessService $privateAccess,
+        private CampagneCadeauService $campagneCadeauService,
     ) {
     }
 
@@ -734,36 +736,11 @@ class PublicController extends AbstractController
             $this->mailerService->sendOrderConfirmation($commande, $confirmationUrl);
         } catch (\Exception $e) {}
 
-        // Campagne code cadeau
+        // Campagnes codes cadeaux (multi-campagnes actives en simultané)
         try {
-            $siteConfig = $this->siteConfigRepo->getConfig();
-            if ($siteConfig->isGiftActive()) {
-                $clientEmail = strtolower($commande->getClient()['email']);
-                $since = $siteConfig->getGiftResetAt();
-                $beneficiairesCount = $this->codeReductionRepo->countCampaignGift($since);
-                if (
-                    $beneficiairesCount < $siteConfig->getGiftMaxBeneficiaires()
-                    && !$this->codeReductionRepo->hasCampaignGiftForEmail($clientEmail, $since)
-                ) {
-                    $montant = $siteConfig->getGiftType() === 'pourcentage'
-                        ? round($commande->getTotal() * $siteConfig->getGiftValue() / 100, 2)
-                        : $siteConfig->getGiftValue();
-
-                    $giftCode = new CodeReduction();
-                    $giftCode->setCode('CADEAU-' . strtoupper(bin2hex(random_bytes(4))));
-                    $giftCode->setMontant($montant);
-                    $giftCode->setStatut('actif');
-                    $giftCode->setIsCampaignGift(true);
-                    $giftCode->setRecipientEmail($clientEmail);
-                    if ($this->getUser() instanceof User) {
-                        $giftCode->setUser($this->getUser());
-                    }
-                    $this->em->persist($giftCode);
-                    $this->em->flush();
-                    $this->mailerService->sendGiftCode($clientEmail, $giftCode->getCode(), $montant, $siteConfig->getGiftType());
-                }
-            }
-        } catch (\Exception $e) {}
+            $fallbackUser = $this->getUser() instanceof User ? $this->getUser() : null;
+            $this->campagneCadeauService->processOrder($commande, $fallbackUser);
+        } catch (\Throwable $e) {}
 
         return $this->redirectToRoute('confirmation', ['id' => $commande->getId()]);
     }

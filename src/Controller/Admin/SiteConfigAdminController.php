@@ -2,6 +2,7 @@
 
 namespace App\Controller\Admin;
 
+use App\Repository\CampagneCadeauRepository;
 use App\Repository\CodeReductionRepository;
 use App\Repository\SiteConfigRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -19,6 +20,7 @@ class SiteConfigAdminController extends AbstractController
         private EntityManagerInterface $em,
         private SiteConfigRepository $siteConfigRepo,
         private CodeReductionRepository $codeReductionRepo,
+        private CampagneCadeauRepository $campagneRepo,
     ) {
     }
 
@@ -37,8 +39,9 @@ class SiteConfigAdminController extends AbstractController
         }
 
         return $this->render('admin/site_config/edit.html.twig', [
-            'config'     => $config,
-            'giftCount'  => $this->codeReductionRepo->countCampaignGift($config->getGiftResetAt()),
+            'config'                => $config,
+            'giftCount'             => $this->codeReductionRepo->countCampaignGift($config->getGiftResetAt()),
+            'campagnesEnCoursCount' => count($this->campagneRepo->findEnCours()),
         ]);
     }
 

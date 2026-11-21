@@ -1,0 +1,177 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% block title %}{{ campagne ? 'Modifier' : 'Nouvelle' }} campagne{% endblock %}
+{% block page_title %}{{ campagne ? 'Modifier' : 'Nouvelle' }} campagne code cadeau{% endblock %}
+
+{% block body %}
+    <script nonce="{{ csp_nonce() }}">
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('campagneForm', () => ({
+                declencheur: {{ (campagne ? campagne.declencheur : 'premiere_commande')|json_encode|raw }},
+                typeReduction: {{ (campagne ? campagne.typeReduction : 'pourcentage')|json_encode|raw }},
+                typeValidite: {{ (campagne ? campagne.typeValidite : 'duree_6_mois')|json_encode|raw }},
+
+                get isMontantMin() { return this.declencheur === 'montant_min'; },
+                get isNombreCommandes() { return this.declencheur === 'nombre_commandes'; },
+                get isPourcentage() { return this.typeReduction === 'pourcentage'; },
+                get isDateFixe() { return this.typeValidite === 'date_fixe'; }
+            }));
+        });
+    </script>
+
+    <div class="max-w-2xl" x-data="campagneForm">
+        {% if campagne and sentCount is defined %}
+            <div class="flex items-center gap-4 p-4 bg-amber-50 border border-amber-200 rounded-xl mb-6">
+                <div class="text-3xl font-black text-amber-600">{{ sentCount }}</div>
+                <div>
+                    <div class="font-semibold text-gray-800">
+                        bon{{ sentCount > 1 ? 's' : '' }} d'achat envoyé{{ sentCount > 1 ? 's' : '' }}
+                        {% if campagne.maxBeneficiaires %}sur {{ campagne.maxBeneficiaires }}{% endif %}
+                    </div>
+                    <div class="text-xs text-gray-500">Les bons déjà distribués restent valides même si la campagne est modifiée ou désactivée.</div>
+                </div>
+            </div>
+        {% endif %}
+
+        <form method="post" class="card p-6 space-y-6">
+            {% include 'components/_csrf.html.twig' %}
+
+            {# Nom + Code #}
+            <div class="grid sm:grid-cols-2 gap-4">
+                <div class="form-group">
+                    <label for="nom">Nom de la campagne *</label>
+                    <input type="text" id="nom" name="nom" required maxlength="150"
+                           value="{{ campagne ? campagne.nom : '' }}"
+                           placeholder="Ex : Offre de Noël"
+                           class="form-input">
+                </div>
+                <div class="form-group">
+                    <label for="codeNom">Nom du code cadeau</label>
+                    <input type="text" id="codeNom" name="codeNom" maxlength="100"
+                           value="{{ campagne ? campagne.codeNom : '' }}"
+                           placeholder="Ex : NOEL-5-POURCENT"
+                           class="form-input uppercase font-mono">
+                    <p class="text-xs text-gray-400 mt-1">Laisser vide pour générer un code aléatoire (CADEAU-XXXX)</p>
+                </div>
+            </div>
+
+            {# Déclencheur #}
+            <div class="p-4 bg-gray-50 rounded-xl space-y-4">
+                <div class="form-group">
+                    <label for="declencheur">Déclencheur *</label>
+                    <select id="declencheur" name="declencheur" x-model="declencheur" class="form-select">
+                        {% for key, label in declencheurs %}
+                            <option value="{{ key }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group" x-show="isMontantMin" x-cloak>
+                    <label for="montantMinimum">Montant minimum de la commande (€) *</label>
+                    <input type="number" id="montantMinimum" name="montantMinimum" min="0.01" step="0.01"
+                           value="{{ campagne and campagne.montantMinimum ? campagne.montantMinimum : '' }}"
+                           placeholder="Ex : 50.00"
+                           class="form-input w-48">
+                </div>
+
+                <div class="form-group" x-show="isNombreCommandes" x-cloak>
+                    <label for="nombreCommandes">Nombre de commandes payées requis *</label>
+                    <input type="number" id="nombreCommandes" name="nombreCommandes" min="1" step="1"
+                           value="{{ campagne and campagne.nombreCommandes ? campagne.nombreCommandes : 2 }}"
+                           placeholder="Ex : 3"
+                           class="form-input w-48">
+                    <p class="text-xs text-gray-500 mt-1">Déclenche lorsque le client atteint ce nombre total de commandes payées.</p>
+                </div>
+
+                <div class="flex items-center gap-3 pt-1">
+                    <input type="checkbox" name="uneFoisParClient" id="uneFoisParClient"
+                           {{ campagne ? (campagne.uneFoisParClient ? 'checked' : '') : 'checked' }}
+                           class="w-5 h-5 text-primary rounded">
+                    <label for="uneFoisParClient" class="cursor-pointer text-sm">
+                        Limiter à <strong>1 seul bon par client</strong> (adresse email) pour cette campagne
+                    </label>
+                </div>
+            </div>
+
+            {# Montant / Pourcentage #}
+            <div class="grid sm:grid-cols-2 gap-4">
+                <div class="form-group">
+                    <label for="typeReduction">Type de récompense *</label>
+                    <select id="typeReduction" name="typeReduction" x-model="typeReduction" class="form-select">
+                        <option value="fixe">Valeur fixe (€)</option>
+                        <option value="pourcentage">Pourcentage de la commande (%)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="valeur">Valeur *</label>
+                    <div class="relative">
+                        <input type="number" id="valeur" name="valeur" required min="0.01" step="0.01"
+                               value="{{ campagne ? campagne.valeur : 5 }}"
+                               class="form-input pr-10">
+                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 font-semibold text-sm"
+                              x-text="isPourcentage ? '%' : '€'"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3" x-show="isPourcentage" x-cloak>
+                <input type="checkbox" name="arrondi50Centimes" id="arrondi50Centimes"
+                       {{ campagne ? (campagne.arrondi50Centimes ? 'checked' : '') : 'checked' }}
+                       class="w-5 h-5 text-primary rounded">
+                <label for="arrondi50Centimes" class="cursor-pointer text-sm">
+                    Arrondir le montant du bon d'achat aux <strong>0,50 € supérieurs</strong>
+                </label>
+            </div>
+
+            {# Validité du bon d'achat #}
+            <div class="grid sm:grid-cols-2 gap-4 pt-2 border-t border-gray-100">
+                <div class="form-group">
+                    <label for="typeValidite">Validité du bon d'achat *</label>
+                    <select id="typeValidite" name="typeValidite" x-model="typeValidite" class="form-select">
+                        {% for key, label in validites %}
+                            <option value="{{ key }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group" x-show="isDateFixe" x-cloak>
+                    <label for="dateFinValiditeFixe">Date de fin de validité du bon *</label>
+                    <input type="date" id="dateFinValiditeFixe" name="dateFinValiditeFixe"
+                           value="{{ campagne and campagne.dateFinValiditeFixe ? campagne.dateFinValiditeFixe|date('Y-m-d') : '' }}"
+                           class="form-input">
+                </div>
+            </div>
+
+            {# Fin d'activation + Max bénéficiaires #}
+            <div class="grid sm:grid-cols-2 gap-4 pt-2 border-t border-gray-100">
+                <div class="form-group">
+                    <label for="dateFinActivation">Date de fin d'activation de la campagne</label>
+                    <input type="date" id="dateFinActivation" name="dateFinActivation"
+                           value="{{ campagne and campagne.dateFinActivation ? campagne.dateFinActivation|date('Y-m-d') : '' }}"
+                           class="form-input">
+                    <p class="text-xs text-gray-400 mt-1">Inclus jusqu'à 23h59. Laisser vide pour aucune date de fin.</p>
+                </div>
+                <div class="form-group">
+                    <label for="maxBeneficiaires">Nombre max de bénéficiaires</label>
+                    <input type="number" id="maxBeneficiaires" name="maxBeneficiaires" min="1" max="100000"
+                           value="{{ campagne and campagne.maxBeneficiaires ? campagne.maxBeneficiaires : '' }}"
+                           placeholder="Illimité"
+                           class="form-input">
+                    <p class="text-xs text-gray-400 mt-1">Laisser vide pour illimité.</p>
+                </div>
+            </div>
+
+            {# Actif #}
+            <div class="flex items-center gap-3 pt-2 border-t border-gray-100">
+                <input type="checkbox" name="actif" id="actif"
+                       {{ campagne ? (campagne.actif ? 'checked' : '') : 'checked' }}
+                       class="w-5 h-5 text-primary rounded">
+                <label for="actif" class="cursor-pointer font-medium">Campagne active</label>
+            </div>
+
+            <div class="flex gap-3 pt-4">
+                <button type="submit" class="btn-primary">{{ campagne ? 'Mettre à jour' : 'Créer la campagne' }}</button>
+                <a href="{{ path('admin_campagnes') }}" class="btn-outline">Annuler</a>
+            </div>
+        </form>
+    </div>
+{% endblock %}

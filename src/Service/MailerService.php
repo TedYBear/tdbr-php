@@ -149,18 +149,30 @@ class MailerService
     /**
      * Envoie un code cadeau suite à une commande (campagne)
      */
-    public function sendGiftCode(string $toEmail, string $code, float $montant, string $type): void
-    {
+    public function sendGiftCode(
+        string $toEmail,
+        string $code,
+        float $montant,
+        string $type,
+        ?\DateTimeImmutable $dateExpiration = null,
+        ?string $campagneNom = null,
+    ): void {
         $html = $this->twig->render('emails/gift_code.html.twig', [
-            'code'    => $code,
-            'montant' => $montant,
-            'type'    => $type,
+            'code'           => $code,
+            'montant'        => $montant,
+            'type'           => $type,
+            'dateExpiration' => $dateExpiration,
+            'campagneNom'    => $campagneNom,
         ]);
+
+        $subject = $campagneNom
+            ? $campagneNom . ' — Votre bon d\'achat TDBR vous attend !'
+            : 'Un cadeau vous attend chez TDBR !';
 
         $email = (new Email())
             ->from($this->fromEmail)
             ->to($toEmail)
-            ->subject('Un cadeau vous attend chez TDBR !')
+            ->subject($subject)
             ->html($html);
 
         $this->sendWithBcc($email);

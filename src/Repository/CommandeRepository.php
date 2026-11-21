@@ -59,4 +59,17 @@ class CommandeRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * Nombre de commandes payées (ou en cours de traitement/livrées) pour une adresse email.
+     */
+    public function countPaidByEmail(string $email): int
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        return (int) $conn->fetchOne(
+            "SELECT COUNT(id) FROM commandes WHERE statut IN ('payee', 'en_preparation', 'expediee', 'livree') AND LOWER(JSON_UNQUOTE(JSON_EXTRACT(client, '$.email'))) = ?",
+            [strtolower(trim($email))]
+        );
+    }
 }

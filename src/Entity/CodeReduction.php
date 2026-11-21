@@ -40,6 +40,10 @@ class CodeReduction
     #[ORM\Column]
     private bool $isCampaignGift = false;
 
+    #[ORM\ManyToOne(targetEntity: CampagneCadeau::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?CampagneCadeau $campagne = null;
+
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $recipientEmail = null;
 
@@ -69,6 +73,8 @@ class CodeReduction
     public function setCommande(?Commande $commande): static { $this->commande = $commande; return $this; }
     public function isCampaignGift(): bool { return $this->isCampaignGift; }
     public function setIsCampaignGift(bool $v): static { $this->isCampaignGift = $v; return $this; }
+    public function getCampagne(): ?CampagneCadeau { return $this->campagne; }
+    public function setCampagne(?CampagneCadeau $campagne): static { $this->campagne = $campagne; return $this; }
 
     public function getRecipientEmail(): ?string { return $this->recipientEmail; }
     public function setRecipientEmail(?string $v): static { $this->recipientEmail = $v; return $this; }

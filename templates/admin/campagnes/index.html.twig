@@ -1,0 +1,101 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% block title %}Campagnes codes cadeaux{% endblock %}
+{% block page_title %}Campagnes codes cadeaux{% endblock %}
+{% block page_subtitle %}
+    <p class="text-sm text-gray-600">Gérez plusieurs campagnes simultanées avec déclencheurs, dates de fin et durées de validité personnalisées</p>
+{% endblock %}
+
+{% block body %}
+    <div class="flex justify-end mb-6">
+        <a href="{{ path('admin_campagnes_new') }}" class="btn-primary">+ Nouvelle campagne</a>
+    </div>
+
+    <div class="card overflow-hidden">
+        {% if campagnes|length > 0 %}
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50 border-b">
+                        <tr>
+                            <th class="px-5 py-3 text-left text-sm font-semibold text-gray-700">Campagne</th>
+                            <th class="px-5 py-3 text-left text-sm font-semibold text-gray-700">Déclencheur</th>
+                            <th class="px-5 py-3 text-left text-sm font-semibold text-gray-700">Bon d'achat</th>
+                            <th class="px-5 py-3 text-left text-sm font-semibold text-gray-700">Validité du bon</th>
+                            <th class="px-5 py-3 text-left text-sm font-semibold text-gray-700">Fin d'activation</th>
+                            <th class="px-5 py-3 text-left text-sm font-semibold text-gray-700">Envoyés</th>
+                            <th class="px-5 py-3 text-left text-sm font-semibold text-gray-700">Statut</th>
+                            <th class="px-5 py-3 text-left text-sm font-semibold text-gray-700">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y">
+                        {% for c in campagnes %}
+                            {% set sent = counts[c.id]|default(0) %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-5 py-4">
+                                    <div class="font-semibold text-gray-900">{{ c.nom }}</div>
+                                    <div class="text-xs font-mono text-gray-500 mt-0.5">
+                                        {{ c.codeNom ? c.codeNom : 'Aléatoire (CADEAU-XXXX)' }}
+                                    </div>
+                                </td>
+                                <td class="px-5 py-4 text-sm text-gray-700">
+                                    <div>{{ c.declencheurLabel }}</div>
+                                    <div class="text-xs text-gray-400">
+                                        {{ c.uneFoisParClient ? '1 fois par client' : 'À chaque commande éligible' }}
+                                    </div>
+                                </td>
+                                <td class="px-5 py-4 text-sm font-semibold text-primary">
+                                    {% if c.typeReduction == 'pourcentage' %}
+                                        {{ c.valeur|number_format(c.valeur == c.valeur|round ? 0 : 2, ',', ' ') }} %
+                                        {% if c.arrondi50Centimes %}
+                                            <div class="text-xs font-normal text-gray-400">arrondi 0,50 € sup.</div>
+                                        {% endif %}
+                                    {% else %}
+                                        {{ c.valeur|number_format(2, ',', ' ') }} €
+                                    {% endif %}
+                                </td>
+                                <td class="px-5 py-4 text-sm text-gray-700">
+                                    {{ c.validiteLabel }}
+                                </td>
+                                <td class="px-5 py-4 text-sm text-gray-700">
+                                    {{ c.dateFinActivation ? c.dateFinActivation|date('d/m/Y') : 'Sans fin' }}
+                                </td>
+                                <td class="px-5 py-4 text-sm font-semibold">
+                                    {{ sent }}{% if c.maxBeneficiaires %} / {{ c.maxBeneficiaires }}{% endif %}
+                                </td>
+                                <td class="px-5 py-4">
+                                    {% if c.enCours %}
+                                        <span class="px-2.5 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">En cours</span>
+                                    {% elseif c.actif and c.dateFinActivation %}
+                                        <span class="px-2.5 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-semibold">Terminée</span>
+                                    {% else %}
+                                        <span class="px-2.5 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-semibold">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-5 py-4">
+                                    <div class="flex items-center gap-3 text-sm">
+                                        <a href="{{ path('admin_campagnes_edit', {id: c.id}) }}" class="text-primary hover:text-secondary font-medium">Modifier</a>
+                                        <form method="post" action="{{ path('admin_campagnes_toggle', {id: c.id}) }}">
+                                            {% include 'components/_csrf.html.twig' %}
+                                            <button type="submit" class="text-gray-600 hover:text-gray-900">
+                                                {{ c.actif ? 'Désactiver' : 'Activer' }}
+                                            </button>
+                                        </form>
+                                        <form method="post" action="{{ path('admin_campagnes_delete', {id: c.id}) }}" data-confirm="Supprimer cette campagne ? Les bons d'achat déjà distribués restent valides.">
+                                            {% include 'components/_csrf.html.twig' %}
+                                            <button type="submit" class="text-red-600 hover:text-red-700">Supprimer</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-16">
+                <p class="text-gray-500 mb-4">Aucune campagne code cadeau configurée pour le moment.</p>
+                <a href="{{ path('admin_campagnes_new') }}" class="btn-primary">Créer la première campagne</a>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
